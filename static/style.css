@@ -1,0 +1,12 @@
+.form-control {
+    width: 100%;
+}
+
+.content {
+    max-width: 800px;
+    background-color: white;
+}
+
+body {
+    background-color: rgb(224, 222, 71);
+}

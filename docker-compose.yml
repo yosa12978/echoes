@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+  web:
+    container_name: echoes-web
+    build: .
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+  postgres:
+    container_name: echoes-postgres
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=1234
+    volumes:
+      - /postgres-volume:/var/lib/postgresql/data
+  adminer:
+    container_name: echoes-adminer
+    image: adminer
+    ports:
+      - "5050:8080"
+    networks:
+      - mainnet
+
+networks:
+  mainnet:
+    driver: bridge
+
+volumes:
+  postgres-volume:

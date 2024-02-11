@@ -1,0 +1,30 @@
+{{block "posts" .}}
+<div>
+    {{ range . }}
+        <div class="card mt-2 mb-2" id="post-{{.Id}}">
+            <!-- <a hx-get="/posts/{{ .Id }}" href="#" hx-target="#detail" hx-trigger="click">{{ .Title }}</a> -->
+            <h2>{{.Title}}</h2>
+            <p>{{.Content}}</p>
+            <hr>
+            <small>id: {{.Id}} | Created: {{.Created}}</small>
+        </div>
+    {{ end }}
+</div>
+{{end}}
+
+{{block "alert" .}}
+<div class="alert alert-primary" style="max-width:500px;width:100%;" id="info">{{ . }}</div>
+{{end}}
+
+{{block "detail" .}} 
+<div id="post-{{.Id}}" class="card">
+    <div class="card-body">
+        <h3>Content</h3>
+        <span>id: {{.Id}}</span><br>
+        <span>Title: {{.Title}}</span><br>
+        <span>Content: {{.Content}}</span><br>
+        <span>Created: {{.Created}}</span><br>
+        <button hx-delete="/posts/{{.Id}}" hx-swap="none" hx-target="#post-{{.Id}}" class="btn btn-danger">delete</button>
+    </div>
+</div>
+{{end}}
