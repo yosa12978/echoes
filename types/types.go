@@ -52,3 +52,16 @@ type Config struct {
 	Addr     string
 	Postgres string
 }
+
+type Page[T interface{}] struct {
+	HasNext  bool
+	Size     int
+	NextPage int
+	Content  []T
+	Total    int
+}
+
+type Payload struct {
+	Title   string
+	Content interface{}
+}

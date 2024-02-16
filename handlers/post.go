@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/yosa12978/echoes/repos"
@@ -30,7 +32,30 @@ func NewPost(postRepo repos.Post) Post {
 
 func (h *post) GetPosts(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		utils.RenderBlock(w, "posts", h.postRepo.FindAll(ctx))
+		time.Sleep(2 * time.Second)
+		pageS := r.URL.Query().Get("page")
+		if pageS == "" {
+			pageS = "1"
+		}
+		page, err := strconv.Atoi(pageS)
+		if err != nil {
+			http.Error(w, err.Error(), 400)
+			return
+		}
+		limitS := r.URL.Query().Get("limit")
+		if limitS == "" {
+			limitS = "5"
+		}
+		limit, err := strconv.Atoi(limitS)
+		if err != nil {
+			http.Error(w, err.Error(), 400)
+			return
+		}
+		res := types.Payload{
+			Title:   "Home",
+			Content: h.postRepo.GetPage(ctx, page, limit),
+		}
+		utils.RenderBlock(w, "postsPage", res)
 	})
 }
 

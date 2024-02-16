@@ -1,15 +1,18 @@
-{{block "posts" .}}
-<div>
-    {{ range . }}
-        <div class="card mt-2 mb-2" id="post-{{.Id}}">
-            <!-- <a hx-get="/posts/{{ .Id }}" href="#" hx-target="#detail" hx-trigger="click">{{ .Title }}</a> -->
-            <h2>{{.Title}}</h2>
-            <p>{{.Content}}</p>
-            <hr>
-            <small>id: {{.Id}} | Created: {{.Created}}</small>
-        </div>
+{{block "postsPage" .}}
+    {{if eq .Content.Total 0}}
+    <div class="card mt-2 mb-2 p-2 text-bg-warning" id="post-{{.Id}}" style="text-align: center;">
+        No posts found :(
+    </div>
+    {{end}}
+    {{ range .Content.Content }}
+    <div class="card mt-2 mb-2 p-2 text-bg-light" id="post-{{.Id}}">
+        <h2>{{.Title}}</h2>
+        <small id="post-date-{{.Id}}">{{.Created}}</small>
+    </div>
     {{ end }}
-</div>
+    {{if .Content.HasNext}}
+    <div hx-trigger="revealed" hx-get="/hateoas/posts?page={{.Content.NextPage}}" hx-swap="afterend" hx-indicator="#spinner"></div>
+    {{end}}
 {{end}}
 
 {{block "alert" .}}
@@ -24,7 +27,40 @@
         <span>Title: {{.Title}}</span><br>
         <span>Content: {{.Content}}</span><br>
         <span>Created: {{.Created}}</span><br>
-        <button hx-delete="/posts/{{.Id}}" hx-swap="none" hx-target="#post-{{.Id}}" class="btn btn-danger">delete</button>
+        <button hx-delete="/hateoas/posts/{{.Id}}" hx-swap="none" class="btn btn-danger">delete</button>
     </div>
 </div>
+{{end}}
+
+
+{{block "announce" .}}
+{{if .}}
+<br>
+<div class="card bg-warning text-dark mb-2 announce">
+    <div class="card-body">
+        <b class="mb-2 mt-1">Announcement</b>
+        <p class="card-text mt-2">{{.Content}}</p>
+    </div>
+</div>
+{{end}}
+{{end}}
+
+<!-- Links -->
+{{block "links" .}}
+<div id="links">
+    <h2><i class="bi bi-link"></i> Links</h2><hr>
+    <div style="text-align: center;">
+    {{range .}}
+    <div class="card text-bg-light mb-3">
+        <a href="/portal/?url={{.URL}}" target="_blank" class="link link-dark text-decoration-none">
+        <div class="card-body"><b>
+            <p class="card-text fs-5">{{.Name}}</p></b>
+        </div>
+        </a>
+    </div>
+    {{end}}
+    </div>
+
+</div>
+<br>
 {{end}}

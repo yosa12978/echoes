@@ -1,12 +1,35 @@
+.card {
+    border-width: 0px;
+    border-radius: 15px;
+    word-break:break-all;
+}
+
+* {
+    font-family: "Arial", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
 .form-control {
     width: 100%;
 }
 
-.content {
+.container {
     max-width: 800px;
     background-color: white;
 }
+.btn-warning {
+    background-color: #F06D37;
+}
+.btn-warning:hover {
+    background-color: #bd572b;
+}
+.btn-warning:active, .btn-warning:focus {
+    background-color: #d05d2c;
+}
 
-body {
-    background-color: rgb(224, 222, 71);
+nav {
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
+    background-color: rgb(58, 58, 58);
 }

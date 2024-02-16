@@ -18,6 +18,7 @@ var (
 
 type Post interface {
 	FindAll(ctx context.Context) []types.Post
+	GetPage(ctx context.Context, page, size int) *types.Page[types.Post]
 	FindById(ctx context.Context, id string) (*types.Post, error)
 	Create(ctx context.Context, post types.Post) (*types.Post, error)
 	Update(ctx context.Context, id string, post types.Post) (*types.Post, error)
@@ -31,6 +32,10 @@ type postMock struct {
 
 func NewPostMock() Post {
 	return new(postMock)
+}
+
+func (repo *postMock) GetPage(ctx context.Context, page, size int) *types.Page[types.Post] {
+	return nil
 }
 
 func (repo *postMock) FindAll(ctx context.Context) []types.Post {
@@ -154,9 +159,54 @@ func (repo *postPostgres) Delete(ctx context.Context, id string) (*types.Post, e
 }
 
 func (repo *postPostgres) Seed(ctx context.Context) error {
-	_, err := repo.Create(ctx, types.NewPost("first post", "first post content"))
-	_, err = repo.Create(ctx, types.NewPost("second post", "second post content"))
-	_, err = repo.Create(ctx, types.NewPost("third post", "third post content"))
-	_, err = repo.Create(ctx, types.NewPost("fourth post", "fourth post content"))
+	// _, err := repo.Create(ctx, types.NewPost("first post", "first post content"))
+	// _, err = repo.Create(ctx, types.NewPost("second post", "second post content"))
+	// _, err = repo.Create(ctx, types.NewPost("third post", "third post content"))
+	// _, err = repo.Create(ctx, types.NewPost("fourth post", "fourth post content"))
+	_, err := repo.Create(ctx, types.NewPost("fifth post", "first post content"))
+	_, err = repo.Create(ctx, types.NewPost("sixth post", "second post content"))
+	_, err = repo.Create(ctx, types.NewPost("seventh post", "third post content"))
+	_, err = repo.Create(ctx, types.NewPost("eighth post", "fourth post content"))
+	_, err = repo.Create(ctx, types.NewPost("ninth post", "first post content"))
+	_, err = repo.Create(ctx, types.NewPost("tenth post", "second post content"))
+	_, err = repo.Create(ctx, types.NewPost("eleventh post", "third post content"))
+	_, err = repo.Create(ctx, types.NewPost("twelveth post", "fourth post content"))
 	return err
+}
+
+// test this function (i'm not sure if it works)
+func (repo *postPostgres) GetPage(ctx context.Context, page, size int) *types.Page[types.Post] {
+	posts := []types.Post{}
+	qcount := "SELECT COUNT(*) FROM posts;"
+	var count int
+	repo.db.QueryRowContext(ctx, qcount).Scan(&count)
+	hasNext := true
+	if (page-1)*size+size >= count {
+		hasNext = false
+	}
+	q := "SELECT * FROM posts ORDER BY created DESC LIMIT $1 OFFSET $2;"
+	rows, err := repo.db.QueryContext(ctx, q, size, (page-1)*size)
+	if err != nil {
+		log.Println(err.Error())
+		return &types.Page[types.Post]{
+			Content:  posts,
+			HasNext:  false,
+			Size:     size,
+			NextPage: 1,
+			Total:    0,
+		}
+	}
+	defer rows.Close()
+	for rows.Next() {
+		post := types.Post{}
+		rows.Scan(&post.Id, &post.Title, &post.Content, &post.Created)
+		posts = append(posts, post)
+	}
+	return &types.Page[types.Post]{
+		Content:  posts,
+		HasNext:  hasNext,
+		Size:     size,
+		NextPage: page + 1,
+		Total:    count,
+	}
 }
