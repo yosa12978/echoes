@@ -1,12 +1,7 @@
 {{block "postsPage" .}}
-    {{if eq .Content.Total 0}}
-    <div class="card mt-2 mb-2 p-2 text-bg-warning" id="post-{{.Id}}" style="text-align: center;">
-        No posts found :(
-    </div>
-    {{end}}
     {{ range .Content.Content }}
     <div class="card mt-2 mb-2 p-2 text-bg-light" id="post-{{.Id}}">
-        <h2>{{.Title}}</h2>
+        <h2><a href="/posts/{{.Id}}">{{.Title}}</a></h2>
         <small id="post-date-{{.Id}}">{{.Created}}</small>
     </div>
     {{ end }}
@@ -15,19 +10,24 @@
     {{end}}
 {{end}}
 
+{{block "noPosts" .}}
+<div class="card mt-2 mb-2 p-2 text-bg-warning" style="text-align: center;">
+    No posts found :(
+</div>
+{{end}}
+
 {{block "alert" .}}
 <div class="alert alert-primary" style="max-width:500px;width:100%;" id="info">{{ . }}</div>
 {{end}}
 
-{{block "detail" .}} 
-<div id="post-{{.Id}}" class="card">
+{{block "post" .}} 
+<div id="post-{{.Content.Id}}" class="card">
     <div class="card-body">
         <h3>Content</h3>
-        <span>id: {{.Id}}</span><br>
-        <span>Title: {{.Title}}</span><br>
-        <span>Content: {{.Content}}</span><br>
-        <span>Created: {{.Created}}</span><br>
-        <button hx-delete="/hateoas/posts/{{.Id}}" hx-swap="none" class="btn btn-danger">delete</button>
+        <span>id: {{.Content.Id}}</span><br>
+        <span>Title: {{.Content.Title}}</span><br>
+        <span>Content: {{.Content.Content}}</span><br>
+        <span>Created: {{.Content.Created}}</span><br>
     </div>
 </div>
 {{end}}
@@ -40,6 +40,7 @@
     <div class="card-body">
         <b class="mb-2 mt-1">Announcement</b>
         <p class="card-text mt-2">{{.Content}}</p>
+        <small class="card-text">{{.Date}}</small>
     </div>
 </div>
 {{end}}

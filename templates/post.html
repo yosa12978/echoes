@@ -1,0 +1,5 @@
+{{ template "header" . }}
+
+<div hx-trigger="load" hx-get="/hateoas/posts/{{.}}"></div>
+
+{{ template "footer" . }}

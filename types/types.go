@@ -46,6 +46,7 @@ type Account struct {
 
 type Announce struct {
 	Content string
+	Date    string
 }
 
 type Config struct {

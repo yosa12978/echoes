@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
@@ -159,19 +160,13 @@ func (repo *postPostgres) Delete(ctx context.Context, id string) (*types.Post, e
 }
 
 func (repo *postPostgres) Seed(ctx context.Context) error {
-	// _, err := repo.Create(ctx, types.NewPost("first post", "first post content"))
-	// _, err = repo.Create(ctx, types.NewPost("second post", "second post content"))
-	// _, err = repo.Create(ctx, types.NewPost("third post", "third post content"))
-	// _, err = repo.Create(ctx, types.NewPost("fourth post", "fourth post content"))
-	_, err := repo.Create(ctx, types.NewPost("fifth post", "first post content"))
-	_, err = repo.Create(ctx, types.NewPost("sixth post", "second post content"))
-	_, err = repo.Create(ctx, types.NewPost("seventh post", "third post content"))
-	_, err = repo.Create(ctx, types.NewPost("eighth post", "fourth post content"))
-	_, err = repo.Create(ctx, types.NewPost("ninth post", "first post content"))
-	_, err = repo.Create(ctx, types.NewPost("tenth post", "second post content"))
-	_, err = repo.Create(ctx, types.NewPost("eleventh post", "third post content"))
-	_, err = repo.Create(ctx, types.NewPost("twelveth post", "fourth post content"))
-	return err
+	for i := 0; i < 50; i++ {
+		_, err := repo.Create(ctx, types.NewPost(fmt.Sprintf("post #%d", i), fmt.Sprintf("post content #%d", i)))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // test this function (i'm not sure if it works)

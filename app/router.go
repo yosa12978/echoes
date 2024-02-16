@@ -14,8 +14,8 @@ func NewRouter(ctx context.Context) http.Handler {
 	postRepo := repos.NewPostPostgres()
 	linkRepo := repos.NewLinkPostgres()
 	announceRepo := repos.NewAnnounce()
-
-	//announceRepo.Create("*beep* *boop* new announce *beep* *boop*")
+	//postRepo.Seed(ctx)
+	announceRepo.Create("*beep* *boop* new announce *beep* *boop*")
 
 	postHandler := handlers.NewPost(postRepo)
 	linkHandler := handlers.NewLink(linkRepo)
@@ -28,6 +28,13 @@ func NewRouter(ctx context.Context) http.Handler {
 
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if err := utils.RenderTemplate(w, "index", nil); err != nil {
+			http.Error(w, err.Error(), 500)
+		}
+	}).Methods("GET")
+
+	router.HandleFunc("/posts/{id}", func(w http.ResponseWriter, r *http.Request) {
+		idStr := mux.Vars(r)["id"]
+		if err := utils.RenderTemplate(w, "post", idStr); err != nil {
 			http.Error(w, err.Error(), 500)
 		}
 	}).Methods("GET")

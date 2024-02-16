@@ -3,6 +3,7 @@ package repos
 import (
 	"context"
 	"database/sql"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -12,6 +13,7 @@ import (
 
 type Comment interface {
 	FindAll(ctx context.Context) []types.Comment
+	GetPage(ctx context.Context, postId string, page, size int) *types.Page[types.Comment]
 	FindById(ctx context.Context, id string) (*types.Comment, error)
 	FindByPostId(ctx context.Context, postId string) ([]types.Comment, error)
 	Create(ctx context.Context, comment types.Comment) (*types.Comment, error)
@@ -134,4 +136,40 @@ func (repo *commentPostgres) Delete(ctx context.Context, id string) (*types.Comm
 
 func (repo *commentPostgres) Seed(ctx context.Context) error {
 	return nil
+}
+
+func (repo *commentPostgres) GetPage(ctx context.Context, postId string, page, size int) *types.Page[types.Comment] {
+	comments := []types.Comment{}
+	qcount := "SELECT COUNT(*) FROM comments WHERE postId=$1;"
+	var count int
+	repo.db.QueryRowContext(ctx, qcount, postId).Scan(&count)
+	hasNext := true
+	if (page-1)*size+size >= count {
+		hasNext = false
+	}
+	q := "SELECT * FROM comments WHERE postId=$1 ORDER BY created DESC LIMIT $2 OFFSET $3;"
+	rows, err := repo.db.QueryContext(ctx, q, postId, size, (page-1)*size)
+	if err != nil {
+		log.Println(err.Error())
+		return &types.Page[types.Comment]{
+			Content:  comments,
+			HasNext:  false,
+			Size:     size,
+			NextPage: 1,
+			Total:    0,
+		}
+	}
+	defer rows.Close()
+	for rows.Next() {
+		comment := types.Comment{}
+		rows.Scan(&comment.Id, &comment.Email, &comment.Name, &comment.Content, &comment.Created)
+		comments = append(comments, comment)
+	}
+	return &types.Page[types.Comment]{
+		Content:  comments,
+		HasNext:  hasNext,
+		Size:     size,
+		NextPage: page + 1,
+		Total:    count,
+	}
 }

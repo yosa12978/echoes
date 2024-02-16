@@ -1,6 +1,10 @@
 package repos
 
-import "github.com/yosa12978/echoes/types"
+import (
+	"time"
+
+	"github.com/yosa12978/echoes/types"
+)
 
 type Announce interface {
 	Create(content string) types.Announce
@@ -21,6 +25,7 @@ func NewAnnounce() Announce {
 func (repo *announce) Create(content string) types.Announce {
 	repo.storage = new(types.Announce)
 	repo.storage.Content = content
+	repo.storage.Date = time.Now().Format(time.RFC3339)
 	return *repo.storage
 }
 
