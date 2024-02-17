@@ -95,7 +95,7 @@ func NewPostPostgres() Post {
 
 func (repo *postPostgres) FindAll(ctx context.Context) []types.Post {
 	posts := []types.Post{}
-	q := "SELECT id, title, content, created FROM posts ORDER BY created DESC;"
+	q := "SELECT id, title, content, created FROM posts ORDER BY pinned, created DESC;"
 	rows, err := repo.db.QueryContext(ctx, q)
 	if err != nil {
 		log.Println(err.Error())
@@ -129,6 +129,7 @@ func (repo *postPostgres) FindById(ctx context.Context, id string) (*types.Post,
 		&post.Title,
 		&post.Content,
 		&post.Created,
+		&post.Pinned,
 	)
 	return &post, err
 }
@@ -144,8 +145,8 @@ func (repo *postPostgres) Create(ctx context.Context, post types.Post) (*types.P
 }
 
 func (repo *postPostgres) Update(ctx context.Context, id string, post types.Post) (*types.Post, error) {
-	q := "UPDATE posts SET title=$1, content=$2 WHERE id=$3;"
-	_, err := repo.db.ExecContext(ctx, q, post.Title, post.Content, id)
+	q := "UPDATE posts SET title=$1, content=$2, pinned=$3 WHERE id=$4;"
+	_, err := repo.db.ExecContext(ctx, q, post.Title, post.Content, post.Pinned, id)
 	return &post, err
 }
 
@@ -161,6 +162,7 @@ func (repo *postPostgres) Delete(ctx context.Context, id string) (*types.Post, e
 
 func (repo *postPostgres) Seed(ctx context.Context) error {
 	for i := 0; i < 50; i++ {
+		time.Sleep(50 * time.Millisecond)
 		_, err := repo.Create(ctx, types.NewPost(fmt.Sprintf("post #%d", i), fmt.Sprintf("post content #%d", i)))
 		if err != nil {
 			return err
@@ -179,7 +181,7 @@ func (repo *postPostgres) GetPage(ctx context.Context, page, size int) *types.Pa
 	if (page-1)*size+size >= count {
 		hasNext = false
 	}
-	q := "SELECT * FROM posts ORDER BY created DESC LIMIT $1 OFFSET $2;"
+	q := "SELECT * FROM posts ORDER BY pinned DESC, created DESC LIMIT $1 OFFSET $2;"
 	rows, err := repo.db.QueryContext(ctx, q, size, (page-1)*size)
 	if err != nil {
 		log.Println(err.Error())
@@ -194,7 +196,7 @@ func (repo *postPostgres) GetPage(ctx context.Context, page, size int) *types.Pa
 	defer rows.Close()
 	for rows.Next() {
 		post := types.Post{}
-		rows.Scan(&post.Id, &post.Title, &post.Content, &post.Created)
+		rows.Scan(&post.Id, &post.Title, &post.Content, &post.Created, &post.Pinned)
 		posts = append(posts, post)
 	}
 	return &types.Page[types.Post]{

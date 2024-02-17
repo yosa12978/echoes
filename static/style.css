@@ -10,6 +10,10 @@
     font-style: normal;
 }
 
+a {
+    color: black;
+}
+
 .form-control {
     width: 100%;
 }
@@ -18,12 +22,16 @@
     max-width: 800px;
     background-color: white;
 }
+
 .btn-warning {
+    border-width: 0px;
     background-color: #F06D37;
 }
+
 .btn-warning:hover {
     background-color: #bd572b;
 }
+
 .btn-warning:active, .btn-warning:focus {
     background-color: #d05d2c;
 }

@@ -1,5 +1,7 @@
 {{ template "header" . }}
 
+<a class="btn btn-warning mt-2 border-0" type="submit" href="/"><i class="bi bi-house-door"></i> Home</a>
+
 <div hx-trigger="load" hx-get="/hateoas/posts/{{.}}"></div>
 
 {{ template "footer" . }}

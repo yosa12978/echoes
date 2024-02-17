@@ -1,7 +1,7 @@
 {{block "postsPage" .}}
     {{ range .Content.Content }}
     <div class="card mt-2 mb-2 p-2 text-bg-light" id="post-{{.Id}}">
-        <h2><a href="/posts/{{.Id}}">{{.Title}}</a></h2>
+        <h3><a href="/posts/{{.Id}}">{{if .Pinned}}<i class="bi bi-pin-angle-fill"></i>{{end}} {{.Title}}</a></h3>
         <small id="post-date-{{.Id}}">{{.Created}}</small>
     </div>
     {{ end }}
@@ -17,18 +17,19 @@
 {{end}}
 
 {{block "alert" .}}
-<div class="alert alert-primary" style="max-width:500px;width:100%;" id="info">{{ . }}</div>
+{{if . }}
+<div class="alert alert-warning" style="max-width:500px;width:100%;" id="info">{{ . }}</div>
+{{end}}
 {{end}}
 
-{{block "post" .}} 
-<div id="post-{{.Content.Id}}" class="card">
-    <div class="card-body">
-        <h3>Content</h3>
-        <span>id: {{.Content.Id}}</span><br>
-        <span>Title: {{.Content.Title}}</span><br>
-        <span>Content: {{.Content.Content}}</span><br>
-        <span>Created: {{.Content.Created}}</span><br>
-    </div>
+{{block "post" .}}
+<div class="card mt-2 mb-2 p-2 text-bg-light" id="post-{{.Content.Id}}">
+    <h2>{{.Content.Title}}</h2>
+    <p id="post-content"></p><br>
+    <small>Created: {{.Content.Created}} <br>{{.Content.Id}}</small>
+    <script>
+        document.getElementById("post-content").innerHTML = marked.parse("{{.Content.Content}}")
+    </script>
 </div>
 {{end}}
 
@@ -54,14 +55,43 @@
     {{range .}}
     <div class="card text-bg-light mb-3">
         <a href="/portal/?url={{.URL}}" target="_blank" class="link link-dark text-decoration-none">
-        <div class="card-body"><b>
-            <p class="card-text fs-5">{{.Name}}</p></b>
+        <div class="card-body">
+            <p class="card-text fs-5"><b>{{.Name}}</b></p>
         </div>
         </a>
     </div>
     {{end}}
     </div>
+</div>
+<br>
+{{end}}
 
+{{block "profile" .}}
+<center>
+<div class="card text-bg-white">
+    <div class="card-body">
+        <img src="{{.Icon}}" class="mb-2" style="max-width: 100px; max-height: 100px; border-radius: 25px;" alt="icon"/><br>
+        <b class="mb-2 mt-1" style="font-size:x-large">{{.Name}}</b>
+        <p class="card-text mt-2">{{.Bio}}</p>
+    </div>
+</div>
+</center>
+{{end}}
+
+{{block "links_admin" .}}
+<div id="links">
+    <h3><i class="bi bi-link"></i>Delete Link</h3>
+    <div id="link-delete-alert"></div>
+    <div>
+    {{range .}}
+    <div class="card text-bg-light mb-3" id="link-{{.Id}}">
+        <div class="card-body d-flex justify-content-between">
+            <span class="card-text float-left mt-1"><b>{{.Name}}</b></span>
+            <button class="btn btn-danger border-0" hx-delete="/hateoas/links/{{.Id}}" hx-target="#link-delete-alert" hx-swap="innerHTML">Delete</button>
+        </div>
+    </div>
+    {{end}}
+    </div>
 </div>
 <br>
 {{end}}

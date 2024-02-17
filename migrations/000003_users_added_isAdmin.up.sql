@@ -1,0 +1,1 @@
+ALTER TABLE accounts ADD isAdmin BOOLEAN NOT NULL DEFAULT false;

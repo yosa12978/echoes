@@ -1,0 +1,1 @@
+ALTER TABLE posts ADD pinned BOOLEAN NOT NULL DEFAULT false;

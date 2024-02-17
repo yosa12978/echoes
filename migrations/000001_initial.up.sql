@@ -23,7 +23,7 @@ CREATE TABLE comments (
 
 ALTER TABLE comments ADD FOREIGN KEY (postId) REFERENCES posts (id);
 
-CREATE TABLE account (
+CREATE TABLE accounts (
     id VARCHAR(36) PRIMARY KEY,
     username TEXT NOT NULL,
     password TEXT NOT NULL,

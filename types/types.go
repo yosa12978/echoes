@@ -11,6 +11,7 @@ type Post struct {
 	Title   string
 	Content string
 	Created string
+	Pinned  bool
 }
 
 func NewPost(title, content string) Post {
@@ -19,6 +20,7 @@ func NewPost(title, content string) Post {
 		Title:   title,
 		Content: content,
 		Created: time.Now().Format(time.RFC3339),
+		Pinned:  false,
 	}
 }
 
@@ -65,4 +67,10 @@ type Page[T interface{}] struct {
 type Payload struct {
 	Title   string
 	Content interface{}
+}
+
+type Profile struct {
+	Name string `json:"name"`
+	Bio  string `json:"bio"`
+	Icon string `json:"icon"`
 }

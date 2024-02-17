@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
@@ -15,6 +16,7 @@ import (
 type Post interface {
 	GetPosts(ctx context.Context) http.Handler
 	GetPostById(ctx context.Context) http.Handler
+	PinPost(ctx context.Context) http.Handler
 	CreatePost(ctx context.Context) http.Handler
 	DeletePost(ctx context.Context) http.Handler
 }
@@ -67,6 +69,7 @@ func (h *post) GetPostById(ctx context.Context) http.Handler {
 		post, err := h.postRepo.FindById(ctx, id)
 		if err != nil {
 			log.Println(err.Error())
+			http.Error(w, err.Error(), 404)
 			return
 		}
 		pl := types.Payload{Title: post.Title, Content: post}
@@ -81,6 +84,7 @@ func (h *post) CreatePost(ctx context.Context) http.Handler {
 		post := types.NewPost(r.FormValue("title"), r.FormValue("content"))
 		if _, err := h.postRepo.Create(ctx, post); err != nil {
 			log.Println(err.Error())
+			utils.RenderBlock(w, "alert", "Failed to create")
 			return
 		}
 		utils.RenderBlock(w, "alert", "Created new post")
@@ -89,10 +93,35 @@ func (h *post) CreatePost(ctx context.Context) http.Handler {
 
 func (h *post) DeletePost(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id := mux.Vars(r)["id"]
-		if _, err := h.postRepo.Delete(ctx, id); err != nil {
+		var body map[string]interface{}
+		json.NewDecoder(r.Body).Decode(&body)
+		if _, err := h.postRepo.Delete(ctx, body["id"].(string)); err != nil {
 			log.Println(err.Error())
+			utils.RenderBlock(w, "alert", "Failed to delete")
 			return
 		}
+		utils.RenderBlock(w, "alert", "Post deleted successfully")
+	})
+}
+
+func (h *post) PinPost(ctx context.Context) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var body map[string]interface{}
+		json.NewDecoder(r.Body).Decode(&body)
+
+		post, err := h.postRepo.FindById(ctx, body["id"].(string))
+		if err != nil {
+			log.Println(err.Error())
+			utils.RenderBlock(w, "alert", "Post not found")
+			return
+		}
+		post.Pinned = !post.Pinned
+		_, err = h.postRepo.Update(ctx, post.Id, *post)
+		if err != nil {
+			log.Println(err.Error())
+			utils.RenderBlock(w, "alert", "Failed to update")
+			return
+		}
+		utils.RenderBlock(w, "alert", "Post pinned :)")
 	})
 }

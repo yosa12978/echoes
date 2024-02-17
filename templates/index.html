@@ -1,12 +1,22 @@
 {{template "header" .}}
-
+    <div id="profile" hx-get="/hateoas/profile" hx-swap="outerHTML" hx-trigger="load"></div>
     <!-- <button hx-get="/hateoas/posts" hx-trigger="click" hx-target="#list" hx-indicator="#spinner" class="btn btn-primary mb-3">Get Posts</button><br> -->
     <div id="announce" hx-get="/hateoas/announce" hx-swap="outerHTML" hx-trigger="load" style="text-align: center;"></div>
     
     <div id="links" hx-get="/hateoas/links" hx-trigger="load" hx-indicator="#spinner" hx-swap="outerHTML"></div>
 
-    <h2><i class="bi bi-newspaper"></i> Blog Posts</h2><hr>
-    <div id="list" hx-get="/hateoas/posts" hx-trigger="load" hx-indicator="#spinner" hx-swap="outerHTML"></div>
+    <div class="blog">
+        <div class="justify-content-between d-inline">
+            <h2 class=""><i class="bi bi-newspaper"></i> Blog Posts</h2> 
+            <form class="form-inline d-flex" hx-get="/hateoas/posts" hx-target="#list" hx-swap="innerHTML" style="max-width: 400px;" hx-indicator="#spinner">
+                <input class="form-control mr-sm-2 border-1 shadow-none" type="search" name="query" placeholder="Search" aria-label="Search" >
+                <button class="btn btn-warning my-2 border-0 my-sm-0" style="margin-right: 10px; margin-left: 5px;" type="submit"><i class="bi bi-search"></i></button>
+            </form>
+        </div>
+        <hr>
+        <div id="list" hx-get="/hateoas/posts" hx-trigger="load" hx-indicator="#spinner" hx-swap="outerHTML"></div>
+    </div>
+
     <center>
     <div class="spinner-border htmx-indicator" id="spinner" role="status"></div>
     </center>
