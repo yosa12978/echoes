@@ -44,6 +44,7 @@ type Account struct {
 	Username string
 	Password string
 	Created  string
+	IsAdmin  bool
 }
 
 type Announce struct {

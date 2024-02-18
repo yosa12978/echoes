@@ -50,7 +50,9 @@
 <!-- Links -->
 {{block "links" .}}
 <div id="links">
+    {{if .}}
     <h2><i class="bi bi-link"></i> Links</h2><hr>
+    {{end}}
     <div style="text-align: center;">
     {{range .}}
     <div class="card text-bg-light mb-3">

@@ -96,12 +96,18 @@ func (repo *linkPostgres) Seed(ctx context.Context) error {
 		URL:     "https://reddit.com",
 		Created: time.Now().Format(time.RFC3339),
 	})
+	if err != nil {
+		return err
+	}
 	_, err = repo.Create(ctx, types.Link{
 		Id:      "c46428bd-a807-4042-812b-f3b56f047732",
 		Name:    "my github",
 		URL:     "https://github.com/yosa12978",
 		Created: time.Now().Format(time.RFC3339),
 	})
+	if err != nil {
+		return err
+	}
 	_, err = repo.Create(ctx, types.Link{
 		Id:      "60a9f6e8-8fda-480a-832a-3e3a07ae8890",
 		Name:    "wow forum (icy veins)",

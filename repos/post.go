@@ -135,10 +135,13 @@ func (repo *postPostgres) FindById(ctx context.Context, id string) (*types.Post,
 }
 
 func (repo *postPostgres) Create(ctx context.Context, post types.Post) (*types.Post, error) {
+
+	// move this block to service layer
 	id := uuid.NewString()
 	created := time.Now().Format(time.RFC3339)
 	post.Id = id
 	post.Created = created
+
 	q := "INSERT INTO posts (id, title, content, created) VALUES ($1, $2, $3, $4);"
 	_, err := repo.db.ExecContext(ctx, q, post.Id, post.Title, post.Content, post.Created)
 	return &post, err
@@ -151,10 +154,13 @@ func (repo *postPostgres) Update(ctx context.Context, id string, post types.Post
 }
 
 func (repo *postPostgres) Delete(ctx context.Context, id string) (*types.Post, error) {
+
+	// move this block to service layer
 	post, err := repo.FindById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
+
 	q := "DELETE FROM posts WHERE id=$1;"
 	_, err = repo.db.ExecContext(ctx, q, id)
 	return post, err
