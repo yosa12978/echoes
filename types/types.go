@@ -75,3 +75,9 @@ type Profile struct {
 	Bio  string `json:"bio"`
 	Icon string `json:"icon"`
 }
+
+type SessionInfo struct {
+	Username  string `json:"username"`
+	Role      string `json:"role"`
+	Timestamp int64  `json:"timestamp"`
+}

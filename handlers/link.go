@@ -67,6 +67,6 @@ func (h *link) Delete(ctx context.Context) http.Handler {
 			utils.RenderBlock(w, "alert", "Failed to delete")
 			return
 		}
-		utils.RenderBlock(w, "alert", "deleted")
+		utils.RenderBlock(w, "alert", "Link Deleted")
 	})
 }
