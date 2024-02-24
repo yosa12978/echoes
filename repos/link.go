@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/yosa12978/echoes/data"
 	"github.com/yosa12978/echoes/types"
 )
@@ -64,10 +63,6 @@ func (repo *linkPostgres) FindById(ctx context.Context, id string) (*types.Link,
 }
 
 func (repo *linkPostgres) Create(ctx context.Context, link types.Link) (*types.Link, error) {
-	id := uuid.NewString()
-	created := time.Now().Format(time.RFC3339)
-	link.Id = id
-	link.Created = created
 	q := "INSERT INTO links (id, name, url, created) VALUES ($1, $2, $3, $4);"
 	_, err := repo.db.ExecContext(ctx, q, link.Id, link.Name, link.URL, link.Created)
 	return &link, err
@@ -89,6 +84,7 @@ func (repo *linkPostgres) Delete(ctx context.Context, id string) (*types.Link, e
 	return link, err
 }
 
+// remove this method (and it's signature from repo interface)
 func (repo *linkPostgres) Seed(ctx context.Context) error {
 	_, err := repo.Create(ctx, types.Link{
 		Id:      "09741221-7ea7-4106-ac19-8d2c2c90afbc",

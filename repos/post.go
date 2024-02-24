@@ -8,7 +8,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/yosa12978/echoes/data"
 	"github.com/yosa12978/echoes/types"
 )
@@ -72,6 +71,7 @@ func (repo *postMock) Delete(ctx context.Context, id string) (*types.Post, error
 	return nil, ErrPostNotFound
 }
 
+// remove this method (and it's signature from repo interface)
 func (repo *postMock) Seed(ctx context.Context) error {
 	posts := []types.Post{
 		types.NewPost("first post", "first post content"),
@@ -135,13 +135,6 @@ func (repo *postPostgres) FindById(ctx context.Context, id string) (*types.Post,
 }
 
 func (repo *postPostgres) Create(ctx context.Context, post types.Post) (*types.Post, error) {
-
-	// move this block to service layer
-	id := uuid.NewString()
-	created := time.Now().Format(time.RFC3339)
-	post.Id = id
-	post.Created = created
-
 	q := "INSERT INTO posts (id, title, content, created) VALUES ($1, $2, $3, $4);"
 	_, err := repo.db.ExecContext(ctx, q, post.Id, post.Title, post.Content, post.Created)
 	return &post, err
@@ -166,6 +159,7 @@ func (repo *postPostgres) Delete(ctx context.Context, id string) (*types.Post, e
 	return post, err
 }
 
+// remove this method (and it's signature from repo interface)
 func (repo *postPostgres) Seed(ctx context.Context) error {
 	for i := 0; i < 50; i++ {
 		time.Sleep(50 * time.Millisecond)
@@ -177,7 +171,6 @@ func (repo *postPostgres) Seed(ctx context.Context) error {
 	return nil
 }
 
-// test this function (i'm not sure if it works)
 func (repo *postPostgres) GetPage(ctx context.Context, page, size int) *types.Page[types.Post] {
 	posts := []types.Post{}
 	qcount := "SELECT COUNT(*) FROM posts;"

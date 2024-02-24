@@ -1,7 +1,17 @@
 {{ template "header" . }}
-<a class="btn btn-warning mt-2 mb-2 border-0" type="submit" href="/"><i class="bi bi-house-door"></i> Home</a>
-
+<a class="btn btn-warning mt-2 mb-2 border-0" href="/"><i class="bi bi-house-door"></i> Home</a>
+<a class="btn btn-danger mt-2 mb-2 border-0" hx-get="/hateoas/logout"><i class="bi bi-box-arrow-left"></i> Logout</a>
 <h2><b>Admin Page</b></h2>
+
+<div class="mt-3">
+    <h3><i class="bi bi-megaphone-fill"></i> Announce</h3>
+    <div id="announce-alert"></div>
+    <form hx-post="/hateoas/announce" hx-target="#announce-alert" hx-swap="innerHTML" style="max-width: 500px;">
+        <textarea name="content" type="text" placeholder="Content" class="form-control mb-2"></textarea>
+        <button type="submit" class="btn btn-warning border-0">Add announce</button>
+    </form><br>
+    <button class="btn btn-warning border-0 mb-3" hx-delete="/hateoas/announce" hx-target="#announce-alert">Delete announce</button>
+</div>
 
 <div class="mt-3">
     <h3><i class="bi bi-newspaper"></i> Create Post</h3>

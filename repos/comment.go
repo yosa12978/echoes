@@ -103,10 +103,13 @@ func (repo *commentPostgres) FindByPostId(ctx context.Context, postId string) ([
 }
 
 func (repo *commentPostgres) Create(ctx context.Context, comment types.Comment) (*types.Comment, error) {
+
+	// move this to the service layer
 	id := uuid.NewString()
 	created := time.Now().Format(time.RFC3339)
 	comment.Id = id
 	comment.Created = created
+
 	q := "INSERT INTO comments (id, email, name, content, created) VALUES ($1, $2, $3, $4, $5);"
 	_, err := repo.db.ExecContext(ctx, q,
 		comment.Id,
@@ -134,6 +137,7 @@ func (repo *commentPostgres) Delete(ctx context.Context, id string) (*types.Comm
 	return comment, err
 }
 
+// remove this method (and it's signature from repo interface)
 func (repo *commentPostgres) Seed(ctx context.Context) error {
 	return nil
 }

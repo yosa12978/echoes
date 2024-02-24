@@ -1,7 +1,7 @@
 {{block "postsPage" .}}
     {{ range .Content.Content }}
     <div class="card mt-2 mb-2 p-2 text-bg-light" id="post-{{.Id}}">
-        <h3><a href="/posts/{{.Id}}">{{if .Pinned}}<i class="bi bi-pin-angle-fill"></i>{{end}} {{.Title}}</a></h3>
+        <h3><a href="/posts/{{.Id}}">{{if .Pinned}}<i class="bi bi-pin-angle-fill" style="font-size: large; vertical-align: middle;"></i>{{end}} {{.Title}}</a></h3>
         <small id="post-date-{{.Id}}">{{.Created}}</small>
     </div>
     {{ end }}
@@ -39,7 +39,7 @@
 <br>
 <div class="card bg-warning text-dark mb-2 announce">
     <div class="card-body">
-        <b class="mb-2 mt-1">Announcement</b>
+        <b class="mb-2 mt-1"><i class="bi bi-megaphone-fill"></i> Announcement</b>
         <p class="card-text mt-2">{{.Content}}</p>
         <small class="card-text">{{.Date}}</small>
     </div>

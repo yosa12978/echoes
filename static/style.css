@@ -25,6 +25,7 @@ a {
 
 .btn-warning {
     border-width: 0px;
+    font-weight: bold;
     background-color: #F06D37;
 }
 

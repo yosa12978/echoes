@@ -3,9 +3,7 @@ package repos
 import (
 	"context"
 	"database/sql"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/yosa12978/echoes/data"
 	"github.com/yosa12978/echoes/types"
 )
@@ -60,13 +58,7 @@ func (repo *account) FindByUsername(ctx context.Context, username string) (*type
 
 func (repo *account) Create(ctx context.Context, account types.Account) (*types.Account, error) {
 	q := "INSERT INTO accounts (id, username, password, created, isadmin) VALUES ($1, $2, $3, $4, $5);"
-
-	// move this block to service layer
-	account.Id = uuid.NewString()
-	account.Created = time.Now().Format(time.RFC3339)
-	account.IsAdmin = false
-
-	repo.db.ExecContext(ctx, q)
+	repo.db.ExecContext(ctx, q, account.Id, account.Username, account.Password, account.Created, account.IsAdmin)
 	return nil, nil
 }
 
