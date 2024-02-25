@@ -37,6 +37,7 @@ type Comment struct {
 	Name    string
 	Content string
 	Created string
+	PostId  string
 }
 
 type Account struct {
@@ -53,8 +54,9 @@ type Announce struct {
 }
 
 type Config struct {
-	Addr     string
-	Postgres string
+	Addr       string
+	Postgres   string
+	SessionKey string
 }
 
 type Page[T interface{}] struct {
@@ -80,4 +82,9 @@ type SessionInfo struct {
 	Username  string `json:"username"`
 	Role      string `json:"role"`
 	Timestamp int64  `json:"timestamp"`
+}
+
+type CommentsInfo struct {
+	Page[Comment]
+	PostId string
 }

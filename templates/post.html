@@ -4,4 +4,19 @@
 
 <div hx-trigger="load" hx-get="/hateoas/posts/{{.}}"></div>
 
+<div>
+    <br>
+    <h3 class="mb-2">Comments: 1234</h3>
+    <div class="mt-3">
+        <div id="create-post-alert"></div>
+        <form hx-post="/hateoas/comments/" hx-target="#create-post-alert" hx-swap="innerHTML" style="max-width: 500px;">
+            <input name="name" type="text" placeholder="Name" class="form-control mb-2"/>
+            <input name="email" type="email" placeholder="Email" class="form-control mb-2"/>
+            <textarea name="content" type="text" placeholder="Content" class="form-control mb-2"></textarea>
+            <button type="submit" class="btn btn-warning border-0 mb-3">Add Comment</button>
+        </form><br>
+    </div>
+    <div hx-get="/hateoas/comments/{{.}}" hx-trigger="load" hx-swap="outerHTML"></div>
+</div>
+
 {{ template "footer" . }}

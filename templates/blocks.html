@@ -97,3 +97,33 @@
 </div>
 <br>
 {{end}}
+
+
+{{block "comments" .}}
+
+<div>
+    <h2><i class="bi bi-chat-dots-fill"></i> Comments</h2>
+    {{range .}}
+    <div class="card mt-2 mb-2 p-2 text-bg-light" id="post-{{.Content.Id}}">
+        <div class="card-body">
+        <p><b>{{.Name}}</b></p>
+        <p id="post-content">{{.Content}}</p><br>
+        <small>Created: {{.Created}} <br>{{.Id}}</small>
+        </div>
+    </div>
+    {{end}}
+</div>
+
+{{range .Content}}
+<div class="card mt-2 mb-2 p-2 text-bg-light">
+    <div class="card-body">
+    <p><b>{{.Name}}</b></p>
+    <p>{{.Content}}</p>
+    <small>Created: {{.Created}} | {{.Id}}</small>
+    </div>
+</div>
+{{end}}
+{{if .Content.HasNext}}
+<div hx-trigger="revealed" hx-get="/hateoas/comments/{{.Content.PostId}}?page={{.NextPage}}" hx-swap="afterend" hx-indicator="#spinner"></div>
+{{end}}
+{{end}}

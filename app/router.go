@@ -9,6 +9,7 @@ import (
 	"github.com/yosa12978/echoes/handlers"
 	"github.com/yosa12978/echoes/middleware"
 	"github.com/yosa12978/echoes/repos"
+	"github.com/yosa12978/echoes/services"
 	"github.com/yosa12978/echoes/session"
 	"github.com/yosa12978/echoes/utils"
 )
@@ -18,6 +19,8 @@ func NewRouter(ctx context.Context) http.Handler {
 	linkRepo := repos.NewLinkPostgres()
 	announceRepo := repos.NewAnnounce()
 	accountRepo := repos.NewAccountPostgres()
+	postService := services.NewPost(repos.NewPostPostgres())
+	commentService := services.NewComment(repos.NewCommentPostgres(), postService)
 	profileRepo, err := repos.NewProfileJson("./static/profile.json")
 	if err != nil {
 		log.Println(err.Error())
@@ -28,7 +31,7 @@ func NewRouter(ctx context.Context) http.Handler {
 	announceHandler := handlers.NewAnnounce(announceRepo)
 	profileHandler := handlers.NewProfile(profileRepo)
 	accountHandler := handlers.NewAccount(accountRepo)
-	commentHandler := handlers.NewComment()
+	commentHandler := handlers.NewComment(commentService)
 
 	router := mux.NewRouter()
 	router.StrictSlash(true)

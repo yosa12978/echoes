@@ -4,21 +4,23 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"os"
 	"sync"
 	"time"
 
 	"github.com/gorilla/sessions"
+	"github.com/yosa12978/echoes/configs"
 	"github.com/yosa12978/echoes/types"
 )
 
 var (
-	store *sessions.CookieStore
-	once  sync.Once
+	store  *sessions.CookieStore
+	once   sync.Once
+	config types.Config
 )
 
 func SetupStore() {
-	store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
+	config = configs.Get()
+	store = sessions.NewCookieStore([]byte(config.SessionKey))
 }
 
 // return session storage here

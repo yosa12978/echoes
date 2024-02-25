@@ -61,6 +61,7 @@ func (repo *commentPostgres) FindAll(ctx context.Context) []types.Comment {
 			&comment.Name,
 			&comment.Content,
 			&comment.Created,
+			&comment.PostId,
 		)
 		comments = append(comments, comment)
 	}
@@ -76,6 +77,7 @@ func (repo *commentPostgres) FindById(ctx context.Context, id string) (*types.Co
 			&comment.Name,
 			&comment.Content,
 			&comment.Created,
+			&comment.PostId,
 		)
 	return &comment, err
 }
@@ -96,6 +98,7 @@ func (repo *commentPostgres) FindByPostId(ctx context.Context, postId string) ([
 			&comment.Name,
 			&comment.Content,
 			&comment.Created,
+			&comment.PostId,
 		)
 		comments = append(comments, comment)
 	}
@@ -110,13 +113,14 @@ func (repo *commentPostgres) Create(ctx context.Context, comment types.Comment) 
 	comment.Id = id
 	comment.Created = created
 
-	q := "INSERT INTO comments (id, email, name, content, created) VALUES ($1, $2, $3, $4, $5);"
+	q := "INSERT INTO comments (id, email, name, content, created, postId) VALUES ($1, $2, $3, $4, $5, $6);"
 	_, err := repo.db.ExecContext(ctx, q,
 		comment.Id,
 		comment.Email,
 		comment.Name,
 		comment.Content,
 		comment.Created,
+		comment.PostId,
 	)
 	return &comment, err
 }
@@ -166,7 +170,14 @@ func (repo *commentPostgres) GetPage(ctx context.Context, postId string, page, s
 	defer rows.Close()
 	for rows.Next() {
 		comment := types.Comment{}
-		rows.Scan(&comment.Id, &comment.Email, &comment.Name, &comment.Content, &comment.Created)
+		rows.Scan(
+			&comment.Id,
+			&comment.Email,
+			&comment.Name,
+			&comment.Content,
+			&comment.Created,
+			&comment.PostId,
+		)
 		comments = append(comments, comment)
 	}
 	return &types.Page[types.Comment]{
