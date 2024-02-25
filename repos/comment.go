@@ -4,9 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"log"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/yosa12978/echoes/data"
 	"github.com/yosa12978/echoes/types"
 )
@@ -106,13 +104,6 @@ func (repo *commentPostgres) FindByPostId(ctx context.Context, postId string) ([
 }
 
 func (repo *commentPostgres) Create(ctx context.Context, comment types.Comment) (*types.Comment, error) {
-
-	// move this to the service layer
-	id := uuid.NewString()
-	created := time.Now().Format(time.RFC3339)
-	comment.Id = id
-	comment.Created = created
-
 	q := "INSERT INTO comments (id, email, name, content, created, postId) VALUES ($1, $2, $3, $4, $5, $6);"
 	_, err := repo.db.ExecContext(ctx, q,
 		comment.Id,
@@ -132,6 +123,7 @@ func (repo *commentPostgres) Update(ctx context.Context, id string, comment type
 }
 
 func (repo *commentPostgres) Delete(ctx context.Context, id string) (*types.Comment, error) {
+	// may be delete this check
 	comment, err := repo.FindById(ctx, id)
 	if err != nil {
 		return nil, err
