@@ -51,15 +51,15 @@ func (h *post) GetPosts(ctx context.Context) http.Handler {
 			http.Error(w, err.Error(), 400)
 			return
 		}
-		res := types.Payload{
-			Title:   "Home",
-			Content: h.postRepo.GetPage(ctx, page, limit),
+		posts, err := h.postRepo.GetPage(ctx, page, limit)
+		if err != nil {
+			// log err here and return empty data or smth
 		}
-		if res.Content.(*types.Page[types.Post]).Total == 0 {
+		if posts.Total == 0 {
 			utils.RenderBlock(w, "noPosts", nil)
 			return
 		}
-		utils.RenderBlock(w, "postsPage", res)
+		utils.RenderBlock(w, "postsPage", posts)
 	})
 }
 
@@ -72,8 +72,7 @@ func (h *post) GetPostById(ctx context.Context) http.Handler {
 			http.Error(w, err.Error(), 404)
 			return
 		}
-		pl := types.Payload{Title: post.Title, Content: post}
-		utils.RenderBlock(w, "post", pl)
+		utils.RenderBlock(w, "post", post)
 	})
 }
 

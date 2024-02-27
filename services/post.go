@@ -13,8 +13,8 @@ import (
 )
 
 type Post interface {
-	GetPosts(ctx context.Context) []types.Post
-	GetPostsPaged(ctx context.Context, page, size int) *types.Page[types.Post]
+	GetPosts(ctx context.Context) ([]types.Post, error)
+	GetPostsPaged(ctx context.Context, page, size int) (*types.Page[types.Post], error)
 	GetPostById(ctx context.Context, id string) (*types.Post, error)
 	// pin post works like a trigger
 	PinPost(ctx context.Context, id string) (*types.Post, error)
@@ -31,11 +31,11 @@ func NewPost(postRepo repos.Post) Post {
 	return &post{postRepo: postRepo}
 }
 
-func (s *post) GetPosts(ctx context.Context) []types.Post {
+func (s *post) GetPosts(ctx context.Context) ([]types.Post, error) {
 	return s.postRepo.FindAll(ctx)
 }
 
-func (s *post) GetPostsPaged(ctx context.Context, page, size int) *types.Page[types.Post] {
+func (s *post) GetPostsPaged(ctx context.Context, page, size int) (*types.Page[types.Post], error) {
 	return s.postRepo.GetPage(ctx, page, size)
 }
 

@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/mail"
 	"strings"
 	"time"
@@ -17,6 +18,7 @@ type Comment interface {
 	GetCommentById(ctx context.Context, commentId string) (*types.Comment, error)
 	CreateComment(ctx context.Context, postId, name, email, content string) (*types.Comment, error)
 	DeleteComment(ctx context.Context, commentId string) (*types.Comment, error)
+	Seed(ctx context.Context) error
 }
 
 type comment struct {
@@ -32,7 +34,11 @@ func (s *comment) GetPostComments(ctx context.Context, postId string, page, size
 	if _, err := s.postService.GetPostById(ctx, postId); err != nil {
 		return nil, err
 	}
-	commentsPaged := s.commentRepo.GetPage(ctx, postId, page, size)
+	commentsPaged, err := s.commentRepo.GetPage(ctx, postId, page, size)
+	if err != nil {
+		// log err here
+		return nil, err
+	}
 	res := types.CommentsInfo{
 		Page:   *commentsPaged,
 		PostId: postId,
@@ -45,8 +51,8 @@ func (s *comment) GetCommentById(ctx context.Context, commentId string) (*types.
 }
 
 func (s *comment) CreateComment(ctx context.Context, postId, name, email, content string) (*types.Comment, error) {
-	if _, err := s.commentRepo.FindById(ctx, postId); err != nil {
-		return nil, errors.New("post not found")
+	if _, err := s.postService.GetPostById(ctx, postId); err != nil {
+		return nil, err
 	}
 	name = strings.TrimSpace(name)
 	email = strings.TrimSpace(email)
@@ -70,4 +76,17 @@ func (s *comment) CreateComment(ctx context.Context, postId, name, email, conten
 
 func (s *comment) DeleteComment(ctx context.Context, commentId string) (*types.Comment, error) {
 	return s.commentRepo.Delete(ctx, commentId)
+}
+
+func (s *comment) Seed(ctx context.Context) error {
+	for i := 0; i < 50; i++ {
+		name := fmt.Sprintf("Name#%d", i)
+		email := fmt.Sprintf("email%d@email.com", i)
+		content := fmt.Sprintf("content %d", time.Now().UnixNano())
+		_, err := s.CreateComment(ctx, "895cef0a-58e0-4f55-b49f-6bea42d8bcd1", name, email, content)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

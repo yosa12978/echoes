@@ -6,17 +6,20 @@
 
 <div>
     <br>
-    <h3 class="mb-2">Comments: 1234</h3>
+    <h3 class="mb-2">Comments: (print total comments here)</h3>
     <div class="mt-3">
         <div id="create-post-alert"></div>
-        <form hx-post="/hateoas/comments/" hx-target="#create-post-alert" hx-swap="innerHTML" style="max-width: 500px;">
+        <form hx-post="/hateoas/comments?postId={{.}}" hx-ext="json-enc" hx-target="#create-post-alert" hx-swap="innerHTML" style="max-width: 500px;">
             <input name="name" type="text" placeholder="Name" class="form-control mb-2"/>
             <input name="email" type="email" placeholder="Email" class="form-control mb-2"/>
             <textarea name="content" type="text" placeholder="Content" class="form-control mb-2"></textarea>
             <button type="submit" class="btn btn-warning border-0 mb-3">Add Comment</button>
         </form><br>
     </div>
-    <div hx-get="/hateoas/comments/{{.}}" hx-trigger="load" hx-swap="outerHTML"></div>
+    <div hx-get="/hateoas/comments?postId={{.}}&page=1" hx-trigger="load" hx-swap="outerHTML"></div>
 </div>
 
+<center>
+    <div class="spinner-border htmx-indicator" id="spinner" role="status"></div>
+    </center>
 {{ template "footer" . }}

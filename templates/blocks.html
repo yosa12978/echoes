@@ -1,12 +1,12 @@
 {{block "postsPage" .}}
-    {{ range .Content.Content }}
+    {{ range .Content }}
     <div class="card mt-2 mb-2 p-2 text-bg-light" id="post-{{.Id}}">
         <h3><a href="/posts/{{.Id}}">{{if .Pinned}}<i class="bi bi-pin-angle-fill" style="font-size: large; vertical-align: middle;"></i>{{end}} {{.Title}}</a></h3>
         <small id="post-date-{{.Id}}">{{.Created}}</small>
     </div>
     {{ end }}
-    {{if .Content.HasNext}}
-    <div hx-trigger="revealed" hx-get="/hateoas/posts?page={{.Content.NextPage}}" hx-swap="afterend" hx-indicator="#spinner"></div>
+    {{if .HasNext}}
+    <div hx-trigger="revealed" hx-get="/hateoas/posts?page={{.NextPage}}" hx-swap="afterend" hx-indicator="#spinner"></div>
     {{end}}
 {{end}}
 
@@ -23,12 +23,12 @@
 {{end}}
 
 {{block "post" .}}
-<div class="card mt-2 mb-2 p-2 text-bg-light" id="post-{{.Content.Id}}">
-    <h2>{{.Content.Title}}</h2>
+<div class="card mt-2 mb-2 p-2 text-bg-light" id="post-{{.Id}}">
+    <h2>{{.Title}}</h2>
     <p id="post-content"></p><br>
-    <small>Created: {{.Content.Created}} <br>{{.Content.Id}}</small>
+    <small>Created: {{.Created}} <br>{{.Id}}</small>
     <script>
-        document.getElementById("post-content").innerHTML = marked.parse("{{.Content.Content}}")
+        document.getElementById("post-content").innerHTML = marked.parse("{{.Content}}")
     </script>
 </div>
 {{end}}
@@ -101,19 +101,6 @@
 
 {{block "comments" .}}
 
-<div>
-    <h2><i class="bi bi-chat-dots-fill"></i> Comments</h2>
-    {{range .}}
-    <div class="card mt-2 mb-2 p-2 text-bg-light" id="post-{{.Content.Id}}">
-        <div class="card-body">
-        <p><b>{{.Name}}</b></p>
-        <p id="post-content">{{.Content}}</p><br>
-        <small>Created: {{.Created}} <br>{{.Id}}</small>
-        </div>
-    </div>
-    {{end}}
-</div>
-
 {{range .Content}}
 <div class="card mt-2 mb-2 p-2 text-bg-light">
     <div class="card-body">
@@ -123,7 +110,9 @@
     </div>
 </div>
 {{end}}
-{{if .Content.HasNext}}
-<div hx-trigger="revealed" hx-get="/hateoas/comments/{{.Content.PostId}}?page={{.NextPage}}" hx-swap="afterend" hx-indicator="#spinner"></div>
+
+{{if .HasNext}}
+<div hx-trigger="revealed" hx-get="/hateoas/comments/?postId={{.PostId}}&page={{.NextPage}}" hx-swap="afterend" hx-indicator="#spinner"></div>
 {{end}}
+
 {{end}}

@@ -2,11 +2,11 @@ package app
 
 import (
 	"context"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/yosa12978/echoes/handlers"
+	"github.com/yosa12978/echoes/logging"
 	"github.com/yosa12978/echoes/middleware"
 	"github.com/yosa12978/echoes/repos"
 	"github.com/yosa12978/echoes/services"
@@ -15,15 +15,17 @@ import (
 )
 
 func NewRouter(ctx context.Context) http.Handler {
+	logger := logging.New("app.NewRouter")
 	postRepo := repos.NewPostPostgres()
 	linkRepo := repos.NewLinkPostgres()
 	announceRepo := repos.NewAnnounce()
 	accountRepo := repos.NewAccountPostgres()
 	postService := services.NewPost(repos.NewPostPostgres())
+	//postService.Seed(ctx)
 	commentService := services.NewComment(repos.NewCommentPostgres(), postService)
 	profileRepo, err := repos.NewProfileJson("./static/profile.json")
 	if err != nil {
-		log.Println(err.Error())
+		logger.Error(err)
 	}
 
 	postHandler := handlers.NewPost(postRepo)
@@ -67,6 +69,9 @@ func RegisterPostHandler(ctx context.Context, handler handlers.Post, router *mux
 }
 
 func RegisterCommentHandler(ctx context.Context, handler handlers.Comment, router *mux.Router) {
+	router.Handle("/comments", handler.GetPostComments(ctx)).Methods("GET")
+	router.Handle("/comments", handler.CreateComment(ctx)).Methods("POST")
+	router.Handle("/comments/{id}", middleware.Admin(handler.DeleteComment(ctx))).Methods("DELETE")
 }
 
 func RegisterAnnounceHandler(ctx context.Context, handler handlers.Announce, router *mux.Router) {
@@ -126,5 +131,4 @@ func RegisterBasicHandler(ctx context.Context, router *mux.Router) {
 			http.Error(w, err.Error(), 500)
 		}
 	}).Methods("GET")
-
 }

@@ -13,7 +13,7 @@ import (
 )
 
 type Link interface {
-	GetLinks(ctx context.Context) []types.Link
+	GetLinks(ctx context.Context) ([]types.Link, error)
 	CreateLink(ctx context.Context, name, url string) (*types.Link, error)
 	DeleteLink(ctx context.Context, id string) (*types.Link, error)
 	Seed(ctx context.Context) error
@@ -27,7 +27,7 @@ func NewLink(linkRepo repos.Link) Link {
 	return &link{linkRepo: linkRepo}
 }
 
-func (s *link) GetLinks(ctx context.Context) []types.Link {
+func (s *link) GetLinks(ctx context.Context) ([]types.Link, error) {
 	return s.linkRepo.FindAll(ctx)
 }
 

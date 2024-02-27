@@ -2,13 +2,13 @@ package app
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/yosa12978/echoes/configs"
 	"github.com/yosa12978/echoes/data"
+	"github.com/yosa12978/echoes/logging"
 )
 
 func init() {
@@ -18,6 +18,7 @@ func init() {
 }
 
 func Run(ctx context.Context) error {
+	logger := logging.New("app.Run")
 	conn := data.Postgres()
 	defer conn.Close()
 
@@ -30,7 +31,7 @@ func Run(ctx context.Context) error {
 
 	errch := make(chan error, 1)
 	go func() {
-		log.Printf("server listening @ %s", cfg.Addr)
+		logger.Printf("server listening @ %s", cfg.Addr)
 		if err := server.ListenAndServe(); err != nil {
 			errch <- err
 		}

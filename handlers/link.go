@@ -30,13 +30,21 @@ func NewLink(linkRepo repos.Link) Link {
 
 func (h *link) GetAll(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		utils.RenderBlock(w, "links", h.linkRepo.FindAll(ctx))
+		links, err := h.linkRepo.FindAll(ctx)
+		if err != nil {
+			// log here
+		}
+		utils.RenderBlock(w, "links", links)
 	})
 }
 
 func (h *link) GetAdmin(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		utils.RenderBlock(w, "links_admin", h.linkRepo.FindAll(ctx))
+		links, err := h.linkRepo.FindAll(ctx)
+		if err != nil {
+			// log here
+		}
+		utils.RenderBlock(w, "links_admin", links)
 	})
 }
 

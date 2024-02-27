@@ -3,21 +3,19 @@ package repos
 import (
 	"context"
 	"database/sql"
-	"log"
 
 	"github.com/yosa12978/echoes/data"
 	"github.com/yosa12978/echoes/types"
 )
 
 type Comment interface {
-	FindAll(ctx context.Context) []types.Comment
-	GetPage(ctx context.Context, postId string, page, size int) *types.Page[types.Comment]
+	FindAll(ctx context.Context) ([]types.Comment, error)
+	GetPage(ctx context.Context, postId string, page, size int) (*types.Page[types.Comment], error)
 	FindById(ctx context.Context, id string) (*types.Comment, error)
 	FindByPostId(ctx context.Context, postId string) ([]types.Comment, error)
 	Create(ctx context.Context, comment types.Comment) (*types.Comment, error)
 	Update(ctx context.Context, id string, comment types.Comment) (*types.Comment, error)
 	Delete(ctx context.Context, id string) (*types.Comment, error)
-	Seed(ctx context.Context) error
 }
 
 type commentPostgres struct {
@@ -42,12 +40,12 @@ type Comment struct {
 
 */
 
-func (repo *commentPostgres) FindAll(ctx context.Context) []types.Comment {
+func (repo *commentPostgres) FindAll(ctx context.Context) ([]types.Comment, error) {
 	comments := []types.Comment{}
 	q := "SELECT * FROM comments ORDER BY created DESC;"
 	rows, err := repo.db.QueryContext(ctx, q)
 	if err != nil {
-		return comments
+		return comments, err
 	}
 	defer rows.Close()
 
@@ -63,7 +61,7 @@ func (repo *commentPostgres) FindAll(ctx context.Context) []types.Comment {
 		)
 		comments = append(comments, comment)
 	}
-	return comments
+	return comments, nil
 }
 
 func (repo *commentPostgres) FindById(ctx context.Context, id string) (*types.Comment, error) {
@@ -82,7 +80,7 @@ func (repo *commentPostgres) FindById(ctx context.Context, id string) (*types.Co
 
 func (repo *commentPostgres) FindByPostId(ctx context.Context, postId string) ([]types.Comment, error) {
 	comments := []types.Comment{}
-	q := "SELECT * FROM comments WHERE postId=$1;"
+	q := "SELECT * FROM comments WHERE postid=$1;"
 	rows, err := repo.db.QueryContext(ctx, q, postId)
 	if err != nil {
 		return nil, err
@@ -104,7 +102,7 @@ func (repo *commentPostgres) FindByPostId(ctx context.Context, postId string) ([
 }
 
 func (repo *commentPostgres) Create(ctx context.Context, comment types.Comment) (*types.Comment, error) {
-	q := "INSERT INTO comments (id, email, name, content, created, postId) VALUES ($1, $2, $3, $4, $5, $6);"
+	q := "INSERT INTO comments (id, email, name, content, created, postid) VALUES ($1, $2, $3, $4, $5, $6);"
 	_, err := repo.db.ExecContext(ctx, q,
 		comment.Id,
 		comment.Email,
@@ -133,12 +131,7 @@ func (repo *commentPostgres) Delete(ctx context.Context, id string) (*types.Comm
 	return comment, err
 }
 
-// remove this method (and it's signature from repo interface)
-func (repo *commentPostgres) Seed(ctx context.Context) error {
-	return nil
-}
-
-func (repo *commentPostgres) GetPage(ctx context.Context, postId string, page, size int) *types.Page[types.Comment] {
+func (repo *commentPostgres) GetPage(ctx context.Context, postId string, page, size int) (*types.Page[types.Comment], error) {
 	comments := []types.Comment{}
 	qcount := "SELECT COUNT(*) FROM comments WHERE postId=$1;"
 	var count int
@@ -150,14 +143,13 @@ func (repo *commentPostgres) GetPage(ctx context.Context, postId string, page, s
 	q := "SELECT * FROM comments WHERE postId=$1 ORDER BY created DESC LIMIT $2 OFFSET $3;"
 	rows, err := repo.db.QueryContext(ctx, q, postId, size, (page-1)*size)
 	if err != nil {
-		log.Println(err.Error())
 		return &types.Page[types.Comment]{
 			Content:  comments,
 			HasNext:  false,
 			Size:     size,
 			NextPage: 1,
 			Total:    0,
-		}
+		}, err
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -178,5 +170,5 @@ func (repo *commentPostgres) GetPage(ctx context.Context, postId string, page, s
 		Size:     size,
 		NextPage: page + 1,
 		Total:    count,
-	}
+	}, nil
 }

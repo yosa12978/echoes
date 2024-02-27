@@ -47,3 +47,9 @@ migrate-down:
 
 migrate-fix:
 	@migrate -path migrations -database "postgres://user:1234@localhost:5432/echoesdb?sslmode=disable" force VERSION
+
+redis:
+	@docker run --rm \
+		--name redis-echoes \
+		-p 6379:6379 \
+		-d redis

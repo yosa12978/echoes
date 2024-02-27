@@ -4,9 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
-	"log"
-	"time"
 
 	"github.com/yosa12978/echoes/data"
 	"github.com/yosa12978/echoes/types"
@@ -17,13 +14,12 @@ var (
 )
 
 type Post interface {
-	FindAll(ctx context.Context) []types.Post
-	GetPage(ctx context.Context, page, size int) *types.Page[types.Post]
+	FindAll(ctx context.Context) ([]types.Post, error)
+	GetPage(ctx context.Context, page, size int) (*types.Page[types.Post], error)
 	FindById(ctx context.Context, id string) (*types.Post, error)
 	Create(ctx context.Context, post types.Post) (*types.Post, error)
 	Update(ctx context.Context, id string, post types.Post) (*types.Post, error)
 	Delete(ctx context.Context, id string) (*types.Post, error)
-	Seed(ctx context.Context) error
 }
 
 type postMock struct {
@@ -34,12 +30,12 @@ func NewPostMock() Post {
 	return new(postMock)
 }
 
-func (repo *postMock) GetPage(ctx context.Context, page, size int) *types.Page[types.Post] {
-	return nil
+func (repo *postMock) GetPage(ctx context.Context, page, size int) (*types.Page[types.Post], error) {
+	return nil, nil
 }
 
-func (repo *postMock) FindAll(ctx context.Context) []types.Post {
-	return repo.posts
+func (repo *postMock) FindAll(ctx context.Context) ([]types.Post, error) {
+	return repo.posts, nil
 }
 
 func (repo *postMock) FindById(ctx context.Context, id string) (*types.Post, error) {
@@ -71,18 +67,6 @@ func (repo *postMock) Delete(ctx context.Context, id string) (*types.Post, error
 	return nil, ErrPostNotFound
 }
 
-// remove this method (and it's signature from repo interface)
-func (repo *postMock) Seed(ctx context.Context) error {
-	posts := []types.Post{
-		types.NewPost("first post", "first post content"),
-		types.NewPost("second post", "second post content"),
-		types.NewPost("third post", "third post content"),
-		types.NewPost("fourth post", "fourth post content"),
-	}
-	repo.posts = append(repo.posts, posts...)
-	return nil
-}
-
 type postPostgres struct {
 	db *sql.DB
 }
@@ -93,13 +77,12 @@ func NewPostPostgres() Post {
 	return repo
 }
 
-func (repo *postPostgres) FindAll(ctx context.Context) []types.Post {
+func (repo *postPostgres) FindAll(ctx context.Context) ([]types.Post, error) {
 	posts := []types.Post{}
 	q := "SELECT id, title, content, created FROM posts ORDER BY pinned, created DESC;"
 	rows, err := repo.db.QueryContext(ctx, q)
 	if err != nil {
-		log.Println(err.Error())
-		return posts
+		return posts, err
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -118,7 +101,7 @@ func (repo *postPostgres) FindAll(ctx context.Context) []types.Post {
 		}
 		posts = append(posts, post)
 	}
-	return posts
+	return posts, nil
 }
 
 func (repo *postPostgres) FindById(ctx context.Context, id string) (*types.Post, error) {
@@ -147,8 +130,6 @@ func (repo *postPostgres) Update(ctx context.Context, id string, post types.Post
 }
 
 func (repo *postPostgres) Delete(ctx context.Context, id string) (*types.Post, error) {
-
-	// move this block to service layer
 	post, err := repo.FindById(ctx, id)
 	if err != nil {
 		return nil, err
@@ -159,19 +140,7 @@ func (repo *postPostgres) Delete(ctx context.Context, id string) (*types.Post, e
 	return post, err
 }
 
-// remove this method (and it's signature from repo interface)
-func (repo *postPostgres) Seed(ctx context.Context) error {
-	for i := 0; i < 50; i++ {
-		time.Sleep(50 * time.Millisecond)
-		_, err := repo.Create(ctx, types.NewPost(fmt.Sprintf("post #%d", i), fmt.Sprintf("post content #%d", i)))
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (repo *postPostgres) GetPage(ctx context.Context, page, size int) *types.Page[types.Post] {
+func (repo *postPostgres) GetPage(ctx context.Context, page, size int) (*types.Page[types.Post], error) {
 	posts := []types.Post{}
 	qcount := "SELECT COUNT(*) FROM posts;"
 	var count int
@@ -183,14 +152,13 @@ func (repo *postPostgres) GetPage(ctx context.Context, page, size int) *types.Pa
 	q := "SELECT * FROM posts ORDER BY pinned DESC, created DESC LIMIT $1 OFFSET $2;"
 	rows, err := repo.db.QueryContext(ctx, q, size, (page-1)*size)
 	if err != nil {
-		log.Println(err.Error())
 		return &types.Page[types.Post]{
 			Content:  posts,
 			HasNext:  false,
 			Size:     size,
 			NextPage: 1,
 			Total:    0,
-		}
+		}, err
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -204,5 +172,5 @@ func (repo *postPostgres) GetPage(ctx context.Context, page, size int) *types.Pa
 		Size:     size,
 		NextPage: page + 1,
 		Total:    count,
-	}
+	}, nil
 }

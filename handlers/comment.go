@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"strconv"
 
+	"github.com/gorilla/mux"
 	"github.com/yosa12978/echoes/services"
 	"github.com/yosa12978/echoes/utils"
 )
@@ -27,6 +29,9 @@ func (h *comment) GetPostComments(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postId := r.URL.Query().Get("postId") // temporary solution
 		pagestr := r.URL.Query().Get("page")
+		if pagestr == "" {
+			pagestr = "1"
+		}
 		page, err := strconv.Atoi(pagestr)
 		if err != nil {
 			http.Error(w, err.Error(), 400)
@@ -43,14 +48,20 @@ func (h *comment) GetPostComments(ctx context.Context) http.Handler {
 
 func (h *comment) CreateComment(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
 		postId := r.URL.Query().Get("postId")
-		name := r.FormValue("name")
-		email := r.FormValue("email")
-		content := r.FormValue("content")
-		_, err := h.commentService.CreateComment(ctx, postId, name, email, content)
+		var body map[string]interface{}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			utils.RenderBlock(w, "alert", err.Error())
+			return
+		}
+		_, err := h.commentService.CreateComment(
+			ctx,
+			postId,
+			body["name"].(string),
+			body["email"].(string),
+			body["content"].(string),
+		)
 		if err != nil {
-			http.Error(w, err.Error(), 400)
 			utils.RenderBlock(w, "alert", err.Error())
 			return
 		}
@@ -60,6 +71,12 @@ func (h *comment) CreateComment(ctx context.Context) http.Handler {
 
 func (h *comment) DeleteComment(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("this handler is not implemented yet"))
+		commentId := mux.Vars(r)["id"]
+		_, err := h.commentService.DeleteComment(ctx, commentId)
+		if err != nil {
+			utils.RenderBlock(w, "alert", err.Error())
+			return
+		}
+		utils.RenderBlock(w, "alert", "comment deleted")
 	})
 }

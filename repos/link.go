@@ -3,19 +3,17 @@ package repos
 import (
 	"context"
 	"database/sql"
-	"time"
 
 	"github.com/yosa12978/echoes/data"
 	"github.com/yosa12978/echoes/types"
 )
 
 type Link interface {
-	FindAll(ctx context.Context) []types.Link
+	FindAll(ctx context.Context) ([]types.Link, error)
 	FindById(ctx context.Context, id string) (*types.Link, error)
 	Create(ctx context.Context, link types.Link) (*types.Link, error)
 	Update(ctx context.Context, id string, link types.Link) (*types.Link, error)
 	Delete(ctx context.Context, id string) (*types.Link, error)
-	Seed(ctx context.Context) error
 }
 
 type linkPostgres struct {
@@ -39,12 +37,12 @@ func NewLinkPostgres() Link {
 	return repo
 }
 
-func (repo *linkPostgres) FindAll(ctx context.Context) []types.Link {
+func (repo *linkPostgres) FindAll(ctx context.Context) ([]types.Link, error) {
 	links := []types.Link{}
 	q := "SELECT * FROM links ORDER BY created DESC;"
 	rows, err := repo.db.QueryContext(ctx, q)
 	if err != nil {
-		return links
+		return links, err
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -52,7 +50,7 @@ func (repo *linkPostgres) FindAll(ctx context.Context) []types.Link {
 		rows.Scan(&link.Id, &link.Name, &link.URL, &link.Created)
 		links = append(links, link)
 	}
-	return links
+	return links, nil
 }
 
 func (repo *linkPostgres) FindById(ctx context.Context, id string) (*types.Link, error) {
@@ -82,33 +80,4 @@ func (repo *linkPostgres) Delete(ctx context.Context, id string) (*types.Link, e
 	q := "DELETE FROM links WHERE id=$1;"
 	_, err = repo.db.ExecContext(ctx, q, id)
 	return link, err
-}
-
-// remove this method (and it's signature from repo interface)
-func (repo *linkPostgres) Seed(ctx context.Context) error {
-	_, err := repo.Create(ctx, types.Link{
-		Id:      "09741221-7ea7-4106-ac19-8d2c2c90afbc",
-		Name:    "reddit",
-		URL:     "https://reddit.com",
-		Created: time.Now().Format(time.RFC3339),
-	})
-	if err != nil {
-		return err
-	}
-	_, err = repo.Create(ctx, types.Link{
-		Id:      "c46428bd-a807-4042-812b-f3b56f047732",
-		Name:    "my github",
-		URL:     "https://github.com/yosa12978",
-		Created: time.Now().Format(time.RFC3339),
-	})
-	if err != nil {
-		return err
-	}
-	_, err = repo.Create(ctx, types.Link{
-		Id:      "60a9f6e8-8fda-480a-832a-3e3a07ae8890",
-		Name:    "wow forum (icy veins)",
-		URL:     "https://www.icy-veins.com/",
-		Created: time.Now().Format(time.RFC3339),
-	})
-	return err
 }
