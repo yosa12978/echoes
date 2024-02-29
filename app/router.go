@@ -16,27 +16,40 @@ import (
 
 func NewRouter(ctx context.Context) http.Handler {
 	logger := logging.New("app.NewRouter")
+
 	postRepo := repos.NewPostPostgres()
+	postService := services.NewPost(postRepo)
+
 	linkRepo := repos.NewLinkPostgres()
+	linkService := services.NewLink(linkRepo)
+
+	commentRepo := repos.NewCommentPostgres()
+	commentService := services.NewComment(commentRepo, postService)
+
 	announceRepo := repos.NewAnnounce()
+	announceService := services.NewAnnounce(announceRepo)
+
 	accountRepo := repos.NewAccountPostgres()
-	postService := services.NewPost(repos.NewPostPostgres())
-	//postService.Seed(ctx)
-	commentService := services.NewComment(repos.NewCommentPostgres(), postService)
+	accountService := services.NewAccount(accountRepo)
+
 	profileRepo, err := repos.NewProfileJson("./static/profile.json")
 	if err != nil {
 		logger.Error(err)
 	}
+	profileService := services.NewProfile(profileRepo)
 
-	postHandler := handlers.NewPost(postRepo)
-	linkHandler := handlers.NewLink(linkRepo)
-	announceHandler := handlers.NewAnnounce(announceRepo)
-	profileHandler := handlers.NewProfile(profileRepo)
-	accountHandler := handlers.NewAccount(accountRepo)
-	commentHandler := handlers.NewComment(commentService)
+	postHandler := handlers.NewPost(postService, logging.New("postHandler"))
+	linkHandler := handlers.NewLink(linkService, logging.New("linkHandler"))
+	announceHandler := handlers.NewAnnounce(announceService, logging.New("announceHandler"))
+	profileHandler := handlers.NewProfile(profileService, logging.New("profileHandler"))
+	accountHandler := handlers.NewAccount(accountService, logging.New("accountHandler"))
+	commentHandler := handlers.NewComment(commentService, logging.New("commentHandler"))
 
+	latencyLogger := middleware.Logger(logging.New("request"))
 	router := mux.NewRouter()
 	router.StrictSlash(true)
+
+	router.Use(latencyLogger)
 
 	RegisterBasicHandler(ctx, router)
 

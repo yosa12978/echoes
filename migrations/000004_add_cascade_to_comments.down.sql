@@ -1,0 +1,1 @@
+ALTER TABLE comments DROP CONSTRAINT post_fkey;

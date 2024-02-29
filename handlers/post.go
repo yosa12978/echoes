@@ -3,13 +3,12 @@ package handlers
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/yosa12978/echoes/repos"
-	"github.com/yosa12978/echoes/types"
+	"github.com/yosa12978/echoes/logging"
+	"github.com/yosa12978/echoes/services"
 	"github.com/yosa12978/echoes/utils"
 )
 
@@ -22,12 +21,14 @@ type Post interface {
 }
 
 type post struct {
-	postRepo repos.Post
+	postService services.Post
+	logger      logging.Logger
 }
 
-func NewPost(postRepo repos.Post) Post {
+func NewPost(postService services.Post, logger logging.Logger) Post {
 	return &post{
-		postRepo: postRepo,
+		postService: postService,
+		logger:      logger,
 	}
 }
 
@@ -39,7 +40,8 @@ func (h *post) GetPosts(ctx context.Context) http.Handler {
 		}
 		page, err := strconv.Atoi(pageS)
 		if err != nil {
-			http.Error(w, err.Error(), 400)
+			h.logger.Error(err)
+			utils.RenderBlock(w, "alert", "wrond page number")
 			return
 		}
 		limitS := r.URL.Query().Get("limit")
@@ -48,12 +50,13 @@ func (h *post) GetPosts(ctx context.Context) http.Handler {
 		}
 		limit, err := strconv.Atoi(limitS)
 		if err != nil {
-			http.Error(w, err.Error(), 400)
+			h.logger.Error(err)
+			utils.RenderBlock(w, "alert", "wrond limit number")
 			return
 		}
-		posts, err := h.postRepo.GetPage(ctx, page, limit)
+		posts, err := h.postService.GetPostsPaged(ctx, page, limit) //h.postRepo.GetPage(ctx, page, limit)
 		if err != nil {
-			// log err here and return empty data or smth
+			h.logger.Error(err)
 		}
 		if posts.Total == 0 {
 			utils.RenderBlock(w, "noPosts", nil)
@@ -66,10 +69,10 @@ func (h *post) GetPosts(ctx context.Context) http.Handler {
 func (h *post) GetPostById(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["id"]
-		post, err := h.postRepo.FindById(ctx, id)
+		post, err := h.postService.GetPostById(ctx, id) //h.postRepo.FindById(ctx, id)
 		if err != nil {
-			log.Println(err.Error())
-			http.Error(w, err.Error(), 404)
+			h.logger.Error(err)
+			utils.RenderBlock(w, "alert", "post not found")
 			return
 		}
 		utils.RenderBlock(w, "post", post)
@@ -79,10 +82,10 @@ func (h *post) GetPostById(ctx context.Context) http.Handler {
 func (h *post) CreatePost(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
-		// validation!!!
-		post := types.NewPost(r.FormValue("title"), r.FormValue("content"))
-		if _, err := h.postRepo.Create(ctx, post); err != nil {
-			log.Println(err.Error())
+		title := r.FormValue("title")
+		content := r.FormValue("content")
+		if _, err := h.postService.CreatePost(ctx, title, content); err != nil {
+			h.logger.Error(err)
 			utils.RenderBlock(w, "alert", "Failed to create")
 			return
 		}
@@ -94,8 +97,8 @@ func (h *post) DeletePost(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var body map[string]interface{}
 		json.NewDecoder(r.Body).Decode(&body)
-		if _, err := h.postRepo.Delete(ctx, body["id"].(string)); err != nil {
-			log.Println(err.Error())
+		if _, err := h.postService.DeletePost(ctx, body["id"].(string)); err != nil {
+			h.logger.Error(err)
 			utils.RenderBlock(w, "alert", "Failed to delete")
 			return
 		}
@@ -107,18 +110,10 @@ func (h *post) PinPost(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var body map[string]interface{}
 		json.NewDecoder(r.Body).Decode(&body)
-
-		post, err := h.postRepo.FindById(ctx, body["id"].(string))
+		_, err := h.postService.PinPost(ctx, body["id"].(string))
 		if err != nil {
-			log.Println(err.Error())
+			h.logger.Error(err)
 			utils.RenderBlock(w, "alert", "Post not found")
-			return
-		}
-		post.Pinned = !post.Pinned
-		_, err = h.postRepo.Update(ctx, post.Id, *post)
-		if err != nil {
-			log.Println(err.Error())
-			utils.RenderBlock(w, "alert", "Failed to update")
 			return
 		}
 		utils.RenderBlock(w, "alert", "Post pinned :)")

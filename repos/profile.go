@@ -9,11 +9,11 @@ import (
 )
 
 type Profile interface {
-	Get(ctx context.Context) types.Profile
+	Get(ctx context.Context) (*types.Profile, error)
 }
 
 type profileJson struct {
-	profile types.Profile
+	profile *types.Profile
 }
 
 func NewProfileJson(filename string) (Profile, error) {
@@ -26,6 +26,6 @@ func NewProfileJson(filename string) (Profile, error) {
 	return repo, err
 }
 
-func (repo *profileJson) Get(ctx context.Context) types.Profile {
-	return repo.profile
+func (repo *profileJson) Get(ctx context.Context) (*types.Profile, error) {
+	return repo.profile, nil
 }

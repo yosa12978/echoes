@@ -12,7 +12,7 @@ import (
 )
 
 type Account interface {
-	IsUserExist(ctx context.Context, username, password string) error
+	IsUserExist(ctx context.Context, username, password string) (*types.Account, error)
 	CreateAccount(ctx context.Context, username, password string) (*types.Account, error)
 }
 
@@ -24,15 +24,15 @@ func NewAccount(accRepo repos.Account) Account {
 	return &account{accountRepo: accRepo}
 }
 
-func (a *account) IsUserExist(ctx context.Context, username, password string) error {
+func (a *account) IsUserExist(ctx context.Context, username, password string) (*types.Account, error) {
 	account, err := a.accountRepo.FindByUsername(ctx, username)
 	if err != nil {
-		return errors.New("wrong credentials")
+		return nil, errors.New("wrong credentials")
 	}
 	if !utils.CheckPasswordHash(password, account.Password) {
-		return errors.New("wrong credentials")
+		return nil, errors.New("wrong credentials")
 	}
-	return nil
+	return account, nil
 }
 
 func (a *account) CreateAccount(ctx context.Context, username, password string) (*types.Account, error) {

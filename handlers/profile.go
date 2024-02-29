@@ -4,7 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/yosa12978/echoes/repos"
+	"github.com/yosa12978/echoes/logging"
+	"github.com/yosa12978/echoes/services"
 	"github.com/yosa12978/echoes/utils"
 )
 
@@ -13,18 +14,25 @@ type Profile interface {
 }
 
 type profile struct {
-	profileRepo repos.Profile
+	profileService services.Profile
+	logger         logging.Logger
 }
 
-func NewProfile(profileRepo repos.Profile) Profile {
+func NewProfile(profileService services.Profile, logger logging.Logger) Profile {
 	h := new(profile)
-	h.profileRepo = profileRepo
+	h.profileService = profileService
+	h.logger = logger
 	return h
 }
 
 func (h *profile) Get(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		res := h.profileRepo.Get(ctx)
+		res, err := h.profileService.Get(ctx)
+		if err != nil {
+			h.logger.Error(err)
+			utils.RenderBlock(w, "alert", "can't render profile information")
+			return
+		}
 		utils.RenderBlock(w, "profile", res)
 	})
 }

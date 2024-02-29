@@ -1,15 +1,16 @@
 package repos
 
 import (
+	"context"
 	"time"
 
 	"github.com/yosa12978/echoes/types"
 )
 
 type Announce interface {
-	Create(content string) types.Announce
-	Delete()
-	Get() *types.Announce
+	Get(ctx context.Context) (*types.Announce, error)
+	Create(ctx context.Context, content string) (*types.Announce, error)
+	Delete(ctx context.Context) (*types.Announce, error)
 }
 
 type announce struct {
@@ -22,17 +23,18 @@ func NewAnnounce() Announce {
 	return repo
 }
 
-func (repo *announce) Create(content string) types.Announce {
+func (repo *announce) Create(ctx context.Context, content string) (*types.Announce, error) {
 	repo.storage = new(types.Announce)
 	repo.storage.Content = content
 	repo.storage.Date = time.Now().Format(time.RFC3339)
-	return *repo.storage
+	return repo.storage, nil
 }
 
-func (repo *announce) Delete() {
+func (repo *announce) Delete(ctx context.Context) (*types.Announce, error) {
 	repo.storage = nil
+	return repo.storage, nil
 }
 
-func (repo *announce) Get() *types.Announce {
-	return repo.storage
+func (repo *announce) Get(ctx context.Context) (*types.Announce, error) {
+	return repo.storage, nil
 }

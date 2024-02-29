@@ -57,6 +57,9 @@ type Config struct {
 	Addr       string
 	Postgres   string
 	SessionKey string
+	RedisAddr  string
+	RedisDb    int
+	RedisPwd   string
 }
 
 type Page[T interface{}] struct {

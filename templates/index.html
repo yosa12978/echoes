@@ -1,4 +1,5 @@
 {{template "header" .}}
+<br>
     <div id="profile" hx-get="/hateoas/profile" hx-swap="outerHTML" hx-trigger="load"></div>
     <!-- <button hx-get="/hateoas/posts" hx-trigger="click" hx-target="#list" hx-indicator="#spinner" class="btn btn-primary mb-3">Get Posts</button><br> -->
     <div id="announce" hx-get="/hateoas/announce" hx-swap="outerHTML" hx-trigger="load" style="text-align: center;"></div>

@@ -2,12 +2,11 @@ package handlers
 
 import (
 	"context"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/yosa12978/echoes/repos"
-	"github.com/yosa12978/echoes/types"
+	"github.com/yosa12978/echoes/logging"
+	"github.com/yosa12978/echoes/services"
 	"github.com/yosa12978/echoes/utils"
 )
 
@@ -19,30 +18,37 @@ type Link interface {
 }
 
 type link struct {
-	linkRepo repos.Link
+	logger      logging.Logger
+	linkService services.Link
 }
 
-func NewLink(linkRepo repos.Link) Link {
+func NewLink(linkService services.Link, logger logging.Logger) Link {
 	handler := new(link)
-	handler.linkRepo = linkRepo
+	handler.linkService = linkService
+	handler.logger = logger
 	return handler
 }
 
 func (h *link) GetAll(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		links, err := h.linkRepo.FindAll(ctx)
+		links, err := h.linkService.GetLinks(ctx)
 		if err != nil {
-			// log here
+			h.logger.Error(err)
+			utils.RenderBlock(w, "links", links)
+			return
 		}
 		utils.RenderBlock(w, "links", links)
 	})
 }
 
+// merge this method with main one
 func (h *link) GetAdmin(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		links, err := h.linkRepo.FindAll(ctx)
+		links, err := h.linkService.GetLinks(ctx)
 		if err != nil {
-			// log here
+			h.logger.Error(err)
+			utils.RenderBlock(w, "alert", "can't fetch links")
+			return
 		}
 		utils.RenderBlock(w, "links_admin", links)
 	})
@@ -53,13 +59,9 @@ func (h *link) Create(ctx context.Context) http.Handler {
 		r.ParseForm()
 		name := r.FormValue("name")
 		url := r.FormValue("url")
-		link := types.Link{
-			Name: name,
-			URL:  url,
-		}
-		_, err := h.linkRepo.Create(ctx, link)
+		_, err := h.linkService.CreateLink(ctx, name, url)
 		if err != nil {
-			log.Println(err.Error())
+			h.logger.Error(err)
 			utils.RenderBlock(w, "alert", "Failed to create")
 			return
 		}
@@ -70,8 +72,8 @@ func (h *link) Create(ctx context.Context) http.Handler {
 func (h *link) Delete(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["id"]
-		if _, err := h.linkRepo.Delete(ctx, id); err != nil {
-			log.Println(err.Error())
+		if _, err := h.linkService.DeleteLink(ctx, id); err != nil {
+			h.logger.Error(err)
 			utils.RenderBlock(w, "alert", "Failed to delete")
 			return
 		}

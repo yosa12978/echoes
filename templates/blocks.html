@@ -37,11 +37,14 @@
 {{block "announce" .}}
 {{if .}}
 <br>
-<div class="card bg-warning text-dark mb-2 announce">
+<div class="card bg-warning text-dark mb-2 mt-2 announce">
     <div class="card-body">
         <b class="mb-2 mt-1"><i class="bi bi-megaphone-fill"></i> Announcement</b>
-        <p class="card-text mt-2">{{.Content}}</p>
+        <p class="card-text mt-2" id="announce-text"></p>
         <small class="card-text">{{.Date}}</small>
+        <script>
+            document.getElementById("announce-text").innerHTML = marked.parse("{{.Content}}")
+        </script>
     </div>
 </div>
 {{end}}
@@ -58,7 +61,7 @@
     <div class="card text-bg-light mb-3">
         <a href="/portal/?url={{.URL}}" target="_blank" class="link link-dark text-decoration-none">
         <div class="card-body">
-            <p class="card-text fs-5"><b>{{.Name}}</b></p>
+            <p class="card-text fs-5" id="link-{{.Id}}"><b>{{.Name}}</b></p>
         </div>
         </a>
     </div>
@@ -115,4 +118,14 @@
 <div hx-trigger="revealed" hx-get="/hateoas/comments/?postId={{.PostId}}&page={{.NextPage}}" hx-swap="afterend" hx-indicator="#spinner"></div>
 {{end}}
 
+{{end}}
+
+{{block "comment" .}}
+<div class="card mt-2 mb-2 p-2 text-bg-light">
+    <div class="card-body">
+    <p><b>{{.Name}} | {{.Email}}</b></p>
+    <p>{{.Content}}</p>
+    <small>Created: {{.Created}} | {{.Id}}</small>
+    </div>
+</div>
 {{end}}

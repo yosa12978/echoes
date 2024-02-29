@@ -22,6 +22,9 @@ func Run(ctx context.Context) error {
 	conn := data.Postgres()
 	defer conn.Close()
 
+	rdb := data.Redis(ctx)
+	defer rdb.Close()
+
 	cfg := configs.Get()
 
 	server := http.Server{

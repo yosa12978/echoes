@@ -7,11 +7,13 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/yosa12978/echoes/logging"
 	"github.com/yosa12978/echoes/services"
 	"github.com/yosa12978/echoes/utils"
 )
 
 type Comment interface {
+	GetComment(ctx context.Context) http.Handler
 	GetPostComments(ctx context.Context) http.Handler
 	CreateComment(ctx context.Context) http.Handler
 	DeleteComment(ctx context.Context) http.Handler
@@ -19,10 +21,22 @@ type Comment interface {
 
 type comment struct {
 	commentService services.Comment
+	logger         logging.Logger
 }
 
-func NewComment(commentService services.Comment) Comment {
-	return &comment{commentService: commentService}
+func NewComment(commentService services.Comment, logger logging.Logger) Comment {
+	return &comment{commentService: commentService, logger: logger}
+}
+
+func (h *comment) GetComment(ctx context.Context) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		comment, err := h.commentService.GetCommentById(ctx, mux.Vars(r)["id"])
+		if err != nil {
+			utils.RenderBlock(w, "alert", "comment not found")
+			return
+		}
+		utils.RenderBlock(w, "comment", comment)
+	})
 }
 
 func (h *comment) GetPostComments(ctx context.Context) http.Handler {
@@ -34,12 +48,13 @@ func (h *comment) GetPostComments(ctx context.Context) http.Handler {
 		}
 		page, err := strconv.Atoi(pagestr)
 		if err != nil {
-			http.Error(w, err.Error(), 400)
+			utils.RenderBlock(w, "alert", "wrong page number")
 			return
 		}
 		commentsPaged, err := h.commentService.GetPostComments(ctx, postId, page, 20)
 		if err != nil {
-			http.Error(w, err.Error(), 400)
+			h.logger.Error(err)
+			utils.RenderBlock(w, "alert", "can't fetch post comments")
 			return
 		}
 		utils.RenderBlock(w, "comments", commentsPaged)

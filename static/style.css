@@ -23,7 +23,7 @@ a {
     background-color: white;
 }
 
-.btn-warning {
+/* .btn-warning {
     border-width: 0px;
     font-weight: bold;
     background-color: #F06D37;
@@ -35,7 +35,7 @@ a {
 
 .btn-warning:active, .btn-warning:focus {
     background-color: #d05d2c;
-}
+} */
 
 nav {
     border-bottom-left-radius: 15px;

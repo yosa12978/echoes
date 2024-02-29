@@ -4,7 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/yosa12978/echoes/repos"
+	"github.com/yosa12978/echoes/logging"
+	"github.com/yosa12978/echoes/services"
 	"github.com/yosa12978/echoes/session"
 	"github.com/yosa12978/echoes/utils"
 )
@@ -16,12 +17,14 @@ type Account interface {
 }
 
 type account struct {
-	accountRepo repos.Account
+	accountService services.Account
+	logger         logging.Logger
 }
 
-func NewAccount(accountRepo repos.Account) Account {
+func NewAccount(accountService services.Account, logger logging.Logger) Account {
 	h := new(account)
-	h.accountRepo = accountRepo
+	h.accountService = accountService
+	h.logger = logger
 	return h
 }
 
@@ -30,12 +33,8 @@ func (h *account) Login(ctx context.Context) http.Handler {
 		r.ParseForm()
 		username := r.FormValue("username")
 		password := r.FormValue("password")
-		account, err := h.accountRepo.FindByUsername(ctx, username)
+		account, err := h.accountService.IsUserExist(ctx, username, password)
 		if err != nil {
-			utils.RenderBlock(w, "alert", "user not found")
-			return
-		}
-		if !utils.CheckPasswordHash(password, account.Password) {
 			utils.RenderBlock(w, "alert", "user not found")
 			return
 		}
@@ -43,6 +42,7 @@ func (h *account) Login(ctx context.Context) http.Handler {
 			utils.RenderBlock(w, "alert", err.Error())
 			return
 		}
+		h.logger.Printf("user %s logged in", username)
 		w.Header().Set("HX-Redirect", "/admin")
 	})
 }
