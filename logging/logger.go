@@ -55,3 +55,7 @@ func (l *cmdLogger) Info(msg string) {
 func (l *cmdLogger) Printf(format string, v ...interface{}) {
 	l.logger.Info().Msg(fmt.Sprintf(format, v...))
 }
+
+func (l *cmdLogger) Trace(msg string) {
+	l.logger.Trace().Msg(msg)
+}

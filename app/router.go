@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/yosa12978/echoes/cache"
 	"github.com/yosa12978/echoes/handlers"
 	"github.com/yosa12978/echoes/logging"
 	"github.com/yosa12978/echoes/middleware"
@@ -26,7 +27,7 @@ func NewRouter(ctx context.Context) http.Handler {
 	commentRepo := repos.NewCommentPostgres()
 	commentService := services.NewComment(commentRepo, postService)
 
-	announceRepo := repos.NewAnnounce()
+	announceRepo := repos.NewAnnounceCache(cache.NewRedisCache(ctx))
 	announceService := services.NewAnnounce(announceRepo)
 
 	accountRepo := repos.NewAccountPostgres()

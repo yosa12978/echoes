@@ -14,8 +14,8 @@ func Logger(logger logging.Logger) func(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			latencyUs := time.Since(snapshot).Microseconds()
 			logger.Fields(map[string]interface{}{
-				"endpoint":   r.URL.String(),
 				"method":     r.Method,
+				"endpoint":   r.URL.String(),
 				"latency_us": latencyUs,
 			})
 		})

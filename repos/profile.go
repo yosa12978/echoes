@@ -10,10 +10,12 @@ import (
 
 type Profile interface {
 	Get(ctx context.Context) (*types.Profile, error)
+	Update(ctx context.Context, profile types.Profile) (*types.Profile, error)
 }
 
 type profileJson struct {
-	profile *types.Profile
+	filename string
+	profile  *types.Profile
 }
 
 func NewProfileJson(filename string) (Profile, error) {
@@ -22,10 +24,21 @@ func NewProfileJson(filename string) (Profile, error) {
 	if err != nil {
 		return repo, err
 	}
+	defer file.Close()
+	repo.filename = filename
 	err = json.NewDecoder(file).Decode(&repo.profile)
 	return repo, err
 }
 
 func (repo *profileJson) Get(ctx context.Context) (*types.Profile, error) {
 	return repo.profile, nil
+}
+
+func (repo *profileJson) Update(ctx context.Context, profile types.Profile) (*types.Profile, error) {
+	file, err := os.Open(repo.filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	return &profile, json.NewEncoder(file).Encode(profile)
 }
