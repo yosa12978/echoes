@@ -40,5 +40,6 @@ func (repo *profileJson) Update(ctx context.Context, profile types.Profile) (*ty
 		return nil, err
 	}
 	defer file.Close()
-	return &profile, json.NewEncoder(file).Encode(profile)
+	repo.profile = &profile
+	return repo.profile, json.NewEncoder(file).Encode(profile)
 }

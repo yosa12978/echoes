@@ -34,6 +34,7 @@ type Hashmap interface {
 }
 
 type SortedSet interface {
+	del
 	ZAdd(ctx context.Context, key string, members ...Z) (int64, error)
 	ZScore(ctx context.Context, key string, member string) (int64, error)
 	ZRange(ctx context.Context, key string, start, stop int64) ([]Z, error)
