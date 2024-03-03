@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/yosa12978/echoes/cache"
 	"github.com/yosa12978/echoes/repos"
 	"github.com/yosa12978/echoes/types"
 )
@@ -21,10 +22,11 @@ type Link interface {
 
 type link struct {
 	linkRepo repos.Link
+	cache    cache.Hashmap
 }
 
-func NewLink(linkRepo repos.Link) Link {
-	return &link{linkRepo: linkRepo}
+func NewLink(linkRepo repos.Link, cache cache.Hashmap) Link {
+	return &link{linkRepo: linkRepo, cache: cache}
 }
 
 func (s *link) GetLinks(ctx context.Context) ([]types.Link, error) {

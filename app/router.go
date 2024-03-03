@@ -22,7 +22,7 @@ func NewRouter(ctx context.Context) http.Handler {
 	postService := services.NewPost(postRepo)
 
 	linkRepo := repos.NewLinkPostgres()
-	linkService := services.NewLink(linkRepo)
+	linkService := services.NewLink(linkRepo, cache.NewRedisCache(ctx))
 
 	commentRepo := repos.NewCommentPostgres()
 	commentService := services.NewComment(commentRepo, postService)
