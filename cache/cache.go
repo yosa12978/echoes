@@ -95,5 +95,16 @@ func (c *redisCache) HSet(ctx context.Context, key string, values ...interface{}
 }
 
 func (c *redisCache) HGetAll(ctx context.Context, key string) (map[string]string, error) {
-	return c.rdb.HGetAll(ctx, key).Result()
+	res, err := c.rdb.HGetAll(ctx, key).Result()
+	if err != nil {
+		return nil, err
+	}
+	if len(res) == 0 {
+		return nil, ErrNotFound
+	}
+	return res, nil
+}
+
+func (c *redisCache) Scan(ctx context.Context, cursor uint64, match string, count int64) ([]string, uint64, error) {
+	return c.rdb.Scan(ctx, cursor, match, count).Result()
 }

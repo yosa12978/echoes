@@ -53,10 +53,10 @@ func NewAnnounceCache(cache cache.Hashmap) Announce {
 func (a *announceCache) Get(ctx context.Context) (*types.Announce, error) {
 	res, err := a.cache.HGetAll(ctx, "announce")
 	if err != nil {
+		if err == cache.ErrNotFound {
+			return nil, nil
+		}
 		return nil, err
-	}
-	if len(res) == 0 {
-		return nil, nil
 	}
 	announce := types.Announce{
 		Content: res["content"],

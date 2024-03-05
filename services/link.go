@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/url"
 	"strings"
@@ -22,15 +23,32 @@ type Link interface {
 
 type link struct {
 	linkRepo repos.Link
-	cache    cache.Hashmap
+	cache    cache.Cache
 }
 
-func NewLink(linkRepo repos.Link, cache cache.Hashmap) Link {
+func NewLink(linkRepo repos.Link, cache cache.Cache) Link {
 	return &link{linkRepo: linkRepo, cache: cache}
 }
 
 func (s *link) GetLinks(ctx context.Context) ([]types.Link, error) {
-	return s.linkRepo.FindAll(ctx)
+	resjson, err := s.cache.Get(ctx, "links")
+	if err == nil {
+		var links []types.Link
+		json.Unmarshal([]byte(resjson), &links)
+		return links, nil
+	}
+
+	links, err := s.linkRepo.FindAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	go func() {
+		linksjson, _ := json.Marshal(links)
+		s.cache.Set(ctx, "links", linksjson, 0)
+	}()
+
+	return links, err
 }
 
 func (s *link) CreateLink(ctx context.Context, name, addr string) (*types.Link, error) {
@@ -49,10 +67,35 @@ func (s *link) CreateLink(ctx context.Context, name, addr string) (*types.Link, 
 		URL:     addr,
 		Created: time.Now().Format(time.RFC3339),
 	}
+
+	// handle errors from this goroutine
+	go func() {
+		var linksFromCache []types.Link
+		linksjson, _ := s.cache.Get(ctx, "links")
+		json.Unmarshal([]byte(linksjson), &linksFromCache)
+		linksFromCache = append(linksFromCache, link)
+		linksToCache, _ := json.Marshal(linksFromCache)
+		s.cache.Set(ctx, "links", string(linksToCache), 0)
+	}()
+
 	return s.linkRepo.Create(ctx, link)
 }
 
 func (s *link) DeleteLink(ctx context.Context, id string) (*types.Link, error) {
+	// improve this algorithm
+	go func() {
+		linksjson, _ := s.cache.Get(ctx, "links")
+		var links []types.Link
+		json.Unmarshal([]byte(linksjson), &links)
+		for i := 0; i < len(links); i++ {
+			if links[i].Id == id {
+				links = append(links[:i], links[i+1:]...)
+				break
+			}
+		}
+		linksToCache, _ := json.Marshal(links)
+		s.cache.Set(ctx, "links", string(linksToCache), 0)
+	}()
 	return s.linkRepo.Delete(ctx, id)
 }
 
