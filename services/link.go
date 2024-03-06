@@ -12,6 +12,7 @@ import (
 	"github.com/yosa12978/echoes/cache"
 	"github.com/yosa12978/echoes/repos"
 	"github.com/yosa12978/echoes/types"
+	"github.com/yosa12978/echoes/utils"
 )
 
 type Link interface {
@@ -34,7 +35,8 @@ func (s *link) GetLinks(ctx context.Context) ([]types.Link, error) {
 	resjson, err := s.cache.Get(ctx, "links")
 	if err == nil {
 		var links []types.Link
-		json.Unmarshal([]byte(resjson), &links)
+		utils.FromJson([]byte(resjson), &links)
+		//json.Unmarshal([]byte(resjson), &links)
 		return links, nil
 	}
 
@@ -44,7 +46,8 @@ func (s *link) GetLinks(ctx context.Context) ([]types.Link, error) {
 	}
 
 	go func() {
-		linksjson, _ := json.Marshal(links)
+		linksjson, _ := utils.ToJson(links)
+		//linksjson, _ := json.Marshal(links)
 		s.cache.Set(ctx, "links", linksjson, 0)
 	}()
 
