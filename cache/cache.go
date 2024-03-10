@@ -14,40 +14,47 @@ var ErrNotFound = errors.New("key doesn't exist")
 type Cache interface {
 	String
 	Hashmap
+	SortedSet
+	Tx() (Pipeline, error)
 }
 
-type del interface {
+type basic interface {
+	Exists(ctx context.Context, keys ...string) (int64, error)
 	Del(ctx context.Context, keys ...string) (int64, error)
 }
 
 type String interface {
-	del
+	basic
+	MGet(ctx context.Context, keys ...string) ([]interface{}, error)
+	Incr(ctx context.Context, key string) (int64, error)
+	Decr(ctx context.Context, key string) (int64, error)
 	Get(ctx context.Context, key string) (string, error)
 	Set(ctx context.Context, key string, value interface{}, exp time.Duration) (string, error)
 }
 
 type Hashmap interface {
-	del
+	basic
 	HGet(ctx context.Context, key, field string) (string, error)
 	HSet(ctx context.Context, key string, value ...interface{}) (int64, error)
 	HGetAll(ctx context.Context, key string) (map[string]string, error)
 }
 
 type SortedSet interface {
-	del
-	ZAdd(ctx context.Context, key string, members ...Z) (int64, error)
-	ZScore(ctx context.Context, key string, member string) (int64, error)
-	ZRange(ctx context.Context, key string, start, stop int64) ([]Z, error)
-	ZRevrange(ctx context.Context, key string, start, stop int64) ([]Z, error)
+	basic
+	ZRem(ctx context.Context, key string, members ...interface{}) (int64, error)
+	ZAdd(ctx context.Context, key string, members ...Member) (int64, error)
+	ZScore(ctx context.Context, key string, member string) (float64, error)
+	ZRange(ctx context.Context, key string, start, stop int64) ([]string, error)
+	ZRevrange(ctx context.Context, key string, start, stop int64) ([]string, error)
 }
 
-type Z struct {
+type Member struct {
 	Score  float64
 	Member string
 }
 
 type redisCache struct {
-	rdb *redis.Client
+	rdb redis.Cmdable
 }
 
 func NewRedisCache(ctx context.Context) Cache {
@@ -107,4 +114,74 @@ func (c *redisCache) HGetAll(ctx context.Context, key string) (map[string]string
 
 func (c *redisCache) Scan(ctx context.Context, cursor uint64, match string, count int64) ([]string, uint64, error) {
 	return c.rdb.Scan(ctx, cursor, match, count).Result()
+}
+
+func (c *redisCache) ZAdd(ctx context.Context, key string, members ...Member) (int64, error) {
+	rmembers := make([]redis.Z, len(members))
+	for k, v := range members {
+		rmembers[k] = redis.Z{Score: v.Score, Member: v.Member}
+	}
+	return c.rdb.ZAdd(ctx, key, rmembers...).Result()
+}
+
+func (c *redisCache) ZScore(ctx context.Context, key string, member string) (float64, error) {
+	return c.rdb.ZScore(ctx, key, member).Result()
+}
+
+func (c *redisCache) ZRange(ctx context.Context, key string, start, stop int64) ([]string, error) {
+	return c.rdb.ZRange(ctx, key, start, stop).Result()
+}
+
+func (c *redisCache) ZRevrange(ctx context.Context, key string, start, stop int64) ([]string, error) {
+	return c.rdb.ZRevRange(ctx, key, start, stop).Result()
+}
+
+func (c *redisCache) Exists(ctx context.Context, keys ...string) (int64, error) {
+	return c.rdb.Exists(ctx, keys...).Result()
+}
+
+func (c *redisCache) Incr(ctx context.Context, key string) (int64, error) {
+	return c.rdb.Incr(ctx, key).Result()
+}
+
+func (c *redisCache) ZRem(ctx context.Context, key string, members ...interface{}) (int64, error) {
+	return c.rdb.ZRem(ctx, key, members...).Result()
+}
+
+func (c *redisCache) Decr(ctx context.Context, key string) (int64, error) {
+	return c.rdb.Decr(ctx, key).Result()
+}
+
+func (c *redisCache) MGet(ctx context.Context, keys ...string) ([]interface{}, error) {
+	return c.rdb.MGet(ctx, keys...).Result()
+}
+
+func (c *redisCache) Tx() (Pipeline, error) {
+	return &redisTransaction{
+		pipeline: c.rdb.TxPipeline(),
+	}, nil
+}
+
+type Pipeline interface {
+	Append(ctx context.Context, f func(pipe Cache) error) error
+	Exec(ctx context.Context) error
+	Discard(ctx context.Context) error
+}
+
+type redisTransaction struct {
+	pipeline redis.Pipeliner
+}
+
+func (t *redisTransaction) Append(ctx context.Context, f func(Cache) error) error {
+	return f(&redisCache{rdb: t.pipeline})
+}
+
+func (t *redisTransaction) Exec(ctx context.Context) error {
+	_, err := t.pipeline.Exec(ctx)
+	return err
+}
+
+func (t *redisTransaction) Discard(ctx context.Context) error {
+	t.pipeline.Discard()
+	return nil
 }

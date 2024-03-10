@@ -8,8 +8,11 @@ services:
       - "5000:5000"
     depends_on:
       - postgres
+      - redis
     env_file:
       - .env
+    networks:
+      - mainnet
   postgres:
     container_name: echoes-postgres
     image: postgres
@@ -20,13 +23,26 @@ services:
       - POSTGRES_PASSWORD=1234
     volumes:
       - /postgres-volume:/var/lib/postgresql/data
+    networks:
+      - mainnet
   adminer:
     container_name: echoes-adminer
     image: adminer
     ports:
       - "5050:8080"
+    depends_on:
+      - postgres
     networks:
       - mainnet
+  redis:
+    container_name: echoes-redis  
+    image: redis
+    ports:
+      - '6379:6379'
+    networks:
+      - mainnet
+    volumes: 
+      - cache:/data
 
 networks:
   mainnet:
@@ -34,3 +50,5 @@ networks:
 
 volumes:
   postgres-volume:
+  cache:
+    driver: local
