@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 
+	"github.com/yosa12978/echoes/cache"
 	"github.com/yosa12978/echoes/types"
 )
 
@@ -42,4 +43,20 @@ func (repo *profileJson) Update(ctx context.Context, profile types.Profile) (*ty
 	defer file.Close()
 	repo.profile = &profile
 	return repo.profile, json.NewEncoder(file).Encode(profile)
+}
+
+type profileRedis struct {
+	cache cache.Cache
+}
+
+func NewProfileRedis(cache cache.Cache) Profile {
+	return &profileRedis{cache: cache}
+}
+
+func (p *profileRedis) Get(ctx context.Context) (*types.Profile, error) {
+	return nil, nil
+}
+
+func (p *profileRedis) Update(ctx context.Context, profile types.Profile) (*types.Profile, error) {
+	return nil, nil
 }

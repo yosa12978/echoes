@@ -3,6 +3,7 @@ package repos
 import (
 	"context"
 	"database/sql"
+	"strings"
 
 	"github.com/yosa12978/echoes/data"
 	"github.com/yosa12978/echoes/types"
@@ -45,26 +46,38 @@ func (repo *account) FindById(ctx context.Context, id string) (*types.Account, e
 func (repo *account) FindByCredentials(ctx context.Context, username, passwordHash string) (*types.Account, error) {
 	var acc types.Account
 	q := "SELECT * FROM accounts WHERE username=$1 AND password=$2;"
-	err := repo.db.QueryRowContext(ctx, q, username, passwordHash).Scan(&acc.Id, &acc.Username, &acc.Password, &acc.Created, &acc.IsAdmin)
+	err := repo.db.
+		QueryRowContext(ctx, q, strings.ToLower(username), passwordHash).
+		Scan(&acc.Id, &acc.Username, &acc.Password, &acc.Created, &acc.IsAdmin)
 	return &acc, err
 }
 
 func (repo *account) FindByUsername(ctx context.Context, username string) (*types.Account, error) {
 	var acc types.Account
 	q := "SELECT * FROM accounts WHERE username=$1;"
-	err := repo.db.QueryRowContext(ctx, q, username).Scan(&acc.Id, &acc.Username, &acc.Password, &acc.Created, &acc.IsAdmin)
+	err := repo.db.
+		QueryRowContext(ctx, q, strings.ToLower(username)).
+		Scan(&acc.Id, &acc.Username, &acc.Password, &acc.Created, &acc.IsAdmin)
 	return &acc, err
 }
 
 func (repo *account) Create(ctx context.Context, account types.Account) (*types.Account, error) {
 	q := "INSERT INTO accounts (id, username, password, created, isadmin) VALUES ($1, $2, $3, $4, $5);"
-	repo.db.ExecContext(ctx, q, account.Id, account.Username, account.Password, account.Created, account.IsAdmin)
+	repo.db.ExecContext(ctx, q,
+		account.Id,
+		strings.ToLower(account.Username),
+		account.Password, account.Created,
+		account.IsAdmin)
 	return nil, nil
 }
 
 func (repo *account) Update(ctx context.Context, accountId string, account types.Account) error {
 	q := "UPDATE accounts SET username=$1, password=$2, isadmin=$3 WHERE id=$4;"
-	_, err := repo.db.ExecContext(ctx, q, account.Username, account.Password, account.IsAdmin, accountId)
+	_, err := repo.db.ExecContext(ctx, q,
+		strings.ToLower(account.Username),
+		account.Password,
+		account.IsAdmin,
+		accountId)
 	return err
 }
 
