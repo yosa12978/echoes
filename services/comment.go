@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/yosa12978/echoes/cache"
+	"github.com/yosa12978/echoes/logging"
 	"github.com/yosa12978/echoes/repos"
 	"github.com/yosa12978/echoes/types"
 )
@@ -25,10 +27,17 @@ type Comment interface {
 type comment struct {
 	commentRepo repos.Comment
 	postService Post
+	cache       cache.Cache
+	logger      logging.Logger
 }
 
-func NewComment(commentRepo repos.Comment, postService Post) Comment {
-	return &comment{commentRepo: commentRepo, postService: postService}
+func NewComment(commentRepo repos.Comment, postService Post, cache cache.Cache, logger logging.Logger) Comment {
+	return &comment{
+		commentRepo: commentRepo,
+		postService: postService,
+		cache:       cache,
+		logger:      logger,
+	}
 }
 
 func (s *comment) GetPostComments(ctx context.Context, postId string, page, size int) (*types.CommentsInfo, error) {
@@ -93,5 +102,5 @@ func (s *comment) Seed(ctx context.Context) error {
 }
 
 func (s *comment) GetCommentsCount(ctx context.Context, postId string) (int, error) {
-	return 0, nil // todo finish this
+	return s.commentRepo.GetCommentsCount(ctx, postId)
 }

@@ -89,7 +89,6 @@ func (s *link) GetLinks(ctx context.Context) ([]types.Link, error) {
 				pipe.Set(ctx, key, link, 0)
 				members[k] = cache.Member{Member: key, Score: float64(k)}
 			}
-			pipe.Set(ctx, "links_count", len(links), 0)
 			pipe.ZAdd(ctx, "links", members...)
 			return nil
 		})

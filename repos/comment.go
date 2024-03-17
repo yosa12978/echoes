@@ -16,6 +16,7 @@ type Comment interface {
 	Create(ctx context.Context, comment types.Comment) (*types.Comment, error)
 	Update(ctx context.Context, id string, comment types.Comment) (*types.Comment, error)
 	Delete(ctx context.Context, id string) (*types.Comment, error)
+	GetCommentsCount(ctx context.Context, postId string) (int, error)
 }
 
 type commentPostgres struct {
@@ -171,4 +172,11 @@ func (repo *commentPostgres) GetPage(ctx context.Context, postId string, page, s
 		NextPage: page + 1,
 		Total:    count,
 	}, nil
+}
+
+func (repo *commentPostgres) GetCommentsCount(ctx context.Context, postId string) (int, error) {
+	q := "SELECT COUNT(*) FROM comments WHERE postId=$1;"
+	var count int
+	err := repo.db.QueryRowContext(ctx, q, postId).Scan(&count)
+	return count, err
 }

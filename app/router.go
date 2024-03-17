@@ -33,7 +33,12 @@ func NewRouter(ctx context.Context) http.Handler {
 	)
 
 	commentRepo := repos.NewCommentPostgres()
-	commentService := services.NewComment(commentRepo, postService)
+	commentService := services.NewComment(
+		commentRepo,
+		postService,
+		cache.NewRedisCache(ctx),
+		logging.New("commentService"),
+	)
 
 	announceRepo := repos.NewAnnounceCache(cache.NewRedisCache(ctx))
 	announceService := services.NewAnnounce(
