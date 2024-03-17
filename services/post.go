@@ -2,12 +2,15 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/yosa12978/echoes/cache"
+	"github.com/yosa12978/echoes/logging"
 	"github.com/yosa12978/echoes/repos"
 	"github.com/yosa12978/echoes/types"
 )
@@ -25,10 +28,16 @@ type Post interface {
 
 type post struct {
 	postRepo repos.Post
+	cache    cache.Cache
+	logger   logging.Logger
 }
 
-func NewPost(postRepo repos.Post) Post {
-	return &post{postRepo: postRepo}
+func NewPost(postRepo repos.Post, cache cache.Cache, logger logging.Logger) Post {
+	return &post{
+		postRepo: postRepo,
+		cache:    cache,
+		logger:   logger,
+	}
 }
 
 func (s *post) GetPosts(ctx context.Context) ([]types.Post, error) {
@@ -40,7 +49,27 @@ func (s *post) GetPostsPaged(ctx context.Context, page, size int) (*types.Page[t
 }
 
 func (s *post) GetPostById(ctx context.Context, id string) (*types.Post, error) {
-	return s.postRepo.FindById(ctx, id)
+	postJson, err := s.cache.Get(ctx, "posts:"+id)
+	if err == nil {
+		var post types.Post
+		json.Unmarshal([]byte(postJson), &post)
+		return &post, nil
+	}
+
+	post, err := s.postRepo.FindById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	go func() {
+		postBytes, _ := json.Marshal(post)
+		_, err = s.cache.Set(ctx, "posts:"+id, string(postBytes), 0)
+		if err != nil {
+			s.logger.Error(err)
+		}
+	}()
+
+	return post, err
 }
 
 func (s *post) PinPost(ctx context.Context, id string) (*types.Post, error) {
@@ -49,6 +78,15 @@ func (s *post) PinPost(ctx context.Context, id string) (*types.Post, error) {
 		return nil, err
 	}
 	post.Pinned = !post.Pinned
+
+	go func() {
+		postb, _ := json.Marshal(post)
+		_, err := s.cache.SetXX(ctx, "posts:"+id, string(postb), 0)
+		if err != nil {
+			s.logger.Error(err)
+		}
+	}()
+
 	return s.postRepo.Update(ctx, post.Id, *post)
 }
 
@@ -65,10 +103,49 @@ func (s *post) CreatePost(ctx context.Context, title, content string) (*types.Po
 		Created: time.Now().Format(time.RFC3339),
 		Pinned:  false,
 	}
+
+	go func() {
+		postb, _ := json.Marshal(post)
+		key := "posts:" + post.Id
+		tx, _ := s.cache.Tx()
+		tx.Append(ctx, func(pipe cache.Cache) error {
+			s.cache.Set(ctx, key, string(postb), 0)
+			score, _ := s.cache.ZCard(ctx, "posts")
+			s.cache.ZAdd(ctx, "posts", cache.Member{
+				Score:  float64(score + 1),
+				Member: key,
+			})
+			return nil
+		})
+		if err := tx.Exec(ctx); err != nil {
+			s.logger.Error(err)
+		}
+	}()
+
 	return s.postRepo.Create(ctx, post)
 }
 
 func (s *post) DeletePost(ctx context.Context, id string) (*types.Post, error) {
+	go func() {
+		tx, _ := s.cache.Tx()
+		key := "posts:" + id
+		tx.Append(ctx, func(pipe cache.Cache) error {
+			_, err := pipe.Del(ctx, key)
+			if err != nil {
+				s.logger.Error(err)
+				return err
+			}
+			_, err = pipe.ZRem(ctx, "posts", key)
+			if err != nil {
+				s.logger.Error(err)
+				return err
+			}
+			return nil
+		})
+		if err := tx.Exec(ctx); err != nil {
+			s.logger.Error(err)
+		}
+	}()
 	return s.postRepo.Delete(ctx, id)
 }
 

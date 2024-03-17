@@ -5,6 +5,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/yosa12978/echoes/logging"
 	"github.com/yosa12978/echoes/repos"
 	"github.com/yosa12978/echoes/types"
 )
@@ -17,10 +18,11 @@ type Announce interface {
 
 type announce struct {
 	announceRepo repos.Announce
+	logger       logging.Logger
 }
 
-func NewAnnounce(announceRepo repos.Announce) Announce {
-	return &announce{announceRepo: announceRepo}
+func NewAnnounce(announceRepo repos.Announce, logger logging.Logger) Announce {
+	return &announce{announceRepo: announceRepo, logger: logger}
 }
 
 func (s *announce) Get(ctx context.Context) (*types.Announce, error) {

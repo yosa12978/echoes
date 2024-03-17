@@ -30,6 +30,7 @@ type String interface {
 	Decr(ctx context.Context, key string) (int64, error)
 	Get(ctx context.Context, key string) (string, error)
 	Set(ctx context.Context, key string, value interface{}, exp time.Duration) (string, error)
+	SetXX(ctx context.Context, key string, value interface{}, exp time.Duration) (bool, error)
 }
 
 type Hashmap interface {
@@ -41,6 +42,7 @@ type Hashmap interface {
 
 type SortedSet interface {
 	basic
+	ZCard(ctx context.Context, key string) (int64, error)
 	ZRem(ctx context.Context, key string, members ...interface{}) (int64, error)
 	ZAdd(ctx context.Context, key string, members ...Member) (int64, error)
 	ZScore(ctx context.Context, key string, member string) (float64, error)
@@ -75,6 +77,10 @@ func (c *redisCache) Set(ctx context.Context, key string, value interface{}, exp
 		return "", ErrNotFound
 	}
 	return res, err
+}
+
+func (c *redisCache) SetXX(ctx context.Context, key string, value interface{}, exp time.Duration) (bool, error) {
+	return c.rdb.SetXX(ctx, key, value, exp).Result()
 }
 
 func (c *redisCache) Del(ctx context.Context, keys ...string) (int64, error) {
@@ -142,6 +148,10 @@ func (c *redisCache) Exists(ctx context.Context, keys ...string) (int64, error) 
 
 func (c *redisCache) Incr(ctx context.Context, key string) (int64, error) {
 	return c.rdb.Incr(ctx, key).Result()
+}
+
+func (c *redisCache) ZCard(ctx context.Context, key string) (int64, error) {
+	return c.rdb.ZCard(ctx, key).Result()
 }
 
 func (c *redisCache) ZRem(ctx context.Context, key string, members ...interface{}) (int64, error) {

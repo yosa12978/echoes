@@ -15,6 +15,7 @@ import (
 type Comment interface {
 	GetComment(ctx context.Context) http.Handler
 	GetPostComments(ctx context.Context) http.Handler
+	GetCommentCount(ctx context.Context) http.Handler
 	CreateComment(ctx context.Context) http.Handler
 	DeleteComment(ctx context.Context) http.Handler
 }
@@ -93,5 +94,12 @@ func (h *comment) DeleteComment(ctx context.Context) http.Handler {
 			return
 		}
 		utils.RenderBlock(w, "alert", "comment deleted")
+	})
+}
+
+func (h *comment) GetCommentCount(ctx context.Context) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		count, _ := h.commentService.GetCommentsCount(ctx, mux.Vars(r)["id"])
+		w.Write([]byte(strconv.Itoa(count)))
 	})
 }

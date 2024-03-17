@@ -11,14 +11,14 @@
 {{end}}
 
 {{block "noPosts" .}}
-<div class="card mt-2 mb-2 p-2 text-bg-warning" style="text-align: center;">
+<div class="card mt-2 mb-2 p-2 text-bg-primary" style="text-align: center;">
     No posts found :(
 </div>
 {{end}}
 
 {{block "alert" .}}
 {{if . }}
-<div class="alert alert-warning" style="max-width:500px;width:100%;" id="info">{{ . }}</div>
+<div class="alert alert-primary" style="max-width:500px;width:100%;" id="info">{{ . }}</div>
 {{end}}
 {{end}}
 
@@ -37,7 +37,7 @@
 {{block "announce" .}}
 {{if .}}
 <br>
-<div class="card bg-warning text-dark mb-2 mt-2 announce">
+<div class="card bg-primary text-dark mb-2 mt-2 announce">
     <div class="card-body">
         <b class="mb-2 mt-1"><i class="bi bi-megaphone-fill"></i> Announcement</b>
         <p class="card-text mt-2" id="announce-text"></p>
@@ -75,7 +75,7 @@
 <center>
 <div class="card text-bg-white">
     <div class="card-body">
-        <img src="{{.Icon}}" class="mb-2" style="max-width: 100px; max-height: 100px; border-radius: 25px;" alt="icon"/><br>
+        <img src="{{.Icon}}" class="mb-2" style="max-width: 100px; max-height: 100px; border-radius: 50%;" alt="icon"/><br>
         <b class="mb-2 mt-1" style="font-size:x-large">{{.Name}}</b>
         <p class="card-text mt-2">{{.Bio}}</p>
     </div>

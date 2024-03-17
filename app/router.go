@@ -19,16 +19,27 @@ func NewRouter(ctx context.Context) http.Handler {
 	logger := logging.New("app.NewRouter")
 
 	postRepo := repos.NewPostPostgres()
-	postService := services.NewPost(postRepo)
+	postService := services.NewPost(
+		postRepo,
+		cache.NewRedisCache(ctx),
+		logging.New("postService"),
+	)
 
 	linkRepo := repos.NewLinkPostgres()
-	linkService := services.NewLink(linkRepo, cache.NewRedisCache(ctx))
+	linkService := services.NewLink(
+		linkRepo,
+		cache.NewRedisCache(ctx),
+		logging.New("linkService"),
+	)
 
 	commentRepo := repos.NewCommentPostgres()
 	commentService := services.NewComment(commentRepo, postService)
 
 	announceRepo := repos.NewAnnounceCache(cache.NewRedisCache(ctx))
-	announceService := services.NewAnnounce(announceRepo)
+	announceService := services.NewAnnounce(
+		announceRepo,
+		logging.New("announceService"),
+	)
 
 	accountRepo := repos.NewAccountPostgres()
 	accountService := services.NewAccount(accountRepo)
@@ -86,6 +97,7 @@ func RegisterCommentHandler(ctx context.Context, handler handlers.Comment, route
 	router.Handle("/comments", handler.GetPostComments(ctx)).Methods("GET")
 	router.Handle("/comments", handler.CreateComment(ctx)).Methods("POST")
 	router.Handle("/comments/{id}", middleware.Admin(handler.DeleteComment(ctx))).Methods("DELETE")
+	router.Handle("/comments-count/{id}", handler.GetCommentCount(ctx)).Methods("GET")
 }
 
 func RegisterAnnounceHandler(ctx context.Context, handler handlers.Announce, router *mux.Router) {

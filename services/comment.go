@@ -18,6 +18,7 @@ type Comment interface {
 	GetCommentById(ctx context.Context, commentId string) (*types.Comment, error)
 	CreateComment(ctx context.Context, postId, name, email, content string) (*types.Comment, error)
 	DeleteComment(ctx context.Context, commentId string) (*types.Comment, error)
+	GetCommentsCount(ctx context.Context, postId string) (int, error)
 	Seed(ctx context.Context) error
 }
 
@@ -89,4 +90,8 @@ func (s *comment) Seed(ctx context.Context) error {
 		}
 	}
 	return nil
+}
+
+func (s *comment) GetCommentsCount(ctx context.Context, postId string) (int, error) {
+	return 0, nil // todo finish this
 }

@@ -8,25 +8,25 @@
     <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
     <link rel="stylesheet" href="/static/style.css">
-
+    <script src="https://unpkg.com/colorthief@2.3.2/dist/color-thief.umd.js"></script>
     <title>Echoes</title>
 </head>
 <body>
-    <style>
-        /* body {
+<style>
+        body {
             background-image: url("/static/bg.webp");
             background-repeat: no-repeat;
             background-position: right top;
             background-attachment: fixed;
             background-size: 100% 100%;
-        } */
+        }
         .form-control:focus {
             border-color: rgb(136, 136, 136);
             box-shadow: none;
@@ -54,6 +54,11 @@
         .btn {
             font-weight:600;
         }
+        .container {
+            backdrop-filter: blur(10px);
+        }
     </style>
+    <script src="/static/script.js"></script>
+
     <div class="container">
 {{end}}

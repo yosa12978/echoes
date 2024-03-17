@@ -12,6 +12,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/yosa12978/echoes/cache"
+	"github.com/yosa12978/echoes/logging"
 	"github.com/yosa12978/echoes/repos"
 	"github.com/yosa12978/echoes/types"
 )
@@ -26,10 +27,11 @@ type Link interface {
 type link struct {
 	linkRepo repos.Link
 	cache    cache.Cache
+	logger   logging.Logger
 }
 
-func NewLink(linkRepo repos.Link, cache cache.Cache) Link {
-	return &link{linkRepo: linkRepo, cache: cache}
+func NewLink(linkRepo repos.Link, cache cache.Cache, logger logging.Logger) Link {
+	return &link{linkRepo: linkRepo, cache: cache, logger: logger}
 }
 
 // Migrate to hashmaps instead of json-encoded string for caching
@@ -128,8 +130,8 @@ func (s *link) CreateLink(ctx context.Context, name, addr string) (*types.Link, 
 		tx, _ := s.cache.Tx()
 		tx.Append(ctx, func(pipe cache.Cache) error {
 			pipe.Set(ctx, linkKey, string(linkJson), 0)
-			score, _ := pipe.Incr(ctx, "links_count")
-			pipe.ZAdd(ctx, "links", cache.Member{Score: float64(score), Member: linkKey})
+			score, _ := s.cache.ZCard(ctx, "posts")
+			pipe.ZAdd(ctx, "links", cache.Member{Score: float64(score + 1), Member: linkKey})
 			return nil
 		})
 		tx.Exec(ctx)
@@ -149,10 +151,9 @@ func (s *link) DeleteLink(ctx context.Context, id string) (*types.Link, error) {
 		key := fmt.Sprintf("links:%s", id)
 		tx, _ := s.cache.Tx()
 		tx.Append(ctx, func(pipe cache.Cache) error {
-			pipe.Del(ctx, key)
+			_, err := pipe.Del(ctx, key)
 			pipe.ZRem(ctx, "links", key)
-			pipe.Decr(ctx, "links_count")
-			return nil
+			return err
 		})
 		tx.Exec(ctx)
 	}()
