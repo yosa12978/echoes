@@ -2,9 +2,11 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/mail"
+	"strconv"
 	"strings"
 	"time"
 
@@ -57,7 +59,27 @@ func (s *comment) GetPostComments(ctx context.Context, postId string, page, size
 }
 
 func (s *comment) GetCommentById(ctx context.Context, commentId string) (*types.Comment, error) {
-	return s.commentRepo.FindById(ctx, commentId)
+	commentFromCache, err := s.cache.Get(ctx, "comments:"+commentId)
+	if err == nil {
+		var comment types.Comment
+		err := json.Unmarshal([]byte(commentFromCache), &comment)
+		return &comment, err
+	}
+
+	comment, err := s.commentRepo.FindById(ctx, commentId)
+	if err != nil {
+		return nil, err
+	}
+
+	go func() {
+		commentJson, _ := json.Marshal(comment)
+		_, err := s.cache.Set(ctx, "comments:"+commentId, commentJson, 0)
+		if err != nil {
+			s.logger.Error(err)
+		}
+	}()
+
+	return comment, nil
 }
 
 func (s *comment) CreateComment(ctx context.Context, postId, name, email, content string) (*types.Comment, error) {
@@ -81,10 +103,24 @@ func (s *comment) CreateComment(ctx context.Context, postId, name, email, conten
 		Content: content,
 		PostId:  postId,
 	}
+
+	go func() {
+		commentJson, _ := json.Marshal(comm)
+		_, err := s.cache.Set(ctx, "comments:"+comm.Id, commentJson, 0)
+		if err != nil {
+			s.logger.Error(err)
+		}
+	}()
 	return s.commentRepo.Create(ctx, comm)
 }
 
 func (s *comment) DeleteComment(ctx context.Context, commentId string) (*types.Comment, error) {
+	go func() {
+		_, err := s.cache.Del(ctx, "comments:"+commentId)
+		if err != nil {
+			s.logger.Error(err)
+		}
+	}()
 	return s.commentRepo.Delete(ctx, commentId)
 }
 
@@ -102,5 +138,20 @@ func (s *comment) Seed(ctx context.Context) error {
 }
 
 func (s *comment) GetCommentsCount(ctx context.Context, postId string) (int, error) {
-	return s.commentRepo.GetCommentsCount(ctx, postId)
+	countstr, err := s.cache.Get(ctx, "comments_count:"+postId)
+	if err == nil {
+		return strconv.Atoi(countstr)
+	}
+
+	count, err := s.commentRepo.GetCommentsCount(ctx, postId)
+	if err != nil {
+		return 0, err
+	}
+	go func() {
+		_, err = s.cache.Set(ctx, "comments_count:"+postId, count, 0)
+		if err != nil {
+			s.logger.Error(err)
+		}
+	}()
+	return count, nil
 }
