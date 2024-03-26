@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -44,8 +45,48 @@ func (s *post) GetPosts(ctx context.Context) ([]types.Post, error) {
 	return s.postRepo.FindAll(ctx)
 }
 
+func (s *post) GetPaginationVersion(ctx context.Context) (int64, error) {
+	var version int64
+	versionFromCache, err := s.cache.Get(ctx, "posts_pagination_version")
+	if err != nil {
+		version := time.Now().UnixMicro()
+		_, err = s.cache.Set(
+			ctx,
+			"posts_pagination_version",
+			version,
+			1*time.Minute,
+		)
+		return version, err
+	}
+	version, err = strconv.ParseInt(versionFromCache, 10, 64)
+	return version, err
+}
+
 func (s *post) GetPostsPaged(ctx context.Context, page, size int) (*types.Page[types.Post], error) {
-	return s.postRepo.GetPage(ctx, page, size)
+	version, _ := s.GetPaginationVersion(ctx)
+	key := fmt.Sprintf("posts_pagination:%v:%d", version, page)
+	pageFromCache, err := s.cache.Get(ctx, key)
+	if err == nil {
+		var res *types.Page[types.Post]
+		err := json.Unmarshal([]byte(pageFromCache), &res)
+		if err == nil {
+			return res, err
+		}
+		s.logger.Error(err)
+	}
+
+	t := time.UnixMicro(version).Format(time.RFC3339)
+	postsPage, err := s.postRepo.GetPageTime(ctx, t, page, size)
+	if err != nil {
+		return nil, err
+	}
+
+	go func() {
+		pageJson, _ := json.Marshal(postsPage)
+		s.cache.SetNX(ctx, key, pageJson, 2*time.Minute)
+	}()
+
+	return postsPage, err
 }
 
 func (s *post) GetPostById(ctx context.Context, id string) (*types.Post, error) {
@@ -150,9 +191,9 @@ func (s *post) DeletePost(ctx context.Context, id string) (*types.Post, error) {
 }
 
 func (s *post) Seed(ctx context.Context) error {
-	for i := 0; i < 50; i++ {
-		time.Sleep(50 * time.Millisecond)
-		_, err := s.postRepo.Create(ctx, types.NewPost(fmt.Sprintf("post #%d", i), fmt.Sprintf("post content #%d", i)))
+	for i := 0; i < 30; i++ {
+		time.Sleep(1000 * time.Millisecond)
+		_, err := s.postRepo.Create(ctx, types.NewPost(fmt.Sprintf("post #%d", 30-i), fmt.Sprintf("post content #%d", 30-i)))
 		if err != nil {
 			return err
 		}

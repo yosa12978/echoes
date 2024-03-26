@@ -31,6 +31,7 @@ type String interface {
 	Get(ctx context.Context, key string) (string, error)
 	Set(ctx context.Context, key string, value interface{}, exp time.Duration) (string, error)
 	SetXX(ctx context.Context, key string, value interface{}, exp time.Duration) (bool, error)
+	SetNX(ctx context.Context, key string, value interface{}, exp time.Duration) (bool, error)
 }
 
 type Hashmap interface {
@@ -81,6 +82,10 @@ func (c *redisCache) Set(ctx context.Context, key string, value interface{}, exp
 
 func (c *redisCache) SetXX(ctx context.Context, key string, value interface{}, exp time.Duration) (bool, error) {
 	return c.rdb.SetXX(ctx, key, value, exp).Result()
+}
+
+func (c *redisCache) SetNX(ctx context.Context, key string, value interface{}, exp time.Duration) (bool, error) {
+	return c.rdb.SetNX(ctx, key, value, exp).Result()
 }
 
 func (c *redisCache) Del(ctx context.Context, keys ...string) (int64, error) {

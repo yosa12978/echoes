@@ -20,6 +20,7 @@ type Post interface {
 	Create(ctx context.Context, post types.Post) (*types.Post, error)
 	Update(ctx context.Context, id string, post types.Post) (*types.Post, error)
 	Delete(ctx context.Context, id string) (*types.Post, error)
+	GetPageTime(ctx context.Context, time string, page, size int) (*types.Page[types.Post], error)
 }
 
 type postMock struct {
@@ -45,6 +46,10 @@ func (repo *postMock) FindById(ctx context.Context, id string) (*types.Post, err
 		}
 	}
 	return nil, ErrPostNotFound
+}
+
+func (repo *postMock) GetPageTime(ctx context.Context, time string, page, size int) (*types.Page[types.Post], error) {
+	return nil, nil
 }
 
 func (repo *postMock) Create(ctx context.Context, post types.Post) (*types.Post, error) {
@@ -151,6 +156,44 @@ func (repo *postPostgres) GetPage(ctx context.Context, page, size int) (*types.P
 	}
 	q := "SELECT * FROM posts ORDER BY pinned DESC, created DESC LIMIT $1 OFFSET $2;"
 	rows, err := repo.db.QueryContext(ctx, q, size, (page-1)*size)
+	if err != nil {
+		return &types.Page[types.Post]{
+			Content:  posts,
+			HasNext:  false,
+			Size:     size,
+			NextPage: 1,
+			Total:    0,
+		}, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		post := types.Post{}
+		rows.Scan(&post.Id, &post.Title, &post.Content, &post.Created, &post.Pinned)
+		posts = append(posts, post)
+	}
+	return &types.Page[types.Post]{
+		Content:  posts,
+		HasNext:  hasNext,
+		Size:     size,
+		NextPage: page + 1,
+		Total:    count,
+	}, nil
+}
+
+func (repo *postPostgres) GetPageTime(
+	ctx context.Context,
+	time string,
+	page, size int) (*types.Page[types.Post], error) {
+	posts := []types.Post{}
+	qcount := "SELECT COUNT(*) FROM posts WHERE created <= $1;"
+	var count int
+	repo.db.QueryRowContext(ctx, qcount, time).Scan(&count)
+	hasNext := true
+	if (page-1)*size+size >= count {
+		hasNext = false
+	}
+	q := "SELECT * FROM posts WHERE created <= $3 ORDER BY pinned DESC, created DESC LIMIT $1 OFFSET $2;"
+	rows, err := repo.db.QueryContext(ctx, q, size, (page-1)*size, time)
 	if err != nil {
 		return &types.Page[types.Post]{
 			Content:  posts,
