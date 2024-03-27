@@ -11,6 +11,7 @@ import (
 type Comment interface {
 	FindAll(ctx context.Context) ([]types.Comment, error)
 	GetPage(ctx context.Context, postId string, page, size int) (*types.Page[types.Comment], error)
+	GetPageTime(ctx context.Context, time, postId string, page, size int) (*types.Page[types.Comment], error)
 	FindById(ctx context.Context, id string) (*types.Comment, error)
 	FindByPostId(ctx context.Context, postId string) ([]types.Comment, error)
 	Create(ctx context.Context, comment types.Comment) (*types.Comment, error)
@@ -179,4 +180,47 @@ func (repo *commentPostgres) GetCommentsCount(ctx context.Context, postId string
 	var count int
 	err := repo.db.QueryRowContext(ctx, q, postId).Scan(&count)
 	return count, err
+}
+
+func (repo *commentPostgres) GetPageTime(
+	ctx context.Context, time, postId string, page, size int) (*types.Page[types.Comment], error) {
+	comments := []types.Comment{}
+	qcount := "SELECT COUNT(*) FROM comments WHERE postId=$1 AND created <= $2;"
+	var count int
+	repo.db.QueryRowContext(ctx, qcount, postId, time).Scan(&count)
+	hasNext := true
+	if (page-1)*size+size >= count {
+		hasNext = false
+	}
+	q := "SELECT * FROM comments WHERE postId=$1 AND created <= $4 ORDER BY created DESC LIMIT $2 OFFSET $3;"
+	rows, err := repo.db.QueryContext(ctx, q, postId, size, (page-1)*size, time)
+	if err != nil {
+		return &types.Page[types.Comment]{
+			Content:  comments,
+			HasNext:  false,
+			Size:     size,
+			NextPage: 1,
+			Total:    0,
+		}, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		comment := types.Comment{}
+		rows.Scan(
+			&comment.Id,
+			&comment.Email,
+			&comment.Name,
+			&comment.Content,
+			&comment.Created,
+			&comment.PostId,
+		)
+		comments = append(comments, comment)
+	}
+	return &types.Page[types.Comment]{
+		Content:  comments,
+		HasNext:  hasNext,
+		Size:     size,
+		NextPage: page + 1,
+		Total:    count,
+	}, nil
 }

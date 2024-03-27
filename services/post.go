@@ -45,7 +45,7 @@ func (s *post) GetPosts(ctx context.Context) ([]types.Post, error) {
 	return s.postRepo.FindAll(ctx)
 }
 
-func (s *post) GetPaginationVersion(ctx context.Context) (int64, error) {
+func (s *post) getPaginationVersion(ctx context.Context) (int64, error) {
 	var version int64
 	versionFromCache, err := s.cache.Get(ctx, "posts_pagination_version")
 	if err != nil {
@@ -63,8 +63,8 @@ func (s *post) GetPaginationVersion(ctx context.Context) (int64, error) {
 }
 
 func (s *post) GetPostsPaged(ctx context.Context, page, size int) (*types.Page[types.Post], error) {
-	version, _ := s.GetPaginationVersion(ctx)
-	key := fmt.Sprintf("posts_pagination:%v:%d", version, page)
+	version, _ := s.getPaginationVersion(ctx)
+	key := fmt.Sprintf("posts:%v:page:%d", version, page)
 	pageFromCache, err := s.cache.Get(ctx, key)
 	if err == nil {
 		var res *types.Page[types.Post]
@@ -83,7 +83,7 @@ func (s *post) GetPostsPaged(ctx context.Context, page, size int) (*types.Page[t
 
 	go func() {
 		pageJson, _ := json.Marshal(postsPage)
-		s.cache.SetNX(ctx, key, pageJson, 2*time.Minute)
+		s.cache.SetNX(ctx, key, pageJson, 65*time.Second)
 	}()
 
 	return postsPage, err

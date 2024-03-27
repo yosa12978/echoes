@@ -42,19 +42,58 @@ func NewComment(commentRepo repos.Comment, postService Post, cache cache.Cache, 
 	}
 }
 
+func (s *comment) getPaginationVersion(ctx context.Context, postId string) (int64, error) {
+	var version int64
+	key := "comments_pagination_version:" + postId
+	versionFromCache, err := s.cache.Get(ctx, key)
+	if err != nil {
+		version := time.Now().UnixMicro()
+		_, err = s.cache.Set(
+			ctx,
+			key,
+			version,
+			1*time.Minute,
+		)
+		return version, err
+	}
+	version, err = strconv.ParseInt(versionFromCache, 10, 64)
+	return version, err
+}
+
 func (s *comment) GetPostComments(ctx context.Context, postId string, page, size int) (*types.CommentsInfo, error) {
 	if _, err := s.postService.GetPostById(ctx, postId); err != nil {
 		return nil, err
 	}
-	commentsPaged, err := s.commentRepo.GetPage(ctx, postId, page, size)
+	version, err := s.getPaginationVersion(ctx, postId)
 	if err != nil {
-		// log err here
+		s.logger.Error(err)
+	}
+	key := fmt.Sprintf("comments:%s:%v:%d", postId, version, page)
+	commentsFromCache, err := s.cache.Get(ctx, key)
+	if err == nil {
+		var res types.CommentsInfo
+		err := json.Unmarshal([]byte(commentsFromCache), &res)
+		if err == nil {
+			return &res, nil
+		}
+		s.logger.Error(err)
+	}
+
+	t := time.UnixMicro(version).Format(time.RFC3339)
+	commentsPaged, err := s.commentRepo.GetPageTime(ctx, t, postId, page, size)
+	if err != nil {
+		s.logger.Error(err)
 		return nil, err
 	}
 	res := types.CommentsInfo{
 		Page:   *commentsPaged,
 		PostId: postId,
 	}
+
+	go func() {
+		pageJson, _ := json.Marshal(res)
+		s.cache.SetNX(ctx, key, pageJson, 65*time.Second)
+	}()
 	return &res, nil
 }
 
@@ -125,11 +164,12 @@ func (s *comment) DeleteComment(ctx context.Context, commentId string) (*types.C
 }
 
 func (s *comment) Seed(ctx context.Context) error {
-	for i := 0; i < 50; i++ {
+	for i := 0; i < 60; i++ {
+		time.Sleep(1 * time.Second)
 		name := fmt.Sprintf("Name#%d", i)
 		email := fmt.Sprintf("email%d@email.com", i)
 		content := fmt.Sprintf("content %d", time.Now().UnixNano())
-		_, err := s.CreateComment(ctx, "895cef0a-58e0-4f55-b49f-6bea42d8bcd1", name, email, content)
+		_, err := s.CreateComment(ctx, "dcc0650c-4370-4ef3-a846-a7d71ddd55fc", name, email, content)
 		if err != nil {
 			return err
 		}
@@ -148,7 +188,7 @@ func (s *comment) GetCommentsCount(ctx context.Context, postId string) (int, err
 		return 0, err
 	}
 	go func() {
-		_, err = s.cache.Set(ctx, "comments_count:"+postId, count, 0)
+		_, err = s.cache.Set(ctx, "comments_count:"+postId, count, 60*time.Second)
 		if err != nil {
 			s.logger.Error(err)
 		}
