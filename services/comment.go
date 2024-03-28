@@ -92,7 +92,10 @@ func (s *comment) GetPostComments(ctx context.Context, postId string, page, size
 
 	go func() {
 		pageJson, _ := json.Marshal(res)
-		s.cache.SetNX(ctx, key, pageJson, 65*time.Second)
+		_, err := s.cache.SetNX(ctx, key, pageJson, 65*time.Second)
+		if err != nil {
+			s.logger.Error(err)
+		}
 	}()
 	return &res, nil
 }

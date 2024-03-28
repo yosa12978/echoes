@@ -83,7 +83,10 @@ func (s *post) GetPostsPaged(ctx context.Context, page, size int) (*types.Page[t
 
 	go func() {
 		pageJson, _ := json.Marshal(postsPage)
-		s.cache.SetNX(ctx, key, pageJson, 65*time.Second)
+		_, err := s.cache.SetNX(ctx, key, pageJson, 65*time.Second)
+		if err != nil {
+			s.logger.Error(err)
+		}
 	}()
 
 	return postsPage, err
