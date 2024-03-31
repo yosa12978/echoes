@@ -1,10 +1,14 @@
 package repos
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 
+	"github.com/elastic/go-elasticsearch"
+	"github.com/elastic/go-elasticsearch/esapi"
 	"github.com/yosa12978/echoes/data"
 	"github.com/yosa12978/echoes/types"
 )
@@ -216,4 +220,76 @@ func (repo *postPostgres) GetPageTime(
 		NextPage: page + 1,
 		Total:    count,
 	}, nil
+}
+
+type PostSearcher interface {
+	Search(ctx context.Context, q string, page, size int) (*types.Page[types.Post], error)
+	Append(ctx context.Context, p types.Post) error
+	Delete(ctx context.Context, id string) error
+	Bulk(ctx context.Context, p ...types.Post) error
+}
+
+type postES struct {
+	es *elasticsearch.Client
+}
+
+func NewPostSearcherES(es *elasticsearch.Client) PostSearcher {
+	return &postES{
+		es: es,
+	}
+}
+
+func (repo *postES) Search(ctx context.Context, q string, page, size int) (*types.Page[types.Post], error) {
+	skip := (page - 1) * size
+	req := esapi.SearchRequest{
+		Index: []string{"posts"},
+		Query: q,
+		Size:  &size,
+		From:  &skip,
+	}
+	resp, err := req.Do(ctx, repo.es)
+	if err != nil {
+		return nil, err
+	}
+	var posts []types.Post
+	err = json.NewDecoder(resp.Body).Decode(&posts)
+	if err != nil {
+		return nil, err
+	}
+	pageRes := types.Page[types.Post]{
+		HasNext:  true,
+		Size:     size,
+		NextPage: page + 1,
+		Content:  posts,
+		Total:    0, // todo complete
+	}
+
+	return &pageRes, err
+}
+
+func (repo *postES) Append(ctx context.Context, p types.Post) error {
+	data, _ := json.Marshal(p)
+	req := esapi.IndexRequest{
+		Index:      "posts",
+		DocumentID: p.Id,
+		Body:       bytes.NewReader(data),
+	}
+	_, err := req.Do(ctx, repo.es)
+	return err
+}
+
+func (repo *postES) Delete(ctx context.Context, id string) error {
+	req := esapi.DeleteRequest{Index: "posts", DocumentID: id}
+	_, err := req.Do(ctx, repo.es)
+	return err
+}
+
+func (repo *postES) Bulk(ctx context.Context, p ...types.Post) error {
+	data, _ := json.Marshal(p)
+	req := esapi.BulkRequest{
+		Index: "posts",
+		Body:  bytes.NewReader(data),
+	}
+	_, err := req.Do(ctx, repo.es)
+	return err
 }

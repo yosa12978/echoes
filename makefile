@@ -56,3 +56,13 @@ redis:
 
 redis-cli:
 	@docker exec -it redis-echoes redis-cli
+
+elastic:
+	@docker run --rm \
+		--name elastic-echoes \
+		--net echoes-net \
+		-p 9200:9200 \
+		-p 9300:9300 \
+		-e "xpack.security.enabled=false" \
+      	-e "discovery.type=single-node" \
+		-d -m 1GB docker.elastic.co/elasticsearch/elasticsearch:8.13.0
