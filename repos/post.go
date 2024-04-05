@@ -251,6 +251,7 @@ func (repo *postES) Search(ctx context.Context, q string, page, size int) (*type
 	if err != nil {
 		return nil, err
 	}
+	// i don't think this will work (it must be sone elasticsearch response type instead of []types.Post)
 	var posts []types.Post
 	err = json.NewDecoder(resp.Body).Decode(&posts)
 	if err != nil {
