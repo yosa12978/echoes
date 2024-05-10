@@ -13,7 +13,8 @@ import (
 
 type Account interface {
 	IsUserExist(ctx context.Context, username, password string) (*types.Account, error)
-	CreateAccount(ctx context.Context, username, password string) (*types.Account, error)
+	CreateAccount(ctx context.Context, username, password string, isAdmin bool) (*types.Account, error)
+	Seed(ctx context.Context) error
 }
 
 type account struct {
@@ -22,6 +23,11 @@ type account struct {
 
 func NewAccount(accRepo repos.Account) Account {
 	return &account{accountRepo: accRepo}
+}
+
+func (a *account) isUsernameTaken(ctx context.Context, username string) bool {
+	_, err := a.accountRepo.FindByUsername(ctx, username)
+	return err == nil
 }
 
 func (a *account) IsUserExist(ctx context.Context, username, password string) (*types.Account, error) {
@@ -35,17 +41,25 @@ func (a *account) IsUserExist(ctx context.Context, username, password string) (*
 	return account, nil
 }
 
-func (a *account) CreateAccount(ctx context.Context, username, password string) (*types.Account, error) {
+func (a *account) CreateAccount(ctx context.Context, username, password string, isAdmin bool) (*types.Account, error) {
 	pwdHash, err := utils.HashPassword(password)
 	if err != nil {
 		return nil, err
+	}
+	if a.isUsernameTaken(ctx, username) {
+		return nil, errors.New("username is already taken")
 	}
 	acc := types.Account{
 		Id:       uuid.NewString(),
 		Username: username,
 		Password: pwdHash,
 		Created:  time.Now().Format(time.RFC3339),
-		IsAdmin:  false,
+		IsAdmin:  isAdmin,
 	}
 	return a.accountRepo.Create(ctx, acc)
+}
+
+func (a *account) Seed(ctx context.Context) error {
+	_, err := a.CreateAccount(ctx, "admin", "admin", true)
+	return err
 }

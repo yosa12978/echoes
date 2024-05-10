@@ -25,6 +25,7 @@ type Post interface {
 	CreatePost(ctx context.Context, title, content string) (*types.Post, error)
 	DeletePost(ctx context.Context, id string) (*types.Post, error)
 	Seed(ctx context.Context) error
+	Search(ctx context.Context, query string, page, size int) (*types.Page[types.Post], error)
 }
 
 type post struct {
@@ -202,4 +203,8 @@ func (s *post) Seed(ctx context.Context) error {
 		}
 	}
 	return nil
+}
+
+func (s *post) Search(ctx context.Context, query string, page, size int) (*types.Page[types.Post], error) {
+	return nil, nil
 }

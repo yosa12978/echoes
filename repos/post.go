@@ -25,6 +25,7 @@ type Post interface {
 	Update(ctx context.Context, id string, post types.Post) (*types.Post, error)
 	Delete(ctx context.Context, id string) (*types.Post, error)
 	GetPageTime(ctx context.Context, time string, page, size int) (*types.Page[types.Post], error)
+	Search(ctx context.Context, query string, page, size int) (*types.Page[types.Post], error)
 }
 
 type postMock struct {
@@ -74,6 +75,9 @@ func (repo *postMock) Delete(ctx context.Context, id string) (*types.Post, error
 		}
 	}
 	return nil, ErrPostNotFound
+}
+func (repo *postMock) Search(ctx context.Context, query string, page, size int) (*types.Page[types.Post], error) {
+	return nil, nil
 }
 
 type postPostgres struct {
@@ -220,6 +224,10 @@ func (repo *postPostgres) GetPageTime(
 		NextPage: page + 1,
 		Total:    count,
 	}, nil
+}
+
+func (repo *postPostgres) Search(ctx context.Context, query string, page, size int) (*types.Page[types.Post], error) {
+	return nil, nil
 }
 
 type PostSearcher interface {

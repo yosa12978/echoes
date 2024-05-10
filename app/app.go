@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -12,8 +13,10 @@ import (
 )
 
 func init() {
-	if err := godotenv.Load(); err != nil {
-		panic(err)
+	if os.Getenv("DEBUG") == "true" {
+		if err := godotenv.Load(); err != nil {
+			panic(err)
+		}
 	}
 }
 

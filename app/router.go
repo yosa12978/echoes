@@ -48,6 +48,7 @@ func NewRouter(ctx context.Context) http.Handler {
 
 	accountRepo := repos.NewAccountPostgres()
 	accountService := services.NewAccount(accountRepo)
+	accountService.Seed(ctx)
 
 	profileRepo, err := repos.NewProfileJson("./static/profile.json")
 	if err != nil {

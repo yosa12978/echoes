@@ -3,7 +3,7 @@ build:
 	@cp .env bin
 
 run: build
-	@./bin/echoes
+	@DEBUG=true ./bin/echoes
 
 test:
 	@go test
