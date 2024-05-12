@@ -35,26 +35,29 @@ func (a *account) IsUserExist(ctx context.Context, username, password string) (*
 	if err != nil {
 		return nil, errors.New("wrong credentials")
 	}
-	if !utils.CheckPasswordHash(password, account.Password) {
+	if !utils.CheckPasswordHash(password+account.Salt, account.Password) {
 		return nil, errors.New("wrong credentials")
 	}
 	return account, nil
 }
 
 func (a *account) CreateAccount(ctx context.Context, username, password string, isAdmin bool) (*types.Account, error) {
-	pwdHash, err := utils.HashPassword(password)
-	if err != nil {
-		return nil, err
-	}
 	if a.isUsernameTaken(ctx, username) {
 		return nil, errors.New("username is already taken")
 	}
+	salt := uuid.NewString()
+	pwdHash, err := utils.HashPassword(password + salt)
+	if err != nil {
+		return nil, err
+	}
+
 	acc := types.Account{
 		Id:       uuid.NewString(),
 		Username: username,
 		Password: pwdHash,
 		Created:  time.Now().Format(time.RFC3339),
 		IsAdmin:  isAdmin,
+		Salt:     salt,
 	}
 	return a.accountRepo.Create(ctx, acc)
 }

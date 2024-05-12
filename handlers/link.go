@@ -59,7 +59,8 @@ func (h *link) Create(ctx context.Context) http.Handler {
 		r.ParseForm()
 		name := r.FormValue("name")
 		url := r.FormValue("url")
-		_, err := h.linkService.CreateLink(ctx, name, url)
+		icon := r.FormValue("icon")
+		_, err := h.linkService.CreateLink(ctx, name, url, icon)
 		if err != nil {
 			h.logger.Error(err)
 			utils.RenderBlock(w, "alert", "Failed to create")

@@ -1,9 +1,9 @@
 services:
   web:
     container_name: echoes-web
-    build: .
+    image: yosaa5782/echoes:0.1
     ports:
-      - "80:80"
+      - "80"
     depends_on:
       - postgres
       - redis
@@ -15,41 +15,46 @@ services:
     container_name: echoes-postgres
     image: postgres
     ports:
-      - "5432:5432"
+      - "5432"
     environment:
       - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=1234
+      - POSTGRES_PASSWORD=fib11235813
     volumes:
-      - /postgres-volume:/var/lib/postgresql/data
+      - postgres-volume:/var/lib/postgresql/data
     networks:
       - mainnet
   adminer:
     container_name: echoes-adminer
     image: adminer
     ports:
-      - "5050:8080"
+      - "8080"
     depends_on:
       - postgres
     networks:
       - mainnet
   redis:
-    container_name: echoes-redis  
+    container_name: echoes-redis
     image: redis
     ports:
-      - '6379:6379'
-    networks:
-      - mainnet
-    volumes: 
-      - cache:/data
-  nginx:
-    container_name: nginx
-    image: nginx
-    ports:
-      - '443:443'
+      - '6379'
     networks:
       - mainnet
     volumes:
-      - /etc/letsencrypt:/etc/letsencrypt
+      - cache:/data
+  nginx:
+    container_name: echoes-nginx
+    build: 
+      context: .
+      dockerfile: nginx.dockerfile
+    ports:
+      - "443:443"
+    volumes:
+      - /etc/letsencrypt/:/etc/letsencrypt/
+      - ./www:/usr/share/nginx/html
+    environment:
+      - NGINX_HOST=locobase.duckdns.org
+    networks:
+      - mainnet
 
 networks:
   mainnet:
@@ -58,4 +63,3 @@ networks:
 volumes:
   postgres-volume:
   cache:
-    driver: local

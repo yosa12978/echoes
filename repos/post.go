@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"strings"
 
 	"github.com/elastic/go-elasticsearch"
 	"github.com/elastic/go-elasticsearch/esapi"
@@ -104,13 +105,17 @@ func (repo *postPostgres) FindAll(ctx context.Context) ([]types.Post, error) {
 			title   string
 			content string
 			created string
+			pinned  bool
+			tweet   bool
 		)
-		rows.Scan(&id, &title, &content, &created)
+		rows.Scan(&id, &title, &content, &created, &pinned, &tweet)
 		post := types.Post{
 			Id:      id,
 			Title:   title,
 			Content: content,
 			Created: created,
+			Pinned:  pinned,
+			Tweet:   tweet,
 		}
 		posts = append(posts, post)
 	}
@@ -126,6 +131,7 @@ func (repo *postPostgres) FindById(ctx context.Context, id string) (*types.Post,
 		&post.Content,
 		&post.Created,
 		&post.Pinned,
+		&post.Tweet,
 	)
 	return &post, err
 }
@@ -176,7 +182,7 @@ func (repo *postPostgres) GetPage(ctx context.Context, page, size int) (*types.P
 	defer rows.Close()
 	for rows.Next() {
 		post := types.Post{}
-		rows.Scan(&post.Id, &post.Title, &post.Content, &post.Created, &post.Pinned)
+		rows.Scan(&post.Id, &post.Title, &post.Content, &post.Created, &post.Pinned, &post.Tweet)
 		posts = append(posts, post)
 	}
 	return &types.Page[types.Post]{
@@ -214,7 +220,7 @@ func (repo *postPostgres) GetPageTime(
 	defer rows.Close()
 	for rows.Next() {
 		post := types.Post{}
-		rows.Scan(&post.Id, &post.Title, &post.Content, &post.Created, &post.Pinned)
+		rows.Scan(&post.Id, &post.Title, &post.Content, &post.Created, &post.Pinned, &post.Tweet)
 		posts = append(posts, post)
 	}
 	return &types.Page[types.Post]{
@@ -235,6 +241,62 @@ type PostSearcher interface {
 	Append(ctx context.Context, p types.Post) error
 	Delete(ctx context.Context, id string) error
 	Bulk(ctx context.Context, p ...types.Post) error
+}
+
+type postSearcherPostgres struct {
+	db *sql.DB
+}
+
+func NewPostSearcherPostgres() PostSearcher {
+	repo := new(postSearcherPostgres)
+	repo.db = data.Postgres()
+	return repo
+}
+
+func (repo *postSearcherPostgres) Search(ctx context.Context, q string, page, size int) (*types.Page[types.Post], error) {
+	q = strings.ToLower(q)
+	qcount := "SELECT COUNT(*) FROM posts WHERE LOWER(title) LIKE '%' || $1 || '%';"
+	var count int
+	repo.db.QueryRowContext(ctx, qcount, q).Scan(&count)
+	hasNext := true
+	if (page-1)*size+size >= count {
+		hasNext = false
+	}
+	posts := []types.Post{}
+	sqlq := "SELECT * FROM posts WHERE LOWER(title) LIKE '%' || $1 || '%' ORDER BY pinned DESC, created DESC OFFSET $2 LIMIT $3;"
+	rows, err := repo.db.QueryContext(ctx, sqlq, q, (page-1)*size, size)
+	if err != nil {
+		return &types.Page[types.Post]{
+			Content:  posts,
+			HasNext:  false,
+			Size:     size,
+			NextPage: 1,
+			Total:    0,
+		}, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		post := types.Post{}
+		rows.Scan(&post.Id, &post.Title, &post.Content, &post.Created, &post.Pinned, &post.Tweet)
+		posts = append(posts, post)
+	}
+	return &types.Page[types.Post]{
+		Content:  posts,
+		HasNext:  hasNext,
+		Size:     size,
+		NextPage: page + 1,
+		Total:    count,
+	}, nil
+}
+func (repo *postSearcherPostgres) Append(ctx context.Context, p types.Post) error {
+	return nil
+}
+func (repo *postSearcherPostgres) Delete(ctx context.Context, id string) error {
+	return nil
+}
+
+func (repo *postSearcherPostgres) Bulk(ctx context.Context, p ...types.Post) error {
+	return nil
 }
 
 type postES struct {

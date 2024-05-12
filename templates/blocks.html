@@ -1,8 +1,18 @@
 {{block "postsPage" .}}
     {{ range .Content }}
-    <div class="card mt-2 mb-2 p-2 text-bg-light" id="post-{{.Id}}">
+    <div class="card mt-4 mb-4 p-2" style="background-color: #F9FEFF;" id="post-{{.Id}}">
         <h3><a href="/posts/{{.Id}}">{{if .Pinned}}<i class="bi bi-pin-angle-fill" style="font-size: large; vertical-align: middle;"></i>{{end}} {{.Title}}</a></h3>
-        <small id="post-date-{{.Id}}">{{.Created}}</small>
+        {{if .Tweet}}
+        <span id="post-content-{{.Id}}"></span>
+        <script>
+            document.getElementById("post-content-{{.Id}}").innerHTML = marked.parse("{{.Content}}")
+        </script><hr>
+        {{end}}
+        
+        <small id="created-{{.Id}}">{{.Created}}</small>
+        <script>
+             document.getElementById("created-{{.Id}}").innerHTML = toDateString_("{{.Created}}")
+        </script>
     </div>
     {{ end }}
     {{if .HasNext}}
@@ -11,24 +21,23 @@
 {{end}}
 
 {{block "noPosts" .}}
-<div class="card mt-2 mb-2 p-2 text-bg-primary" style="text-align: center;">
-    No posts found :(
-</div>
+<div class="card mt-2 mb-2 p-2 text-bg-warning" style="text-align: center; border-radius: 0px;">No posts found :(</div>
 {{end}}
 
 {{block "alert" .}}
 {{if . }}
-<div class="alert alert-primary" style="max-width:500px;width:100%;" id="info">{{ . }}</div>
+<div class="alert alert-secondary" style="max-width:500px;width:100%; border-radius: 0px;" id="info">{{ . }}</div>
 {{end}}
 {{end}}
 
 {{block "post" .}}
-<div class="card mt-2 mb-2 p-2 text-bg-light" id="post-{{.Id}}">
+<div class="card mt-2 mb-2 p-3" id="post-{{.Id}}" style="background-color: #F9FEFF;">
     <h2>{{.Title}}</h2>
-    <p id="post-content"></p><br>
-    <small>Created: {{.Created}} <br>{{.Id}}</small>
+    <p id="post-content"></p><hr>
+    <small id="created">Created: {{.Created}}</small>
     <script>
         document.getElementById("post-content").innerHTML = marked.parse("{{.Content}}")
+        document.getElementById("created").innerHTML = "Created: " + toDateString_("{{.Created}}")
     </script>
 </div>
 {{end}}
@@ -37,16 +46,18 @@
 {{block "announce" .}}
 {{if .}}
 <br>
-<div class="card bg-primary text-light mb-2 mt-2 announce">
+<div class="card bg-warning mb-2 mt-2 announce" style="border-radius: 0px;">
     <div class="card-body">
-        <b class="mb-2 mt-1"><i class="bi bi-megaphone-fill"></i> Announcement</b>
+        <b class="mb-2 mt-1">📣 Announcement</b>
         <p class="card-text mt-2" id="announce-text"></p>
-        <small class="card-text">{{.Date}}</small>
+        <small class="card-text" id="announce-created">{{.Date}}</small>
         <script>
             document.getElementById("announce-text").innerHTML = marked.parse("{{.Content}}")
+            document.getElementById("announce-created").innerHTML = toDateString_("{{.Date}}")
         </script>
     </div>
 </div>
+<br>
 {{end}}
 {{end}}
 
@@ -58,10 +69,10 @@
     {{end}}
     <div style="text-align: center;">
     {{range .}}
-    <div class="card text-bg-light mb-3">
+    <div class="card mb-3" style="background-color: #F9FEFF;">
         <a href="/portal/?url={{.URL}}" target="_blank" class="link link-dark text-decoration-none">
         <div class="card-body">
-            <p class="card-text fs-5" id="link-{{.Id}}"><b>{{.Name}}</b></p>
+            <p class="card-text fs-5" id="link-{{.Id}}"><i class="bi bi-{{.Icon}}"></i> <b>{{.Name}}</b></p>
         </div>
         </a>
     </div>
@@ -73,7 +84,7 @@
 
 {{block "profile" .}}
 <center>
-<div class="card text-bg-white">
+<div class="card text-bg-white" style="background-color: rgba(255, 255, 255, 0);">
     <div class="card-body">
         <img src="{{.Icon}}" class="mb-2" style="max-width: 100px; max-height: 100px; border-radius: 50%;" alt="icon"/><br>
         <b class="mb-2 mt-1" style="font-size:x-large">{{.Name}}</b>
@@ -85,13 +96,13 @@
 
 {{block "links_admin" .}}
 <div id="links">
-    <h3><i class="bi bi-link"></i>Delete Link</h3>
+    <h3><i class="bi bi-link"></i> Delete Link</h3>
     <div id="link-delete-alert"></div>
     <div>
     {{range .}}
-    <div class="card text-bg-light mb-3" id="link-{{.Id}}">
+    <div class="card mb-3" id="link-{{.Id}}" style="background-color: #F9FEFF;">
         <div class="card-body d-flex justify-content-between">
-            <span class="card-text float-left mt-1"><b>{{.Name}}</b></span>
+            <span class="card-text float-left mt-1"><i class="bi bi-{{.Icon}}"></i> <b>{{.Name}}</b></span>
             <button class="btn btn-danger border-0" hx-delete="/hateoas/links/{{.Id}}" hx-target="#link-delete-alert" hx-swap="innerHTML">Delete</button>
         </div>
     </div>
@@ -105,11 +116,14 @@
 {{block "comments" .}}
 
 {{range .Content}}
-<div class="card mt-2 mb-2 p-2 text-bg-light">
+<div class="card mt-2 mb-2 p-2" style="background-color: #F9FEFF;">
     <div class="card-body">
-    <p><b>{{.Name}}</b></p>
-    <p>{{.Content}}</p>
-    <small>Created: {{.Created}} | {{.Id}}</small>
+        <p><b>{{.Name}}</b></p>
+        <p>{{.Content}}</p><hr>
+        <small id="comment-created-{{.Id}}">Created: {{.Created}} <br> {{.Id}}</small>
+        <script>
+            document.getElementById("comment-created-{{.Id}}").innerHTML = toDateString_("{{.Created}}") + "<br>{{.Id}}"
+        </script>
     </div>
 </div>
 {{end}}
@@ -121,7 +135,7 @@
 {{end}}
 
 {{block "comment" .}}
-<div class="card mt-2 mb-2 p-2 text-bg-light">
+<div class="card mt-2 mb-2 p-2 text-bg-light" style="background-color: #F9FEFF;">
     <div class="card-body">
     <p><b>{{.Name}} | {{.Email}}</b></p>
     <p>{{.Content}}</p>

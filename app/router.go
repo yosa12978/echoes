@@ -23,6 +23,7 @@ func NewRouter(ctx context.Context) http.Handler {
 		postRepo,
 		cache.NewRedisCache(ctx),
 		logging.New("postService"),
+		repos.NewPostSearcherPostgres(),
 	)
 
 	linkRepo := repos.NewLinkPostgres()

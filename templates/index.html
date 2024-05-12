@@ -8,14 +8,20 @@
 
     <div class="blog">
         <div class="justify-content-between d-inline">
-            <h2 class=""><i class="bi bi-newspaper"></i> Blog Posts</h2> 
+            <h2><i class="bi bi-newspaper"></i> Blog Posts</h2> 
+
             <form class="form-inline d-flex" hx-get="/hateoas/posts" hx-target="#list" hx-swap="innerHTML" style="max-width: 400px;" hx-indicator="#spinner">
-                <input class="form-control mr-sm-2 border-1 shadow-none" type="search" name="query" placeholder="Search" aria-label="Search" >
-                <button class="btn btn-primary my-2 border-0 my-sm-0" style="margin-right: 10px; margin-left: 5px;" type="submit">Search</button>
+                <div class="input-group mb-3">
+                    <input class="form-control mr-sm-2 border-1 border-dark shadow-none" type="search" name="query" placeholder="Search" aria-label="Search" >
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-dark" style="border-top-left-radius: 0px; border-bottom-left-radius: 0px;" type="submit"><i class="bi bi-search"></i></button>
+                    </div>
+                </div>
             </form>
+
         </div>
         <hr>
-        <div id="list" hx-get="/hateoas/posts" hx-trigger="load" hx-indicator="#spinner" hx-swap="outerHTML"></div>
+        <div id="list" hx-get="/hateoas/posts" hx-trigger="load" hx-indicator="#spinner" hx-swap="innerHTML"></div>
     </div>
 
     <center>

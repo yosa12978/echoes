@@ -39,16 +39,17 @@ func NewAccountPostgres() Account {
 func (repo *account) FindById(ctx context.Context, id string) (*types.Account, error) {
 	var acc types.Account
 	q := "SELECT * FROM accounts WHERE id=$1;"
-	err := repo.db.QueryRowContext(ctx, q, id).Scan(&acc.Id, &acc.Username, &acc.Password, &acc.Created, &acc.IsAdmin)
+	err := repo.db.QueryRowContext(ctx, q, id).Scan(&acc.Id, &acc.Username, &acc.Password, &acc.Created, &acc.IsAdmin, &acc.Salt)
 	return &acc, err
 }
 
+// this works wrong
 func (repo *account) FindByCredentials(ctx context.Context, username, passwordHash string) (*types.Account, error) {
 	var acc types.Account
 	q := "SELECT * FROM accounts WHERE username=$1 AND password=$2;"
 	err := repo.db.
 		QueryRowContext(ctx, q, strings.ToLower(username), passwordHash).
-		Scan(&acc.Id, &acc.Username, &acc.Password, &acc.Created, &acc.IsAdmin)
+		Scan(&acc.Id, &acc.Username, &acc.Password, &acc.Created, &acc.IsAdmin, &acc.Salt)
 	return &acc, err
 }
 
@@ -57,17 +58,18 @@ func (repo *account) FindByUsername(ctx context.Context, username string) (*type
 	q := "SELECT * FROM accounts WHERE username=$1;"
 	err := repo.db.
 		QueryRowContext(ctx, q, strings.ToLower(username)).
-		Scan(&acc.Id, &acc.Username, &acc.Password, &acc.Created, &acc.IsAdmin)
+		Scan(&acc.Id, &acc.Username, &acc.Password, &acc.Created, &acc.IsAdmin, &acc.Salt)
 	return &acc, err
 }
 
 func (repo *account) Create(ctx context.Context, account types.Account) (*types.Account, error) {
-	q := "INSERT INTO accounts (id, username, password, created, isadmin) VALUES ($1, $2, $3, $4, $5);"
+	q := "INSERT INTO accounts (id, username, password, created, isadmin, salt) VALUES ($1, $2, $3, $4, $5, $6);"
 	repo.db.ExecContext(ctx, q,
 		account.Id,
 		strings.ToLower(account.Username),
 		account.Password, account.Created,
-		account.IsAdmin)
+		account.IsAdmin,
+		account.Salt)
 	return nil, nil
 }
 

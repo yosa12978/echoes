@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/yosa12978/echoes/logging"
 	"github.com/yosa12978/echoes/services"
+	"github.com/yosa12978/echoes/types"
 	"github.com/yosa12978/echoes/utils"
 )
 
@@ -18,6 +19,7 @@ type Post interface {
 	PinPost(ctx context.Context) http.Handler
 	CreatePost(ctx context.Context) http.Handler
 	DeletePost(ctx context.Context) http.Handler
+	Search(ctx context.Context) http.Handler
 }
 
 type post struct {
@@ -54,7 +56,13 @@ func (h *post) GetPosts(ctx context.Context) http.Handler {
 			utils.RenderBlock(w, "alert", "wrond limit number")
 			return
 		}
-		posts, err := h.postService.GetPostsPaged(ctx, page, limit) //h.postRepo.GetPage(ctx, page, limit)
+		searchQuery := r.URL.Query().Get("query")
+		var posts *types.Page[types.Post]
+		if searchQuery == "" {
+			posts, err = h.postService.GetPostsPaged(ctx, page, limit)
+		} else {
+			posts, err = h.postService.Search(ctx, searchQuery, page, limit)
+		}
 		if err != nil {
 			h.logger.Error(err)
 		}
@@ -84,7 +92,12 @@ func (h *post) CreatePost(ctx context.Context) http.Handler {
 		r.ParseForm()
 		title := r.FormValue("title")
 		content := r.FormValue("content")
-		if _, err := h.postService.CreatePost(ctx, title, content); err != nil {
+		tweetCheckbox := r.FormValue("tweet")
+		tweet := false
+		if tweetCheckbox == "on" {
+			tweet = true
+		}
+		if _, err := h.postService.CreatePost(ctx, title, content, tweet); err != nil {
 			h.logger.Error(err)
 			utils.RenderBlock(w, "alert", "Failed to create")
 			return
@@ -117,5 +130,41 @@ func (h *post) PinPost(ctx context.Context) http.Handler {
 			return
 		}
 		utils.RenderBlock(w, "alert", "Post pinned :)")
+	})
+}
+
+// depricated
+func (h *post) Search(ctx context.Context) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		q := r.URL.Query().Get("query")
+		pageS := r.URL.Query().Get("page")
+		if pageS == "" {
+			pageS = "1"
+		}
+		page, err := strconv.Atoi(pageS)
+		if err != nil {
+			h.logger.Error(err)
+			utils.RenderBlock(w, "alert", "wrond page number")
+			return
+		}
+		limitS := r.URL.Query().Get("limit")
+		if limitS == "" {
+			limitS = "20"
+		}
+		limit, err := strconv.Atoi(limitS)
+		if err != nil {
+			h.logger.Error(err)
+			utils.RenderBlock(w, "alert", "wrond limit number")
+			return
+		}
+		posts, err := h.postService.Search(ctx, q, page, limit)
+		if err != nil {
+			h.logger.Error(err)
+		}
+		if posts.Total == 0 {
+			utils.RenderBlock(w, "noPosts", nil)
+			return
+		}
+		utils.RenderBlock(w, "postsPage", posts)
 	})
 }

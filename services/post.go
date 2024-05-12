@@ -22,23 +22,25 @@ type Post interface {
 	GetPostById(ctx context.Context, id string) (*types.Post, error)
 	// pin post works like a trigger
 	PinPost(ctx context.Context, id string) (*types.Post, error)
-	CreatePost(ctx context.Context, title, content string) (*types.Post, error)
+	CreatePost(ctx context.Context, title, content string, tweet bool) (*types.Post, error)
 	DeletePost(ctx context.Context, id string) (*types.Post, error)
 	Seed(ctx context.Context) error
 	Search(ctx context.Context, query string, page, size int) (*types.Page[types.Post], error)
 }
 
 type post struct {
-	postRepo repos.Post
-	cache    cache.Cache
-	logger   logging.Logger
+	postRepo     repos.Post
+	cache        cache.Cache
+	logger       logging.Logger
+	postSearcher repos.PostSearcher
 }
 
-func NewPost(postRepo repos.Post, cache cache.Cache, logger logging.Logger) Post {
+func NewPost(postRepo repos.Post, cache cache.Cache, logger logging.Logger, postSearcher repos.PostSearcher) Post {
 	return &post{
-		postRepo: postRepo,
-		cache:    cache,
-		logger:   logger,
+		postRepo:     postRepo,
+		cache:        cache,
+		logger:       logger,
+		postSearcher: postSearcher,
 	}
 }
 
@@ -46,18 +48,17 @@ func (s *post) GetPosts(ctx context.Context) ([]types.Post, error) {
 	return s.postRepo.FindAll(ctx)
 }
 
+func (s *post) refreshPaginationVersion(ctx context.Context) (int64, error) {
+	version := time.Now().UnixMicro()
+	_, err := s.cache.Set(ctx, "posts_pagination_version", version, 1*time.Minute)
+	return version, err
+}
+
 func (s *post) getPaginationVersion(ctx context.Context) (int64, error) {
 	var version int64
 	versionFromCache, err := s.cache.Get(ctx, "posts_pagination_version")
 	if err != nil {
-		version := time.Now().UnixMicro()
-		_, err = s.cache.Set(
-			ctx,
-			"posts_pagination_version",
-			version,
-			1*time.Minute,
-		)
-		return version, err
+		return s.refreshPaginationVersion(ctx)
 	}
 	version, err = strconv.ParseInt(versionFromCache, 10, 64)
 	return version, err
@@ -135,23 +136,25 @@ func (s *post) PinPost(ctx context.Context, id string) (*types.Post, error) {
 	return s.postRepo.Update(ctx, post.Id, *post)
 }
 
-func (s *post) CreatePost(ctx context.Context, title, content string) (*types.Post, error) {
+func (s *post) CreatePost(ctx context.Context, title, content string, tweet bool) (*types.Post, error) {
 	titleTrim := strings.TrimSpace(title)
 	contentTrim := strings.TrimSpace(content)
 	if titleTrim == "" || contentTrim == "" {
 		return nil, errors.New("can't create post with empty title or content")
 	}
+	id := uuid.NewString()
 	post := types.Post{
-		Id:      uuid.NewString(),
+		Id:      id,
 		Title:   titleTrim,
 		Content: contentTrim,
 		Created: time.Now().Format(time.RFC3339),
 		Pinned:  false,
+		Tweet:   tweet,
 	}
 
 	go func() {
 		postb, _ := json.Marshal(post)
-		key := "posts:" + post.Id
+		key := "posts:" + id
 		tx, _ := s.cache.Tx()
 		tx.Append(ctx, func(pipe cache.Cache) error {
 			s.cache.Set(ctx, key, string(postb), 0)
@@ -175,29 +178,22 @@ func (s *post) DeletePost(ctx context.Context, id string) (*types.Post, error) {
 		tx, _ := s.cache.Tx()
 		key := "posts:" + id
 		tx.Append(ctx, func(pipe cache.Cache) error {
-			_, err := pipe.Del(ctx, key)
-			if err != nil {
-				s.logger.Error(err)
-				return err
-			}
-			_, err = pipe.ZRem(ctx, "posts", key)
-			if err != nil {
-				s.logger.Error(err)
-				return err
-			}
+			pipe.Del(ctx, key)
+			pipe.ZRem(ctx, "posts", key)
 			return nil
 		})
 		if err := tx.Exec(ctx); err != nil {
 			s.logger.Error(err)
 		}
 	}()
+	s.refreshPaginationVersion(ctx)
 	return s.postRepo.Delete(ctx, id)
 }
 
 func (s *post) Seed(ctx context.Context) error {
 	for i := 0; i < 30; i++ {
 		time.Sleep(1000 * time.Millisecond)
-		_, err := s.postRepo.Create(ctx, types.NewPost(fmt.Sprintf("post #%d", 30-i), fmt.Sprintf("post content #%d", 30-i)))
+		_, err := s.postRepo.Create(ctx, types.NewPost(fmt.Sprintf("post #%d", 30-i), fmt.Sprintf("post content #%d", 30-i), false))
 		if err != nil {
 			return err
 		}
@@ -206,5 +202,5 @@ func (s *post) Seed(ctx context.Context) error {
 }
 
 func (s *post) Search(ctx context.Context, query string, page, size int) (*types.Page[types.Post], error) {
-	return nil, nil
+	return s.postSearcher.Search(ctx, query, page, size)
 }

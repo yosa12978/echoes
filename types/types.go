@@ -12,15 +12,17 @@ type Post struct {
 	Content string
 	Created string
 	Pinned  bool
+	Tweet   bool
 }
 
-func NewPost(title, content string) Post {
+func NewPost(title, content string, tweet bool) Post {
 	return Post{
 		Id:      uuid.NewString(),
 		Title:   title,
 		Content: content,
 		Created: time.Now().Format(time.RFC3339),
 		Pinned:  false,
+		Tweet:   tweet,
 	}
 }
 
@@ -29,6 +31,7 @@ type Link struct {
 	Name    string
 	URL     string
 	Created string
+	Icon    string
 }
 
 type Comment struct {
@@ -44,6 +47,7 @@ type Account struct {
 	Id       string
 	Username string
 	Password string
+	Salt     string
 	Created  string
 	IsAdmin  bool
 }

@@ -1,16 +1,17 @@
 {{ template "header" . }}
-<a class="btn btn-primary mt-2 mb-2 border-0" href="/"><i class="bi bi-house-door"></i> Home</a>
-<a class="btn btn-danger mt-2 mb-2 border-0" hx-get="/hateoas/logout"><i class="bi bi-box-arrow-left"></i> Logout</a>
+<a class="btn btn-outline-dark mt-2 mb-2" href="/"><i class="bi bi-house-door"></i> Go to the home page</a>
+<a class="btn btn-outline-danger mt-2 mb-2" hx-get="/hateoas/logout"><i class="bi bi-box-arrow-left"></i> Logout</a>
+<hr>
 <h2><b>Admin Page</b></h2>
 
 <div class="mt-3">
     <h3><i class="bi bi-megaphone-fill"></i> Announce</h3>
     <div id="announce-alert"></div>
     <form hx-post="/hateoas/announce" hx-target="#announce-alert" hx-swap="innerHTML" style="max-width: 500px;">
-        <textarea name="content" type="text" placeholder="Content" class="form-control mb-2"></textarea>
-        <button type="submit" class="btn btn-primary border-0">Add announce</button>
+        <textarea name="content" type="text" placeholder="Content" class="form-control mb-2" style="min-height: 200px;"></textarea>
+        <button type="submit" class="btn btn-outline-dark">Add announce</button>
     </form><br>
-    <button class="btn btn-primary border-0 mb-3" hx-delete="/hateoas/announce" hx-target="#announce-alert">Delete announce</button>
+    <button class="btn btn-outline-dark mb-3" hx-delete="/hateoas/announce" hx-target="#announce-alert">Delete announce</button>
 </div>
 
 <div class="mt-3">
@@ -18,8 +19,9 @@
     <div id="create-post-alert"></div>
     <form hx-post="/hateoas/posts" hx-target="#create-post-alert" hx-swap="innerHTML" style="max-width: 500px;">
         <input name="title" type="text" placeholder="Title" class="form-control mb-2"/>
-        <textarea name="content" type="text" placeholder="Content" class="form-control mb-2"></textarea>
-        <button type="submit" class="btn btn-primary border-0 mb-3">Create</button>
+        <textarea name="content" type="text" placeholder="Content" class="form-control mb-2" style="min-height: 200px;"></textarea>
+        <input name="tweet" type="checkbox"/><label class="m-2 ">Display post content on home page </label><br>
+        <button type="submit" class="btn btn-outline-dark mb-3">Create</button>
     </form><br>
 </div>
 
@@ -28,7 +30,7 @@
     <div id="pin-post-alert"></div>
     <form hx-patch="/hateoas/post-pin" hx-ext="json-enc" hx-target="#pin-post-alert" hx-swap="innerHTML" style="max-width: 500px;">
         <input name="id" type="text" placeholder="Post id" class="form-control mb-2"/>
-        <button type="submit" class="btn btn-primary border-0 mb-3">Pin</button>
+        <button type="submit" class="btn btn-outline-dark mb-3">Pin</button>
     </form><br>
 </div>
 
@@ -37,7 +39,7 @@
     <div id="delete-post-alert"></div>
     <form hx-delete="/hateoas/posts" hx-ext="json-enc" hx-target="#delete-post-alert" hx-swap="innerHTML" style="max-width: 500px;">
         <input name="id" type="text" placeholder="Post id" class="form-control mb-2"/>
-        <button type="submit" class="btn btn-primary border-0 mb-3">Delete</button>
+        <button type="submit" class="btn btn-outline-dark mb-3">Delete</button>
     </form><br>
 </div>
 
@@ -47,7 +49,8 @@
     <form hx-post="/hateoas/links" hx-target="#link-create-alert" hx-swap="innerHTML" style="max-width: 500px;">
         <input name="name" type="text" placeholder="Name" class="form-control mb-2"/>
         <input name="url" type="text" placeholder="URL" class="form-control mb-2"/>
-        <button type="submit" class="btn btn-primary border-0 mb-3">Create</button>
+        <input name="icon" type="text" placeholder="icon name (icons fetch from bootstrap icon service)" class="form-control mb-2"/>
+        <button type="submit" class="btn btn-outline-dark mb-3">Create</button>
     </form><br>
 </div>
 
