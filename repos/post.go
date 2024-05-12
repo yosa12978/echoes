@@ -137,8 +137,8 @@ func (repo *postPostgres) FindById(ctx context.Context, id string) (*types.Post,
 }
 
 func (repo *postPostgres) Create(ctx context.Context, post types.Post) (*types.Post, error) {
-	q := "INSERT INTO posts (id, title, content, created) VALUES ($1, $2, $3, $4);"
-	_, err := repo.db.ExecContext(ctx, q, post.Id, post.Title, post.Content, post.Created)
+	q := "INSERT INTO posts (id, title, content, created, tweet) VALUES ($1, $2, $3, $4, $5);"
+	_, err := repo.db.ExecContext(ctx, q, post.Id, post.Title, post.Content, post.Created, post.Tweet)
 	return &post, err
 }
 

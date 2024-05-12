@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -97,6 +98,8 @@ func (h *post) CreatePost(ctx context.Context) http.Handler {
 		if tweetCheckbox == "on" {
 			tweet = true
 		}
+		fmt.Printf("tweetCheckbox: %v\n", tweetCheckbox)
+		fmt.Printf("tweet: %v\n", tweet)
 		if _, err := h.postService.CreatePost(ctx, title, content, tweet); err != nil {
 			h.logger.Error(err)
 			utils.RenderBlock(w, "alert", "Failed to create")
