@@ -19,6 +19,7 @@ import (
 
 type Link interface {
 	GetLinks(ctx context.Context) ([]types.Link, error)
+	GetLinkById(ctx context.Context, id string) (*types.Link, error)
 	CreateLink(ctx context.Context, name, url, icon string) (*types.Link, error)
 	DeleteLink(ctx context.Context, id string) (*types.Link, error)
 	Seed(ctx context.Context) error
@@ -90,6 +91,7 @@ func (s *link) GetLinks(ctx context.Context) ([]types.Link, error) {
 				members[k] = cache.Member{Member: key, Score: float64(k)}
 			}
 			pipe.ZAdd(ctx, "links", members...)
+			pipe.Expires(ctx, "links", 60*time.Second)
 			return nil
 		})
 		tx.Exec(ctx)
@@ -189,4 +191,28 @@ func (s *link) Seed(ctx context.Context) error {
 		Icon:    "",
 	})
 	return err
+}
+
+func (s *link) GetLinkById(ctx context.Context, id string) (*types.Link, error) {
+	linkFromCache, err := s.cache.Get(ctx, "links:"+id)
+	if err == nil {
+		var link types.Link
+		err := json.Unmarshal([]byte(linkFromCache), &link)
+		return &link, err
+	}
+
+	link, err := s.linkRepo.FindById(ctx, id)
+	if err != nil {
+		return link, err
+	}
+
+	go func() {
+		linkBytes, _ := json.Marshal(link)
+		if _, err := s.cache.Set(ctx, "links:"+id, string(linkBytes), 0); err != nil {
+			s.logger.Error(err)
+			return
+		}
+	}()
+
+	return link, err
 }

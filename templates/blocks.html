@@ -70,7 +70,7 @@
     <div style="text-align: center;">
     {{range .}}
     <div class="card mb-3" style="background-color: #F9FEFF;">
-        <a href="/portal/?url={{.URL}}" target="_blank" class="link link-dark text-decoration-none">
+        <a href="/hateoas/portal/{{.Id}}" target="_blank" class="link link-dark text-decoration-none">
         <div class="card-body">
             <p class="card-text fs-5" id="link-{{.Id}}"><i class="bi bi-{{.Icon}}"></i> <b>{{.Name}}</b></p>
         </div>

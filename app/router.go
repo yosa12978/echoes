@@ -89,6 +89,8 @@ func RegisterLinkHandler(ctx context.Context, handler handlers.Link, router *mux
 	router.Handle("/links-admin", middleware.Admin(handler.GetAdmin(ctx))).Methods("GET")
 	router.Handle("/links", middleware.Admin(handler.Create(ctx))).Methods("POST")
 	router.Handle("/links/{id}", middleware.Admin(handler.Delete(ctx))).Methods("DELETE")
+
+	router.Handle("/portal/{id}", handler.Portal(ctx)).Methods("GET")
 }
 
 func RegisterPostHandler(ctx context.Context, handler handlers.Post, router *mux.Router) {
@@ -138,14 +140,14 @@ func RegisterBasicHandler(ctx context.Context, router *mux.Router) {
 		}
 	}).Methods("GET")
 
-	router.HandleFunc("/portal", func(w http.ResponseWriter, r *http.Request) {
-		url := r.URL.Query().Get("url")
-		if url == "" {
-			http.Redirect(w, r, "/", http.StatusMovedPermanently)
-			return
-		}
-		http.Redirect(w, r, url, http.StatusMovedPermanently)
-	}).Methods("GET")
+	// router.HandleFunc("/portal", func(w http.ResponseWriter, r *http.Request) {
+	// 	url := r.URL.Query().Get("url")
+	// 	if url == "" {
+	// 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
+	// 		return
+	// 	}
+	// 	http.Redirect(w, r, url, http.StatusMovedPermanently)
+	// }).Methods("GET")
 
 	// simplify this (cuz it looks terrible)
 	router.Handle("/admin", middleware.Admin(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

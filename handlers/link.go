@@ -15,6 +15,7 @@ type Link interface {
 	GetAdmin(ctx context.Context) http.Handler
 	Create(ctx context.Context) http.Handler
 	Delete(ctx context.Context) http.Handler
+	Portal(ctx context.Context) http.Handler
 }
 
 type link struct {
@@ -79,5 +80,22 @@ func (h *link) Delete(ctx context.Context) http.Handler {
 			return
 		}
 		utils.RenderBlock(w, "alert", "Link Deleted")
+	})
+}
+
+func (h *link) Portal(ctx context.Context) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := mux.Vars(r)["id"]
+		if id == "" {
+			http.Redirect(w, r, "/", http.StatusMovedPermanently)
+			return
+		}
+		link, err := h.linkService.GetLinkById(ctx, id)
+		if err != nil {
+			h.logger.Error(err)
+			utils.RenderBlock(w, "alert", "not found")
+			return
+		}
+		http.Redirect(w, r, link.URL, http.StatusMovedPermanently)
 	})
 }

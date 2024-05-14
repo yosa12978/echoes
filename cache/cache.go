@@ -21,6 +21,7 @@ type Cache interface {
 type basic interface {
 	Exists(ctx context.Context, keys ...string) (int64, error)
 	Del(ctx context.Context, keys ...string) (int64, error)
+	Expires(ctx context.Context, key string, expiration time.Duration) (bool, error)
 }
 
 type String interface {
@@ -94,6 +95,10 @@ func (c *redisCache) Del(ctx context.Context, keys ...string) (int64, error) {
 		return 0, ErrNotFound
 	}
 	return res, err
+}
+
+func (c *redisCache) Expires(ctx context.Context, key string, expiration time.Duration) (bool, error) {
+	return c.rdb.Expire(ctx, key, expiration).Result()
 }
 
 func (c *redisCache) HGet(ctx context.Context, key, field string) (string, error) {
