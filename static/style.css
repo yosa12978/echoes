@@ -72,3 +72,9 @@ a:hover {
 .container {
     backdrop-filter: blur(10px);
 }
+
+img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
