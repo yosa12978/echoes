@@ -39,7 +39,7 @@ func NewLinkPostgres() Link {
 
 func (repo *linkPostgres) FindAll(ctx context.Context) ([]types.Link, error) {
 	links := []types.Link{}
-	q := "SELECT * FROM links ORDER BY created DESC;"
+	q := "SELECT * FROM links ORDER BY place ASC, name ASC;"
 	rows, err := repo.db.QueryContext(ctx, q)
 	if err != nil {
 		return links, err
@@ -47,7 +47,7 @@ func (repo *linkPostgres) FindAll(ctx context.Context) ([]types.Link, error) {
 	defer rows.Close()
 	for rows.Next() {
 		link := types.Link{}
-		rows.Scan(&link.Id, &link.Name, &link.URL, &link.Created, &link.Icon)
+		rows.Scan(&link.Id, &link.Name, &link.URL, &link.Created, &link.Icon, &link.Place)
 		links = append(links, link)
 	}
 	return links, nil
@@ -56,19 +56,27 @@ func (repo *linkPostgres) FindAll(ctx context.Context) ([]types.Link, error) {
 func (repo *linkPostgres) FindById(ctx context.Context, id string) (*types.Link, error) {
 	var link types.Link
 	q := "SELECT * FROM links WHERE id=$1;"
-	err := repo.db.QueryRowContext(ctx, q, id).Scan(&link.Id, &link.Name, &link.URL, &link.Created, &link.Icon)
+	err := repo.db.QueryRowContext(ctx, q, id).
+		Scan(
+			&link.Id,
+			&link.Name,
+			&link.URL,
+			&link.Created,
+			&link.Icon,
+			&link.Place,
+		)
 	return &link, err
 }
 
 func (repo *linkPostgres) Create(ctx context.Context, link types.Link) (*types.Link, error) {
-	q := "INSERT INTO links (id, name, url, created, icon) VALUES ($1, $2, $3, $4, $5);"
-	_, err := repo.db.ExecContext(ctx, q, link.Id, link.Name, link.URL, link.Created, link.Icon)
+	q := "INSERT INTO links (id, name, url, created, icon, place) VALUES ($1, $2, $3, $4, $5, $6);"
+	_, err := repo.db.ExecContext(ctx, q, link.Id, link.Name, link.URL, link.Created, link.Icon, link.Place)
 	return &link, err
 }
 
 func (repo *linkPostgres) Update(ctx context.Context, id string, link types.Link) (*types.Link, error) {
-	q := "UPDATE links SET name=$1, url=$2, created=$3 icon=$4 WHERE id=$5;"
-	_, err := repo.db.ExecContext(ctx, q, link.Name, link.URL, link.Created, link.Icon, id)
+	q := "UPDATE links SET name=$1, url=$2, created=$3, icon=$4, place=$5 WHERE id=$6;"
+	_, err := repo.db.ExecContext(ctx, q, link.Name, link.URL, link.Created, link.Icon, link.Place, id)
 	return &link, err
 }
 

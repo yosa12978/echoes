@@ -20,7 +20,7 @@ import (
 type Link interface {
 	GetLinks(ctx context.Context) ([]types.Link, error)
 	GetLinkById(ctx context.Context, id string) (*types.Link, error)
-	CreateLink(ctx context.Context, name, url, icon string) (*types.Link, error)
+	CreateLink(ctx context.Context, name, url, icon string, place int) (*types.Link, error)
 	DeleteLink(ctx context.Context, id string) (*types.Link, error)
 	Seed(ctx context.Context) error
 }
@@ -100,7 +100,7 @@ func (s *link) GetLinks(ctx context.Context) ([]types.Link, error) {
 	return links, err
 }
 
-func (s *link) CreateLink(ctx context.Context, name, addr, icon string) (*types.Link, error) {
+func (s *link) CreateLink(ctx context.Context, name, addr, icon string, place int) (*types.Link, error) {
 	nameTrim := strings.TrimSpace(name)
 	addrTrim := strings.TrimSpace(addr)
 	if nameTrim == "" || addrTrim == "" {
@@ -119,6 +119,7 @@ func (s *link) CreateLink(ctx context.Context, name, addr, icon string) (*types.
 		URL:     addr,
 		Created: time.Now().Format(time.RFC3339),
 		Icon:    icon,
+		Place:   place,
 	}
 
 	err := <-errCh
@@ -169,6 +170,7 @@ func (s *link) Seed(ctx context.Context) error {
 		URL:     "https://reddit.com",
 		Created: time.Now().Format(time.RFC3339),
 		Icon:    "reddit",
+		Place:   1,
 	})
 	if err != nil {
 		return err
@@ -179,6 +181,7 @@ func (s *link) Seed(ctx context.Context) error {
 		URL:     "https://github.com/yosa12978",
 		Created: time.Now().Format(time.RFC3339),
 		Icon:    "github",
+		Place:   0,
 	})
 	if err != nil {
 		return err
@@ -189,6 +192,7 @@ func (s *link) Seed(ctx context.Context) error {
 		URL:     "https://www.icy-veins.com/",
 		Created: time.Now().Format(time.RFC3339),
 		Icon:    "",
+		Place:   2,
 	})
 	return err
 }

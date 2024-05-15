@@ -32,6 +32,7 @@ type Link struct {
 	URL     string
 	Created string
 	Icon    string
+	Place   int
 }
 
 type Comment struct {

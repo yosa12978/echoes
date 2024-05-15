@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/yosa12978/echoes/logging"
@@ -61,10 +62,16 @@ func (h *link) Create(ctx context.Context) http.Handler {
 		name := r.FormValue("name")
 		url := r.FormValue("url")
 		icon := r.FormValue("icon")
-		_, err := h.linkService.CreateLink(ctx, name, url, icon)
+		placeStr := r.FormValue("place")
+		place, err := strconv.Atoi(placeStr)
+		if err != nil {
+			utils.RenderBlock(w, "alert", "place must be a number")
+			return
+		}
+		_, err = h.linkService.CreateLink(ctx, name, url, icon, place)
 		if err != nil {
 			h.logger.Error(err)
-			utils.RenderBlock(w, "alert", "Failed to create")
+			utils.RenderBlock(w, "alert", err.Error())
 			return
 		}
 		utils.RenderBlock(w, "alert", "Created new link")
