@@ -1,6 +1,7 @@
 package data
 
 import (
+	"context"
 	"database/sql"
 	"sync"
 
@@ -26,4 +27,18 @@ func Postgres() *sql.DB {
 		db = conn
 	})
 	return db
+}
+
+type pgPinger struct {
+	pg *sql.DB
+}
+
+func NewPgPinger() Pinger {
+	return &pgPinger{
+		pg: db,
+	}
+}
+
+func (p *pgPinger) Ping(ctx context.Context) error {
+	return p.pg.Ping()
 }

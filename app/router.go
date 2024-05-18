@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/yosa12978/echoes/cache"
+	"github.com/yosa12978/echoes/data"
 	"github.com/yosa12978/echoes/handlers"
 	"github.com/yosa12978/echoes/logging"
 	"github.com/yosa12978/echoes/middleware"
@@ -166,4 +167,21 @@ func RegisterBasicHandler(ctx context.Context, router *mux.Router) {
 			http.Error(w, err.Error(), 500)
 		}
 	}).Methods("GET")
+
+	// Healthchecks
+	healthService := services.NewHealthService(
+		logging.New("healthchecks"),
+		data.NewPgPinger(),
+		data.NewRedisPinger(ctx),
+	)
+	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		err := healthService.Healthcheck(ctx)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		w.WriteHeader(200)
+		w.Write([]byte("healthy"))
+	})
 }

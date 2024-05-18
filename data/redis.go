@@ -27,3 +27,17 @@ func Redis(ctx context.Context) *redis.Client {
 	})
 	return rdb
 }
+
+type redisPinger struct {
+	rdb *redis.Client
+}
+
+func NewRedisPinger(ctx context.Context) Pinger {
+	return &redisPinger{
+		rdb: rdb,
+	}
+}
+
+func (p *redisPinger) Ping(ctx context.Context) error {
+	return p.rdb.Ping(ctx).Err()
+}
