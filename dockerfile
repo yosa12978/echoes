@@ -14,5 +14,7 @@ COPY --from=builder /app/.env .
 COPY --from=builder /app/templates ./templates
 COPY --from=builder /app/static ./static
 
+RUN apk --update --no-cache add curl
+
 EXPOSE 5000
 ENTRYPOINT ["./echoes"]
