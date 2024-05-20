@@ -6,7 +6,7 @@
 
 <div class="mt-3">
     <div id="login-alert"></div>
-    <form hx-post="/hateoas/login" hx-target="#login-alert" hx-swap="innerHTML" style="max-width: 500px;">
+    <form hx-post="/hateoas/login" hx-target="#login-alert" hx-swap="innerHTML" hx-ext="json-enc" style="max-width: 500px;">
         <input name="username" type="text" placeholder="Username" class="form-control mb-2"/>
         <input name="password" type="password" placeholder="Password" class="form-control mb-2"/>
         <button type="submit" class="btn btn-outline-dark mb-3">Login</button>

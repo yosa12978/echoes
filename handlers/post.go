@@ -89,15 +89,21 @@ func (h *post) GetPostById(ctx context.Context) http.Handler {
 
 func (h *post) CreatePost(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
-		title := r.FormValue("title")
-		content := r.FormValue("content")
-		tweetCheckbox := r.FormValue("tweet")
-		tweet := false
-		if tweetCheckbox == "on" {
-			tweet = true
+		body := make(map[string]interface{})
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			utils.RenderBlock(w, "alert", err.Error())
+			return
 		}
-		if _, err := h.postService.CreatePost(ctx, title, content, tweet); err != nil {
+		title := body["title"].(string)
+		content := body["content"].(string)
+		tweetCheckbox := body["tweet"].(string)
+
+		if _, err := h.postService.CreatePost(
+			ctx,
+			title,
+			content,
+			tweetCheckbox == "on",
+		); err != nil {
 			h.logger.Error(err)
 			utils.RenderBlock(w, "alert", "Failed to create")
 			return

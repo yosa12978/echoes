@@ -20,7 +20,6 @@ type healthService struct {
 }
 
 func NewHealthService(logger logging.Logger, pings ...data.Pinger) HealthService {
-	// instead of concrete connections make acertain Ping interface to encapsulate pinging
 	return &healthService{
 		logger: logger,
 		pings:  pings,

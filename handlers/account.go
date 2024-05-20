@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 
 	"github.com/yosa12978/echoes/logging"
@@ -30,9 +31,18 @@ func NewAccount(accountService services.Account, logger logging.Logger) Account 
 
 func (h *account) Login(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
-		username := r.FormValue("username")
-		password := r.FormValue("password")
+		body := make(map[string]interface{})
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			utils.RenderBlock(w, "alert", err.Error())
+			return
+		}
+
+		username := body["username"].(string)
+		password := body["password"].(string)
+
+		// r.ParseForm()
+		// username := r.FormValue("username")
+		// password := r.FormValue("password")
 		account, err := h.accountService.IsUserExist(ctx, username, password)
 		if err != nil {
 			utils.RenderBlock(w, "alert", "user not found")

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -58,11 +59,15 @@ func (h *link) GetAdmin(ctx context.Context) http.Handler {
 
 func (h *link) Create(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
-		name := r.FormValue("name")
-		url := r.FormValue("url")
-		icon := r.FormValue("icon")
-		placeStr := r.FormValue("place")
+		body := make(map[string]interface{})
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			utils.RenderBlock(w, "alert", err.Error())
+			return
+		}
+		name := body["name"].(string)
+		url := body["url"].(string)
+		icon := body["icon"].(string)
+		placeStr := body["place"].(string)
 		place, err := strconv.Atoi(placeStr)
 		if err != nil {
 			utils.RenderBlock(w, "alert", "place must be a number")

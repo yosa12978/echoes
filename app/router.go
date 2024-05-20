@@ -183,5 +183,5 @@ func RegisterBasicHandler(ctx context.Context, router *mux.Router) {
 		}
 		w.WriteHeader(200)
 		w.Write([]byte("healthy"))
-	})
+	}).Methods("GET")
 }
