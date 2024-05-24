@@ -3,7 +3,7 @@
     <div>
         <div id="info"></div>
 
-        <form hx-post="/hateoas/posts" hx-target="#info" hx-swap="outerHTML">
+        <form hx-post="/api/posts" hx-target="#info" hx-swap="outerHTML">
             <input name="title" type="text" placeholder="title" class="form-control mb-1"/>
             <input name="content" type="text" placeholder="content" class="form-control mb-1"/>
             <button type="submit" class="btn btn-secondary mb-1">Create</button>

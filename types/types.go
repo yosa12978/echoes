@@ -1,6 +1,7 @@
 package types
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/google/uuid"
@@ -96,3 +97,18 @@ type CommentsInfo struct {
 	Page[Comment]
 	PostId string
 }
+
+type ApiError struct {
+	StatusCode int
+	Err        string
+}
+
+func (t *ApiError) Error() string {
+	return t.Err
+}
+
+func (t *ApiError) Code() int {
+	return t.StatusCode
+}
+
+type ApiFunc func(w http.ResponseWriter, r *http.Request) (interface{}, int, error)

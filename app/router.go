@@ -73,7 +73,7 @@ func NewRouter(ctx context.Context) http.Handler {
 
 	RegisterBasicHandler(ctx, router)
 
-	hateoas := router.PathPrefix("/hateoas").Subrouter()
+	hateoas := router.PathPrefix("/api").Subrouter()
 
 	RegisterLinkHandler(ctx, linkHandler, hateoas)
 	RegisterAccountHandler(ctx, accountHandler, hateoas)
