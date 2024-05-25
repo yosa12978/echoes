@@ -98,17 +98,27 @@ type CommentsInfo struct {
 	PostId string
 }
 
-type ApiError struct {
-	StatusCode int
-	Err        string
+type ApiMsg struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
 }
 
-func (t *ApiError) Error() string {
-	return t.Err
+type ApiFunc func(w http.ResponseWriter, r *http.Request) (ApiResponse, error)
+
+type ApiResponse struct {
+	Body  interface{}
+	Templ string // for htmx
+	Code  int
 }
 
-func (t *ApiError) Code() int {
-	return t.StatusCode
+func NewApiResp(
+	Body interface{},
+	Templ string,
+	Code int,
+) ApiResponse {
+	return ApiResponse{
+		Body:  Body,
+		Templ: Templ,
+		Code:  Code,
+	}
 }
-
-type ApiFunc func(w http.ResponseWriter, r *http.Request) (interface{}, int, error)

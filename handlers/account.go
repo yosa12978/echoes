@@ -36,13 +36,8 @@ func (h *account) Login(ctx context.Context) http.Handler {
 			utils.RenderBlock(w, "alert", err.Error())
 			return
 		}
-
 		username := body["username"].(string)
 		password := body["password"].(string)
-
-		// r.ParseForm()
-		// username := r.FormValue("username")
-		// password := r.FormValue("password")
 		account, err := h.accountService.IsUserExist(ctx, username, password)
 		if err != nil {
 			utils.RenderBlock(w, "alert", "user not found")

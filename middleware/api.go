@@ -10,16 +10,16 @@ import (
 
 func ApiWrapper(next types.ApiFunc) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, code, err := next(w, r)
+		apiResp, err := next(w, r)
 		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
-		w.WriteHeader(code)
+		w.WriteHeader(apiResp.Code)
 		if err != nil {
 			switch r.Header.Get("Content-Type") {
 			case "application/json":
 				json.NewEncoder(w).Encode(
-					types.ApiError{
-						StatusCode: code,
-						Err:        err.Error(),
+					types.ApiMsg{
+						Code:    apiResp.Code,
+						Message: err.Error(),
 					},
 				)
 				return
@@ -29,9 +29,9 @@ func ApiWrapper(next types.ApiFunc) http.Handler {
 			}
 		}
 		if r.Header.Get("Content-Type") == "application/json" {
-			json.NewEncoder(w).Encode(body)
+			json.NewEncoder(w).Encode(apiResp.Body)
 			return
 		}
-		// render requested template
+		utils.RenderBlock(w, apiResp.Templ, apiResp.Body)
 	})
 }
