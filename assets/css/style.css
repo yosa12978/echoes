@@ -1,74 +1,83 @@
+/* @import "https://www.nerdfonts.com/assets/css/webfont.css"; */
+/* @import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap'); */
+
 .card {
     border-width: 0px;
     /* background-color: rgba(255, 255, 255, 0); */
-    border-radius: 15px;
+    border-radius: 0px;
     overflow-wrap: break-word;
-    background-color: #F9FEFF;
+    background-color: #363a4f;
 }
 
 * {
     font-family: "Reddit Mono", monospace;
+    /* font-family: "Rubik", sans-serif; */
     font-optical-sizing: auto;
     font-weight: 400;
     font-style: normal;
+    color: #cad3f5;
 }
-
 
 a {
-    color: black;
+    color: #cad3f5;
 }
+
+.btn {
+    border-radius: 0px;
+}
+
 
 .form-control {
     width: 100%;
+    border-radius: 0px;
 }
 
 .container {
     max-width: 800px;
-    background-color: #F8F7F4;
-}
-
-nav {
-    border-bottom-left-radius: 15px;
-    border-bottom-right-radius: 15px;
-    background-color: rgb(58, 58, 58);
+    background-color: #181926;
 }
 
 body {
-    background-color: #F9FEFF;
+    background-color: #181926;
     /* background-image: linear-gradient(to bottom right, rgb(4, 19, 44), rgb(30, 53, 110), rgb(58, 62, 109), rgb(112, 125, 170), rgb(182, 180, 194)); */
     background-repeat: no-repeat;
     background-position: right top;
     background-attachment: fixed;
     background-size: 100% 100%;
 }
+
 .form-control:focus {
     border-color: rgb(136, 136, 136);
     box-shadow: none;
 }
+
 .navbar {
     padding: 10px;
-    border-bottom-left-radius: 15px;
-    background-color: #f4f4f4;
-    border-bottom-right-radius: 15px;
+    background-color: #181926;
 }
+
+.announce {
+    color: #181926;
+}
+
 .navbar-brand {
     margin-right: 10px;
     color: #F06D37;
 }
-.navbar-brand:hover{
+
+.navbar-brand:hover {
     color: #d05d2c;
-}        
+}
+
 a {
-    color: black;
     text-decoration: underline;
     /* text-decoration: none; */
 }
-a:hover {
-    color: rgb(101, 101, 101);
-}
+
 .btn {
-    font-weight:600;
+    font-weight: 600;
 }
+
 .container {
     backdrop-filter: blur(10px);
 }

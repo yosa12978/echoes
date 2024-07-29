@@ -1,30 +1,12 @@
 {{template "header" .}}
 <br>
-    <div id="profile" hx-get="/api/profile" hx-swap="outerHTML" hx-trigger="load"></div>
-    <!-- <button hx-get="/api/posts" hx-trigger="click" hx-target="#list" hx-indicator="#spinner" class="btn btn-primary mb-3">Get Posts</button><br> -->
-    <div id="announce" hx-get="/api/announce" hx-swap="outerHTML" hx-trigger="load" style="text-align: center;"></div>
-    
-    <div id="links" hx-get="/api/links" hx-trigger="load" hx-indicator="#spinner" hx-swap="outerHTML"></div>
+<div id="profile" hx-get="/api/profile" hx-swap="outerHTML" hx-trigger="load"></div>
+<!-- <button hx-get="/api/posts" hx-trigger="click" hx-target="#list" hx-indicator="#spinner" class="btn btn-primary mb-3">Get Posts</button><br> -->
+<div id="announce" hx-get="/api/announce" hx-swap="outerHTML" hx-trigger="load" style="text-align: center;"></div>
 
-    <div class="blog">
-        <div class="justify-content-between d-inline">
-            <h2><i class="bi bi-newspaper"></i> Blog Posts</h2> 
+<div id="links" hx-get="/api/links" hx-trigger="load" hx-indicator="#links-spinner" hx-swap="outerHTML"></div>
+<center>
+    <div class="spinner-border htmx-indicator" id="links-spinner" role="status"></div>
+</center>
 
-            <form class="form-inline d-flex" hx-get="/api/posts" hx-target="#list" hx-swap="innerHTML" style="max-width: 400px;" hx-indicator="#spinner">
-                <div class="input-group mb-3">
-                    <input class="form-control mr-sm-2 border-1 border-dark shadow-none" type="search" name="query" placeholder="Search" aria-label="Search" >
-                    <div class="input-group-append">
-                        <button class="btn btn-outline-dark" style="border-top-left-radius: 0px; border-bottom-left-radius: 0px;" type="submit"><i class="bi bi-search"></i></button>
-                    </div>
-                </div>
-            </form>
-
-        </div>
-        <hr>
-        <div id="list" hx-get="/api/posts" hx-trigger="load" hx-indicator="#spinner" hx-swap="innerHTML"></div>
-    </div>
-
-    <center>
-    <div class="spinner-border htmx-indicator" id="spinner" role="status"></div>
-    </center>
 {{template "footer" .}}

@@ -52,7 +52,7 @@ func NewRouter(ctx context.Context) http.Handler {
 	accountService := services.NewAccount(accountRepo)
 	accountService.Seed(ctx)
 
-	profileRepo, err := repos.NewProfileJson("./static/profile.json")
+	profileRepo, err := repos.NewProfileJson("./assets/profile.json")
 	if err != nil {
 		logger.Error(err)
 	}
@@ -126,7 +126,7 @@ func RegisterProfileHandler(ctx context.Context, handler handlers.Profile, route
 }
 
 func RegisterBasicHandler(ctx context.Context, router *mux.Router) {
-	router.PathPrefix("/static").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
+	router.PathPrefix("/assets").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets/"))))
 
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if err := utils.RenderTemplate(w, "index", nil); err != nil {
@@ -167,6 +167,12 @@ func RegisterBasicHandler(ctx context.Context, router *mux.Router) {
 			http.Error(w, err.Error(), 500)
 		}
 	}).Methods("GET")
+
+	router.HandleFunc("/blog", func(w http.ResponseWriter, r *http.Request) {
+		if err := utils.RenderTemplate(w, "blog", nil); err != nil {
+			http.Error(w, err.Error(), 500)
+		}
+	})
 
 	// Healthchecks
 	healthService := services.NewHealthService(

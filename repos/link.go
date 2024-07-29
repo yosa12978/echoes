@@ -39,7 +39,7 @@ func NewLinkPostgres() Link {
 
 func (repo *linkPostgres) FindAll(ctx context.Context) ([]types.Link, error) {
 	links := []types.Link{}
-	q := "SELECT * FROM links ORDER BY place ASC, name ASC;"
+	q := "SELECT * FROM links ORDER BY place ASC"
 	rows, err := repo.db.QueryContext(ctx, q)
 	if err != nil {
 		return links, err

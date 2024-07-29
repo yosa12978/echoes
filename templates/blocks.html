@@ -1,27 +1,31 @@
 {{block "postsPage" .}}
-    {{ range .Content }}
-    <div class="card mt-4 mb-4 p-2" style="background-color: #F9FEFF;" id="post-{{.Id}}">
-        <h3><a href="/posts/{{.Id}}">{{if .Pinned}}<i class="bi bi-pin-angle-fill" style="font-size: large; vertical-align: middle;"></i>{{end}} {{.Title}}</a></h3>
-        {{if .Tweet}}
-        <span id="post-content-{{.Id}}"></span>
-        <script>
-            document.getElementById("post-content-{{.Id}}").innerHTML = marked.parse("{{.Content}}")
-        </script><hr>
-        {{end}}
-        
-        <small id="created-{{.Id}}">{{.Created}}</small>
-        <script>
-             document.getElementById("created-{{.Id}}").innerHTML = toDateString_("{{.Created}}")
-        </script>
-    </div>
-    {{ end }}
-    {{if .HasNext}}
-    <div hx-trigger="revealed" hx-get="/api/posts?page={{.NextPage}}" hx-swap="afterend" hx-indicator="#spinner"></div>
+{{ range .Content }}
+<div class="card mt-4 mb-4 p-3" style="background-color: #292c3c;" id="post-{{.Id}}">
+    <h3><a href="/posts/{{.Id}}" class="text-decoration-none">{{if .Pinned}}<i class="bi bi-pin-angle-fill"
+                style="font-size: large; vertical-align: middle;"></i>{{end}} {{.Title}}</a></h3>
+    {{if .Tweet}}
+    <span id="post-content-{{.Id}}"></span>
+    <script>
+        document.getElementById("post-content-{{.Id}}").innerHTML = marked.parse("{{.Content}}")
+    </script>
+    <hr>
     {{end}}
+
+    <small id="created-{{.Id}}">{{.Created}}</small>
+    <script>
+        document.getElementById("created-{{.Id}}").innerHTML = toDateString_("{{.Created}}")
+    </script>
+</div>
+{{ end }}
+{{if .HasNext}}
+<div hx-trigger="revealed" hx-get="/api/posts?page={{.NextPage}}" hx-swap="afterend" hx-indicator="#spinner"></div>
+{{end}}
 {{end}}
 
 {{block "noPosts" .}}
-<div class="card mt-2 mb-2 p-2 text-bg-warning" style="text-align: center; border-radius: 0px;">No posts found :(</div>
+<div class="card mt-2 mb-2 p-2 text-light" style="text-align: center; border-radius: 0px; background-color: #24273a;">No
+    posts
+    found :(</div>
 {{end}}
 
 {{block "alert" .}}
@@ -31,9 +35,10 @@
 {{end}}
 
 {{block "post" .}}
-<div class="card mt-2 mb-2 p-3" id="post-{{.Id}}" style="background-color: #F9FEFF;">
-    <h2 style="text-decoration: underline;">{{.Title}}</h2>
-    <p id="post-content"></p><hr>
+<div class="card mt-2 mb-2 p-3" id="post-{{.Id}}" style="border-radius: 0px; background-color: #292c3c;">
+    <h2 style="text-decoration: none; color: #c6d0f5">{{.Title}}</h2>
+    <p id="post-content"></p>
+    <hr>
     <small id="created">Created: {{.Created}}</small>
     <script>
         document.getElementById("post-content").innerHTML = marked.parse("{{.Content}}")
@@ -46,9 +51,8 @@
 {{block "announce" .}}
 {{if .}}
 <br>
-<div class="card bg-warning mb-2 mt-2 announce" style="border-radius: 0px;">
+<div class="card mb-3 mt-2 announce" style="border-radius: 0px; background-color: #24273a;">
     <div class="card-body">
-        <b class="mb-2 mt-1">📣 Announcement</b>
         <p class="card-text mt-2" id="announce-text"></p>
         <small class="card-text" id="announce-created">{{.Date}}</small>
         <script>
@@ -64,19 +68,19 @@
 <!-- Links -->
 {{block "links" .}}
 <div id="links">
-    {{if .}}
-    <h2><i class="bi bi-link"></i> Links</h2><hr>
-    {{end}}
+
     <div style="text-align: center;">
-    {{range .}}
-    <div class="card mb-3" style="background-color: #F9FEFF;">
-        <a href="/api/portal/{{.Id}}" target="_blank" class="link link-dark text-decoration-none">
-        <div class="card-body">
-            <p class="card-text fs-5" id="link-{{.Id}}"><i class="bi bi-{{.Icon}}"></i> <b>{{.Name}}</b></p>
+        {{range .}}
+        <div class="card mb-2" style="background-color: #363a4f;">
+            <a href="/api/portal/{{.Id}}" target="_blank" class="link link-dark text-decoration-none">
+                <div class="card-body">
+                    <p class="card-text fs-5" id="link-{{.Id}}"><i class="bi bi-{{.Icon}}"></i>
+                        <b>{{.Name}}</b>
+                    </p>
+                </div>
+            </a>
         </div>
-        </a>
-    </div>
-    {{end}}
+        {{end}}
     </div>
 </div>
 <br>
@@ -84,13 +88,16 @@
 
 {{block "profile" .}}
 <center>
-<div class="card text-bg-white" style="background-color: rgba(255, 255, 255, 0);">
-    <div class="card-body">
-        <img src="{{.Icon}}" class="mb-2" style="max-width: 100px; max-height: 100px; border-radius: 50%;" alt="icon"/><br>
-        <b class="mb-2 mt-1" style="font-size:x-large">{{.Name}}</b>
-        <p class="card-text mt-2">{{.Bio}}</p>
+    <div class="card text-bg-white" style="background-color: rgba(255, 255, 255, 0);">
+        <div class="card-body">
+            <img src="{{.Icon}}" class="mb-2" style="max-width: 120px; max-height: 120px; border-radius: 50%;"
+                alt="icon" />
+            <div class="ml-3">
+                <b class="mb-2 mt-1" style="font-size:x-large">{{.Name}}</b>
+                <p class="card-text mt-2 text-start" style="max-width: 26rem">{{.Bio}}</p>
+            </div>
+        </div>
     </div>
-</div>
 </center>
 {{end}}
 
@@ -99,14 +106,15 @@
     <h3><i class="bi bi-link"></i> Delete Link</h3>
     <div id="link-delete-alert"></div>
     <div>
-    {{range .}}
-    <div class="card mb-3" id="link-{{.Id}}" style="background-color: #F9FEFF;">
-        <div class="card-body d-flex justify-content-between">
-            <span class="card-text float-left mt-1"><i class="bi bi-{{.Icon}}"></i> <b>{{.Name}}</b></span>
-            <button class="btn btn-danger border-0" hx-delete="/api/links/{{.Id}}" hx-target="#link-delete-alert" hx-swap="innerHTML">Delete</button>
+        {{range .}}
+        <div class="card mb-3" id="link-{{.Id}}" style="background-color: #363a4f;">
+            <div class="card-body d-flex justify-content-between">
+                <span class="card-text float-left mt-1"><i class="bi bi-{{.Icon}}"></i> <b>{{.Name}}</b></span>
+                <button class="btn btn-danger border-0" hx-delete="/api/links/{{.Id}}" hx-target="#link-delete-alert"
+                    hx-swap="innerHTML">Delete</button>
+            </div>
         </div>
-    </div>
-    {{end}}
+        {{end}}
     </div>
 </div>
 <br>
@@ -116,30 +124,35 @@
 {{block "comments" .}}
 
 {{range .Content}}
-<div class="card mt-2 mb-2 p-2" style="background-color: #F9FEFF;">
+<div class="card mt-2 mb-2 p-2" style="border-radius: 0px; background-color: #363a4f;">
     <div class="card-body">
         <p><b>{{.Name}}</b></p>
-        <p>{{.Content}}</p><hr>
-        <small id="comment-created-{{.Id}}">Created: {{.Created}} <br> {{.Id}}</small>
+        <p>{{.Content}}</p>
+        <hr>
+        <small id="comment-created-{{.Id}}">
+            <div class="float-start">Created: {{.Created}}</div>
+            <div class="float-end">{{.Id}}</div>
+        </small>
         <script>
-            document.getElementById("comment-created-{{.Id}}").innerHTML = toDateString_("{{.Created}}") + "<br>{{.Id}}"
+            document.getElementById("comment-created-{{.Id}}").innerHTML = "<div class=\"float-start\">" + toDateString_("{{.Created}}") + "</div>" + "<div class=\"float-end\">{{.Id}}</div>"
         </script>
     </div>
 </div>
 {{end}}
 
 {{if .HasNext}}
-<div hx-trigger="revealed" hx-get="/api/comments/?postId={{.PostId}}&page={{.NextPage}}" hx-swap="afterend" hx-indicator="#spinner"></div>
+<div hx-trigger="revealed" hx-get="/api/comments/?postId={{.PostId}}&page={{.NextPage}}" hx-swap="afterend"
+    hx-indicator="#spinner"></div>
 {{end}}
 
 {{end}}
 
 {{block "comment" .}}
-<div class="card mt-2 mb-2 p-2 text-bg-light" style="background-color: #F9FEFF;">
+<div class="card mt-2 mb-2 p-2 text-bg-light" style="border-radius: 0px; background-color: #363a4f;">
     <div class="card-body">
-    <p><b>{{.Name}} | {{.Email}}</b></p>
-    <p>{{.Content}}</p>
-    <small>Created: {{.Created}} | {{.Id}}</small>
+        <p><b>{{.Name}} | {{.Email}}</b></p>
+        <p>{{.Content}}</p>
+        <small>Created: {{.Created}} | {{.Id}}</small>
     </div>
 </div>
 {{end}}
