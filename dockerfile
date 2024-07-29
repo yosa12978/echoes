@@ -12,7 +12,7 @@ WORKDIR /app
 COPY --from=builder /app/bin .
 COPY --from=builder /app/.env .
 COPY --from=builder /app/templates ./templates
-COPY --from=builder /app/static ./static
+COPY --from=builder /app/assets ./assets
 
 RUN apk --update --no-cache add curl
 

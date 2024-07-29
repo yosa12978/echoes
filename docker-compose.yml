@@ -41,20 +41,6 @@ services:
       - mainnet
     volumes:
       - cache:/data
-  nginx:
-    container_name: echoes-nginx
-    build: 
-      context: .
-      dockerfile: nginx.dockerfile
-    ports:
-      - "443:443"
-    volumes:
-      - /etc/letsencrypt/:/etc/letsencrypt/
-      - ./www:/usr/share/nginx/html
-    environment:
-      - NGINX_HOST=locobase.duckdns.org
-    networks:
-      - mainnet
 
 networks:
   mainnet:
