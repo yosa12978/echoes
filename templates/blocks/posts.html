@@ -10,8 +10,8 @@
     </script>
     {{end}}
     <div class="my-2">
-        <span id="created-{{.Id}}" class="badge bg-warning mx-1">Created: {{.Created}}</span><span
-            class="badge bg-warning  text-dark mx-1">Comments: {{.Comments}}</span>
+        <span id="created-{{.Id}}" class="badge bg-warning mx-1">Created: {{.Created}}</span>
+        <a href="/posts/{{.Id}}"><span class="badge bg-warning  text-dark mx-1">Comments: {{.Comments}}</span></a>
     </div>
     <script>
         document.getElementById("created-{{.Id}}").innerHTML = toDateString_("{{.Created}}")
@@ -36,8 +36,8 @@
     <h3 style="text-decoration: none; color: #c6d0f5">{{.Title}}</h3>
     <span id="post-content"></span>
     <div class="my-2">
-        <span id="created" class="badge bg-warning mx-1">Created: {{.Created}}</span><span
-            class="badge bg-warning  text-dark mx-1">Comments: {{.Comments}}</span>
+        <span id="created" class="badge bg-warning mx-1">Created: {{.Created}}</span>
+        <span class="badge bg-warning  text-dark mx-1">Comments: {{.Comments}}</span>
     </div>
     <script>
         document.getElementById("post-content").innerHTML = renderMarkdown("{{.Content}}")

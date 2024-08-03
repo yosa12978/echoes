@@ -68,6 +68,7 @@ type Config struct {
 	RedisAddr  string
 	RedisDb    int
 	RedisPwd   string
+	RootPass   string
 }
 
 type Page[T interface{}] struct {
