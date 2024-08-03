@@ -4,13 +4,14 @@
     <div class="card-body">
         <p><b>{{.Name}}</b></p>
         <p>{{.Content}}</p>
-        <hr>
-        <small id="comment-created-{{.Id}}">
-            <div class="float-start">Created: {{.Created}}</div>
-            <div class="float-end">{{.Id}}</div>
-        </small>
+
+
+        <div class="mb-1 mt-4">
+            <span id="comment-created-{{.Id}}" class="badge bg-warning mx-1">Created: {{.Created}}</span>
+            <span class="badge bg-warning mx-1">{{.Id}}</span>
+        </div>
         <script>
-            document.getElementById("comment-created-{{.Id}}").innerHTML = "<div class=\"float-start\">" + toDateString_("{{.Created}}") + "</div>" + "<div class=\"float-end\">{{.Id}}</div>"
+            document.getElementById("comment-created-{{.Id}}").innerHTML = toDateString_("{{.Created}}");
         </script>
     </div>
 </div>
@@ -28,7 +29,10 @@
     <div class="card-body">
         <p><b>{{.Name}} | {{.Email}}</b></p>
         <p>{{.Content}}</p>
-        <small>Created: {{.Created}} | {{.Id}}</small>
+        <div class="my-2">
+            <span id="created" class="badge bg-warning mx-1">Created: {{.Created}}</span><span
+                class="badge bg-warning  text-dark mx-1">{{.Id}}</span>
+        </div>
     </div>
 </div>
 {{end}}

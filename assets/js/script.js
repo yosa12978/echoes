@@ -1,9 +1,14 @@
 function toDateString_(dateISO8601, timezone = 'GMT') {
     const d = new Date(dateISO8601);
-    return d.getUTCFullYear().toString() +
-        "/" + (d.getUTCMonth() + 1).toString() +
-        "/" + d.getUTCDate().toString() +
-        " - " + d.toLocaleString('en-US', { timeZone: 'UTC', hour: 'numeric', minute: 'numeric', hour12: true });
+    return d.toLocaleDateString('en-US', {
+        timeZone: 'UTC',
+        hour: 'numeric',
+        minute: 'numeric',
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour12: true
+    })
 }
 
 function renderMarkdown(md) {
