@@ -144,3 +144,9 @@ iframe {
     color: #181825 !important;
     background-color: #cba6f7 !important;
 }
+
+pre {
+    border-radius: 10px;
+    padding: 10px;
+    background-color: #1e1e2e;
+}
