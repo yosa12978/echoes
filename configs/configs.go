@@ -23,6 +23,7 @@ func Get() types.Config {
 			RedisAddr:  "localhost:6379",
 			RedisDb:    0,
 			RedisPwd:   "",
+			RootPass:   "root",
 		}
 		if addr, ok := os.LookupEnv("ADDR"); ok {
 			config.Addr = addr
@@ -45,6 +46,9 @@ func Get() types.Config {
 		}
 		if redisPwd, ok := os.LookupEnv("REDIS_PWD"); ok {
 			config.RedisPwd = redisPwd
+		}
+		if rootPass, ok := os.LookupEnv("ROOT_PASS"); ok {
+			config.RootPass = rootPass
 		}
 	})
 	return *config

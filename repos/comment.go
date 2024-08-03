@@ -123,7 +123,7 @@ func (repo *commentPostgres) Update(ctx context.Context, id string, comment type
 }
 
 func (repo *commentPostgres) Delete(ctx context.Context, id string) (*types.Comment, error) {
-	// may be delete this check
+	// delete this and similar checks
 	comment, err := repo.FindById(ctx, id)
 	if err != nil {
 		return nil, err
