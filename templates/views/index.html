@@ -1,8 +1,8 @@
 {{template "header" .}}
-<br>
+
 <div id="profile" hx-get="/api/profile" hx-swap="outerHTML" hx-trigger="load"></div>
 <!-- <button hx-get="/api/posts" hx-trigger="click" hx-target="#list" hx-indicator="#spinner" class="btn btn-primary mb-3">Get Posts</button><br> -->
-<div id="announce" hx-get="/api/announce" hx-swap="outerHTML" hx-trigger="load" style="text-align: center;"></div>
+<div id="announce" hx-get="/api/announce" hx-swap="outerHTML" hx-trigger="load"></div>
 
 <div id="links" hx-get="/api/links" hx-trigger="load" hx-indicator="#links-spinner" hx-swap="outerHTML"></div>
 <center>

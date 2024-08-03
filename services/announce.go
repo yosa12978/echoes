@@ -34,7 +34,7 @@ func (s *announce) Create(ctx context.Context, content string) (*types.Announce,
 	if content == "" {
 		return nil, errors.New("announce can't be empty")
 	}
-	return s.announceRepo.Create(ctx, strings.ReplaceAll(content, "\n", "<br>"))
+	return s.announceRepo.Create(ctx, content)
 }
 
 func (s *announce) Delete(ctx context.Context) (*types.Announce, error) {

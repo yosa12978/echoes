@@ -77,7 +77,7 @@ func (h *post) GetPosts(ctx context.Context) http.Handler {
 func (h *post) GetPostById(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["id"]
-		post, err := h.postService.GetPostById(ctx, id) //h.postRepo.FindById(ctx, id)
+		post, err := h.postService.GetPostById(ctx, id)
 		if err != nil {
 			h.logger.Error(err)
 			utils.RenderBlock(w, "alert", "post not found")

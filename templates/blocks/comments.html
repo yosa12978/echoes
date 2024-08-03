@@ -1,0 +1,34 @@
+{{block "comments" .}}
+{{range .Content}}
+<div class="card mt-2 mb-2 p-2" style="border-radius: 0px; background-color: #363a4f;">
+    <div class="card-body">
+        <p><b>{{.Name}}</b></p>
+        <p>{{.Content}}</p>
+        <hr>
+        <small id="comment-created-{{.Id}}">
+            <div class="float-start">Created: {{.Created}}</div>
+            <div class="float-end">{{.Id}}</div>
+        </small>
+        <script>
+            document.getElementById("comment-created-{{.Id}}").innerHTML = "<div class=\"float-start\">" + toDateString_("{{.Created}}") + "</div>" + "<div class=\"float-end\">{{.Id}}</div>"
+        </script>
+    </div>
+</div>
+{{end}}
+
+{{if .HasNext}}
+<div hx-trigger="revealed" hx-get="/api/comments/?postId={{.PostId}}&page={{.NextPage}}" hx-swap="afterend"
+    hx-indicator="#spinner"></div>
+{{end}}
+{{end}}
+
+
+{{block "comment" .}}
+<div class="card mt-2 mb-2 p-2 text-bg-light" style="border-radius: 0px; background-color: #363a4f;">
+    <div class="card-body">
+        <p><b>{{.Name}} | {{.Email}}</b></p>
+        <p>{{.Content}}</p>
+        <small>Created: {{.Created}} | {{.Id}}</small>
+    </div>
+</div>
+{{end}}

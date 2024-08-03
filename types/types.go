@@ -8,22 +8,24 @@ import (
 )
 
 type Post struct {
-	Id      string
-	Title   string
-	Content string
-	Created string
-	Pinned  bool
-	Tweet   bool
+	Id       string
+	Title    string
+	Content  string
+	Created  string
+	Pinned   bool
+	Tweet    bool
+	Comments int
 }
 
 func NewPost(title, content string, tweet bool) Post {
 	return Post{
-		Id:      uuid.NewString(),
-		Title:   title,
-		Content: content,
-		Created: time.Now().Format(time.RFC3339),
-		Pinned:  false,
-		Tweet:   tweet,
+		Id:       uuid.NewString(),
+		Title:    title,
+		Content:  content,
+		Created:  time.Now().Format(time.RFC3339),
+		Pinned:   false,
+		Tweet:    tweet,
+		Comments: 0,
 	}
 }
 
@@ -121,4 +123,9 @@ func NewApiResp(
 		Templ: Templ,
 		Code:  Code,
 	}
+}
+
+type Templ struct {
+	Title   string
+	Payload interface{}
 }

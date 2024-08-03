@@ -93,7 +93,10 @@ func NewPostPostgres() Post {
 
 func (repo *postPostgres) FindAll(ctx context.Context) ([]types.Post, error) {
 	posts := []types.Post{}
-	q := "SELECT id, title, content, created FROM posts ORDER BY pinned, created DESC;"
+	q := `
+		SELECT p.id, p.title, p.content, p.created, p.pinned, p.tweet, COUNT(c) comment_count 
+		FROM posts p LEFT JOIN comments c ON c.postid = p.id GROUP BY p.id ORDER BY p.pinned, p.created DESC;
+	`
 	rows, err := repo.db.QueryContext(ctx, q)
 	if err != nil {
 		return posts, err
@@ -101,21 +104,23 @@ func (repo *postPostgres) FindAll(ctx context.Context) ([]types.Post, error) {
 	defer rows.Close()
 	for rows.Next() {
 		var (
-			id      string
-			title   string
-			content string
-			created string
-			pinned  bool
-			tweet   bool
+			id            string
+			title         string
+			content       string
+			created       string
+			pinned        bool
+			tweet         bool
+			comment_count int
 		)
-		rows.Scan(&id, &title, &content, &created, &pinned, &tweet)
+		rows.Scan(&id, &title, &content, &created, &pinned, &tweet, &comment_count)
 		post := types.Post{
-			Id:      id,
-			Title:   title,
-			Content: content,
-			Created: created,
-			Pinned:  pinned,
-			Tweet:   tweet,
+			Id:       id,
+			Title:    title,
+			Content:  content,
+			Created:  created,
+			Pinned:   pinned,
+			Tweet:    tweet,
+			Comments: comment_count,
 		}
 		posts = append(posts, post)
 	}
@@ -124,7 +129,10 @@ func (repo *postPostgres) FindAll(ctx context.Context) ([]types.Post, error) {
 
 func (repo *postPostgres) FindById(ctx context.Context, id string) (*types.Post, error) {
 	var post types.Post
-	q := "SELECT * FROM posts WHERE id=$1;"
+	q := `
+		SELECT p.id, p.title, p.content, p.created, p.pinned, p.tweet, COUNT(c) comment_count 
+		FROM posts p LEFT JOIN comments c ON c.postid = p.id GROUP BY p.id HAVING p.id = $1;
+	`
 	err := repo.db.QueryRowContext(ctx, q, id).Scan(
 		&post.Id,
 		&post.Title,
@@ -132,6 +140,7 @@ func (repo *postPostgres) FindById(ctx context.Context, id string) (*types.Post,
 		&post.Created,
 		&post.Pinned,
 		&post.Tweet,
+		&post.Comments,
 	)
 	return &post, err
 }
@@ -206,7 +215,12 @@ func (repo *postPostgres) GetPageTime(
 	if (page-1)*size+size >= count {
 		hasNext = false
 	}
-	q := "SELECT * FROM posts WHERE created <= $3 ORDER BY pinned DESC, created DESC LIMIT $1 OFFSET $2;"
+	q := `
+		SELECT p.id, p.title, p.content, p.created, p.pinned, p.tweet, COUNT(c) comment_count 
+		FROM posts p LEFT JOIN comments c ON c.postid = p.id GROUP BY p.id HAVING p.created <= $3 
+		ORDER BY pinned DESC, created DESC LIMIT $1 OFFSET $2;
+	`
+	//q := "SELECT * FROM posts WHERE created <= $3 ORDER BY pinned DESC, created DESC LIMIT $1 OFFSET $2;"
 	rows, err := repo.db.QueryContext(ctx, q, size, (page-1)*size, time)
 	if err != nil {
 		return &types.Page[types.Post]{
@@ -220,7 +234,15 @@ func (repo *postPostgres) GetPageTime(
 	defer rows.Close()
 	for rows.Next() {
 		post := types.Post{}
-		rows.Scan(&post.Id, &post.Title, &post.Content, &post.Created, &post.Pinned, &post.Tweet)
+		rows.Scan(
+			&post.Id,
+			&post.Title,
+			&post.Content,
+			&post.Created,
+			&post.Pinned,
+			&post.Tweet,
+			&post.Comments,
+		)
 		posts = append(posts, post)
 	}
 	return &types.Page[types.Post]{

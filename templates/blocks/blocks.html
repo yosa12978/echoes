@@ -6,7 +6,7 @@
     {{if .Tweet}}
     <span id="post-content-{{.Id}}"></span>
     <script>
-        document.getElementById("post-content-{{.Id}}").innerHTML = marked.parse("{{.Content}}")
+        document.getElementById("post-content-{{.Id}}").innerHTML = renderMarkdown("{{.Content}}")
     </script>
     <hr>
     {{end}}
@@ -41,7 +41,7 @@
     <hr>
     <small id="created">Created: {{.Created}}</small>
     <script>
-        document.getElementById("post-content").innerHTML = marked.parse("{{.Content}}")
+        document.getElementById("post-content").innerHTML = renderMarkdown("{{.Content}}")
         document.getElementById("created").innerHTML = "Created: " + toDateString_("{{.Created}}")
     </script>
 </div>
@@ -56,7 +56,7 @@
         <p class="card-text mt-2" id="announce-text"></p>
         <small class="card-text" id="announce-created">{{.Date}}</small>
         <script>
-            document.getElementById("announce-text").innerHTML = marked.parse("{{.Content}}")
+            document.getElementById("announce-text").innerHTML = renderMarkdown("{{.Content}}")
             document.getElementById("announce-created").innerHTML = toDateString_("{{.Date}}")
         </script>
     </div>
@@ -74,8 +74,9 @@
         <div class="card mb-2" style="background-color: #363a4f;">
             <a href="/api/portal/{{.Id}}" target="_blank" class="link link-dark text-decoration-none">
                 <div class="card-body">
-                    <p class="card-text fs-5" id="link-{{.Id}}"><i class="bi bi-{{.Icon}}"></i>
-                        <b>{{.Name}}</b>
+                    <p class="card-text fs-5" style="font-weight: 475;" id="link-{{.Id}}"><i
+                            class="bi bi-{{.Icon}} mx-1"></i>
+                        {{.Name}}
                     </p>
                 </div>
             </a>
@@ -90,10 +91,10 @@
 <center>
     <div class="card text-bg-white" style="background-color: rgba(255, 255, 255, 0);">
         <div class="card-body">
-            <img src="{{.Icon}}" class="mb-2" style="max-width: 120px; max-height: 120px; border-radius: 50%;"
+            <img src="{{.Icon}}" class="mb-2" style="max-width: 110px; max-height: 110px; border-radius: 50%;"
                 alt="icon" />
             <div class="ml-3">
-                <b class="mb-2 mt-1" style="font-size:x-large">{{.Name}}</b>
+                <b class="mb-2 mt-1" style="font-size:x-large; color: #cba6f7;">{{.Name}}</b>
                 <p class="card-text mt-2 text-center" style="max-width: 26rem">{{.Bio}}</p>
             </div>
         </div>
