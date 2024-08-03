@@ -58,12 +58,15 @@ func NewRouter(ctx context.Context) http.Handler {
 	}
 	profileService := services.NewProfile(profileRepo)
 
+	feedService := services.NewFeedService(postService)
+
 	postHandler := handlers.NewPost(postService, logging.New("postHandler"))
 	linkHandler := handlers.NewLink(linkService, logging.New("linkHandler"))
 	announceHandler := handlers.NewAnnounce(announceService, logging.New("announceHandler"))
 	profileHandler := handlers.NewProfile(profileService, logging.New("profileHandler"))
 	accountHandler := handlers.NewAccount(accountService, logging.New("accountHandler"))
 	commentHandler := handlers.NewComment(commentService, logging.New("commentHandler"))
+	feedHandler := handlers.NewFeedHandler(feedService)
 
 	//latencyLogger := middleware.Logger(logging.New("request"))
 	router := mux.NewRouter()
@@ -81,6 +84,7 @@ func NewRouter(ctx context.Context) http.Handler {
 	RegisterProfileHandler(ctx, profileHandler, hateoas)
 	RegisterAnnounceHandler(ctx, announceHandler, hateoas)
 	RegisterCommentHandler(ctx, commentHandler, hateoas)
+	RegisterFeedHandler(feedHandler, router)
 
 	return router
 }
@@ -92,6 +96,10 @@ func RegisterLinkHandler(ctx context.Context, handler handlers.Link, router *mux
 	router.Handle("/links/{id}", middleware.Admin(handler.Delete(ctx))).Methods("DELETE")
 
 	router.Handle("/portal/{id}", handler.Portal(ctx)).Methods("GET")
+}
+
+func RegisterFeedHandler(handler handlers.Feed, router *mux.Router) {
+	router.HandleFunc("/feed", handler.GetFeed()).Methods("GET")
 }
 
 func RegisterPostHandler(ctx context.Context, handler handlers.Post, router *mux.Router) {

@@ -82,6 +82,11 @@ a {
     border-radius: 0px;
 }
 
+.btn-danger {
+    color: #181825 !important;
+    background-color: #f38ba8 !important;
+}
+
 .btn-primary {
     border-color: #cba6f7 !important;
     color: #181825 !important;

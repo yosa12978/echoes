@@ -285,7 +285,12 @@ func (repo *postSearcherPostgres) Search(ctx context.Context, q string, page, si
 		hasNext = false
 	}
 	posts := []types.Post{}
-	sqlq := "SELECT * FROM posts WHERE LOWER(title) LIKE '%' || $1 || '%' ORDER BY pinned DESC, created DESC OFFSET $2 LIMIT $3;"
+	sqlq := `
+		SELECT p.id, p.title, p.content, p.created, p.pinned, p.tweet, COUNT(c) comment_count 
+		FROM posts p LEFT JOIN comments c ON c.postid = p.id GROUP BY p.id 
+		HAVING LOWER(p.title) LIKE '%' || $1 || '%' ORDER BY p.pinned DESC, p.created DESC OFFSET $2 LIMIT $3;
+	`
+	//sqlq := "SELECT * FROM posts WHERE LOWER(title) LIKE '%' || $1 || '%' ORDER BY pinned DESC, created DESC OFFSET $2 LIMIT $3;"
 	rows, err := repo.db.QueryContext(ctx, sqlq, q, (page-1)*size, size)
 	if err != nil {
 		return &types.Page[types.Post]{
@@ -299,7 +304,15 @@ func (repo *postSearcherPostgres) Search(ctx context.Context, q string, page, si
 	defer rows.Close()
 	for rows.Next() {
 		post := types.Post{}
-		rows.Scan(&post.Id, &post.Title, &post.Content, &post.Created, &post.Pinned, &post.Tweet)
+		rows.Scan(
+			&post.Id,
+			&post.Title,
+			&post.Content,
+			&post.Created,
+			&post.Pinned,
+			&post.Tweet,
+			&post.Comments,
+		)
 		posts = append(posts, post)
 	}
 	return &types.Page[types.Post]{
