@@ -1,24 +1,25 @@
 {{ template "header" . }}
 
 
-<div hx-trigger="load" hx-get="/api/posts/{{.}}"></div>
+<div hx-trigger="load" hx-get="/api/posts/{{.Payload}}"></div>
 
 <div>
     <br>
-    <h3 class="mb-2">Comments: <span hx-trigger="load" hx-swap="outerHTML" hx-get="/api/comments-count/{{.}}"></span>
+    <h3 class="mb-2">Comments: <span hx-trigger="load" hx-swap="outerHTML"
+            hx-get="/api/comments-count/{{.Payload}}"></span>
     </h3>
     <div class="mt-3">
         <div id="create-post-alert"></div>
-        <form hx-post="/api/comments?postId={{.}}" hx-ext="json-enc" hx-target="#create-post-alert" hx-swap="innerHTML"
-            style="max-width: 500px;">
+        <form hx-post="/api/comments?postId={{.Payload}}" hx-ext="json-enc" hx-target="#create-post-alert"
+            hx-swap="innerHTML" style="max-width: 500px;">
             <input name="name" type="text" placeholder="Name" class="form-control mb-2" />
             <input name="email" type="email" placeholder="Email" class="form-control mb-2" />
             <textarea name="content" type="text" placeholder="Content" class="form-control mb-2"
                 style="min-height: 200px;"></textarea>
-            <button type="submit" class="btn btn-outline-light mb-3">Add Comment</button>
+            <button type="submit" class="btn btn-primary mb-3">Add Comment</button>
         </form><br>
     </div>
-    <div hx-get="/api/comments?postId={{.}}&page=1" hx-trigger="load" hx-swap="outerHTML"></div>
+    <div hx-get="/api/comments?postId={{.Payload}}&page=1" hx-trigger="load" hx-swap="outerHTML"></div>
 </div>
 
 <center>

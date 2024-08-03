@@ -5,23 +5,41 @@ import (
 	"html/template"
 	"io"
 	"log"
+
+	"github.com/yosa12978/echoes/types"
 )
 
-func RenderTemplate(w io.Writer, name string, data interface{}) error {
-	templPath := fmt.Sprintf("templates/%s.html", name)
+func RenderView(w io.Writer, view string, title string, payload any) error {
+	templPath := fmt.Sprintf("templates/views/%s.html", view)
 	templ, err := template.ParseFiles(
 		templPath,
-		"templates/header.html",
-		"templates/footer.html",
+		"templates/top.html",
+		"templates/bottom.html",
 	)
 	if err != nil {
 		log.Println(err.Error())
 		return err
 	}
+	if title != "" {
+		title = "/" + title
+	}
+	data := types.Templ{
+		Title:   "/home/yusuf" + title,
+		Payload: payload,
+	}
 	return templ.Execute(w, data)
 }
 
-func RenderBlock(w io.Writer, name string, data interface{}) error {
-	templ := template.Must(template.ParseFiles("templates/blocks.html"))
-	return templ.ExecuteTemplate(w, name, data)
+func RenderBlock(w io.Writer, name string, payload any) error {
+	templ := template.Must(
+		template.ParseFiles(
+			"templates/blocks/posts.html",
+			"templates/blocks/links.html",
+			"templates/blocks/profile.html",
+			"templates/blocks/announce.html",
+			"templates/blocks/alert.html",
+			"templates/blocks/comments.html",
+		),
+	)
+	return templ.ExecuteTemplate(w, name, payload)
 }

@@ -1,0 +1,16 @@
+{{ template "header" . }}
+<div class="p-4">
+    <h1><b>Login</b></h1>
+    <div>
+        <div id="login-alert"></div>
+        <form hx-post="/api/login" hx-target="#login-alert" hx-swap="innerHTML" hx-ext="json-enc"
+            style="max-width: 500px;">
+            <label>Username</label>
+            <input name="username" type="text" placeholder="Username" class="form-control mb-2" />
+            <label>Password</label>
+            <input name="password" type="password" placeholder="Password" class="form-control mb-2" />
+            <button type="submit" class="btn btn-primary mb-3">Login</button>
+        </form><br>
+    </div>
+</div>
+{{ template "footer" . }}

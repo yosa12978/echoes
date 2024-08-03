@@ -65,11 +65,11 @@ func NewRouter(ctx context.Context) http.Handler {
 	accountHandler := handlers.NewAccount(accountService, logging.New("accountHandler"))
 	commentHandler := handlers.NewComment(commentService, logging.New("commentHandler"))
 
-	latencyLogger := middleware.Logger(logging.New("request"))
+	//latencyLogger := middleware.Logger(logging.New("request"))
 	router := mux.NewRouter()
 	router.StrictSlash(true)
 
-	router.Use(latencyLogger)
+	//router.Use(latencyLogger)
 
 	RegisterBasicHandler(ctx, router)
 
@@ -129,14 +129,14 @@ func RegisterBasicHandler(ctx context.Context, router *mux.Router) {
 	router.PathPrefix("/assets").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets/"))))
 
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if err := utils.RenderTemplate(w, "index", nil); err != nil {
+		if err := utils.RenderView(w, "index", "", nil); err != nil {
 			http.Error(w, err.Error(), 500)
 		}
 	}).Methods("GET")
 
 	router.HandleFunc("/posts/{id}", func(w http.ResponseWriter, r *http.Request) {
 		idStr := mux.Vars(r)["id"]
-		if err := utils.RenderTemplate(w, "post", idStr); err != nil {
+		if err := utils.RenderView(w, "post", "", idStr); err != nil {
 			http.Error(w, err.Error(), 500)
 		}
 	}).Methods("GET")
@@ -152,7 +152,7 @@ func RegisterBasicHandler(ctx context.Context, router *mux.Router) {
 
 	// simplify this (cuz it looks terrible)
 	router.Handle("/admin", middleware.Admin(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if err := utils.RenderTemplate(w, "admin", nil); err != nil {
+		if err := utils.RenderView(w, "admin", "admin", nil); err != nil {
 			http.Error(w, err.Error(), 500)
 		}
 	}))).Methods("GET")
@@ -163,13 +163,13 @@ func RegisterBasicHandler(ctx context.Context, router *mux.Router) {
 			http.Redirect(w, r, "/admin", http.StatusMovedPermanently)
 			return
 		}
-		if err := utils.RenderTemplate(w, "login", nil); err != nil {
+		if err := utils.RenderView(w, "login", "login", nil); err != nil {
 			http.Error(w, err.Error(), 500)
 		}
 	}).Methods("GET")
 
 	router.HandleFunc("/blog", func(w http.ResponseWriter, r *http.Request) {
-		if err := utils.RenderTemplate(w, "blog", nil); err != nil {
+		if err := utils.RenderView(w, "blog", "blog", nil); err != nil {
 			http.Error(w, err.Error(), 500)
 		}
 	})

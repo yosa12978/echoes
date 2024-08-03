@@ -1,0 +1,24 @@
+{{template "header" .}}
+
+<div class="blog">
+    <div class="justify-content-between d-inline flex-column">
+        <form class="form-inline d-flex" hx-get="/api/posts" hx-target="#list" hx-swap="innerHTML"
+            hx-indicator="#spinner">
+            <div class="input-group mb-3 mt-2">
+                <input class="form-control mr-sm-2 border-1 shadow-none" style="border-radius: 0px" type="search"
+                    name="query" placeholder="Search" aria-label="Search">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" style="border-radius: 0px;" type="submit">Search</button>
+                </div>
+            </div>
+        </form>
+
+    </div>
+    <div id="list" hx-get="/api/posts" hx-trigger="load" hx-indicator="#blog-spinner" hx-swap="innerHTML"></div>
+</div>
+
+<center>
+    <div class="spinner-border htmx-indicator" id="blog-spinner" role="status"></div>
+</center>
+
+{{template "footer" .}}

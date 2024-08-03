@@ -1,9 +1,8 @@
-/* @import "https://www.nerdfonts.com/assets/css/webfont.css"; */
-/* @import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap'); */
+@import "https://www.nerdfonts.com/assets/css/webfont.css";
+@import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
 
 .card {
     border-width: 0px;
-    /* background-color: rgba(255, 255, 255, 0); */
     border-radius: 0px;
     overflow-wrap: break-word;
     background-color: #363a4f;
@@ -11,21 +10,13 @@
 
 * {
     font-family: "Reddit Mono", monospace;
-    /* font-family: "Rubik", sans-serif; */
+    font-family: "Rubik", sans-serif;
     font-optical-sizing: auto;
     font-weight: 400;
     font-style: normal;
     color: #cad3f5;
+    line-height: 1.5;
 }
-
-a {
-    color: #cad3f5;
-}
-
-.btn {
-    border-radius: 0px;
-}
-
 
 .form-control {
     width: 100%;
@@ -34,12 +25,11 @@ a {
 
 .container {
     max-width: 800px;
-    background-color: #181926;
+    background-color: #181825;
 }
 
 body {
-    background-color: #181926;
-    /* background-image: linear-gradient(to bottom right, rgb(4, 19, 44), rgb(30, 53, 110), rgb(58, 62, 109), rgb(112, 125, 170), rgb(182, 180, 194)); */
+    background-color: #181825;
     background-repeat: no-repeat;
     background-position: right top;
     background-attachment: fixed;
@@ -53,11 +43,24 @@ body {
 
 .navbar {
     padding: 10px;
-    background-color: #181926;
+    background-color: #181825;
 }
 
 .announce {
-    color: #181926;
+    color: #181825;
+}
+
+.text-dark {
+    color: #11111b !important;
+}
+
+.bg-warning {
+    color: #11111b !important;
+    background-color: #fab387 !important;
+}
+
+.text-warning {
+    color: #fab387 !important;
 }
 
 .navbar-brand {
@@ -71,11 +74,34 @@ body {
 
 a {
     text-decoration: underline;
-    /* text-decoration: none; */
+    color: #cba6f7;
 }
 
 .btn {
-    font-weight: 600;
+    font-weight: 500;
+    border-radius: 0px;
+}
+
+.btn-primary {
+    border-color: #cba6f7 !important;
+    color: #181825 !important;
+    background-color: #cba6f7 !important;
+}
+
+.btn-primary:hover {
+    background-color: #b989f5 !important;
+    border-color: #b989f5 !important;
+}
+
+
+.form-control {
+    background-color: #363a4f !important;
+    border-color: #cba6f7 !important;
+    color: #cdd6f4 !important;
+}
+
+.form-control::placeholder {
+    color: #cdd6f4 !important;
 }
 
 .container {
@@ -83,15 +109,33 @@ a {
 }
 
 img {
-    width: 100%;
-    height: 100%;
+    width: auto;
+    max-width: 100%;
+    max-height: 100%;
     object-fit: contain;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 iframe {
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    width: 100%;
+    max-height: 500px;
+    max-width: 100%;
+    object-fit: contain;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+.alert-primary {
+    border-color: #cba6f7 !important;
+    color: #181825 !important;
+    background-color: #cba6f7 !important;
 }

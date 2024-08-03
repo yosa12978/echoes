@@ -1,0 +1,45 @@
+{{block "postsPage" .}}
+{{ range .Content }}
+<div class="card mt-4 mb-4 p-3" style="background-color: #292c3c;" id="post-{{.Id}}">
+    <h3><a href="/posts/{{.Id}}" class="text-decoration-none">{{if .Pinned}}<i class="bi bi-pin-angle-fill"
+                style="font-size: large; vertical-align: middle;"></i>{{end}} {{.Title}}</a></h3>
+    {{if .Tweet}}
+    <span id="post-content-{{.Id}}"></span>
+    <script>
+        document.getElementById("post-content-{{.Id}}").innerHTML = renderMarkdown("{{.Content}}")
+    </script>
+    {{end}}
+    <div class="mt-2">
+        <span id="created-{{.Id}}" class="badge bg-warning mx-1">Created: {{.Created}}</span><span
+            class="badge bg-warning  text-dark mx-1">Comments {{.Comments}}</span>
+    </div>
+    <script>
+        document.getElementById("created-{{.Id}}").innerHTML = toDateString_("{{.Created}}")
+    </script>
+</div>
+{{ end }}
+{{if .HasNext}}
+<div hx-trigger="revealed" hx-get="/api/posts?page={{.NextPage}}" hx-swap="afterend" hx-indicator="#spinner"></div>
+{{end}}
+{{end}}
+
+
+{{block "noPosts" .}}
+<div class="card mt-2 mb-2 p-2 text-light" style="text-align: center; border-radius: 0px; background-color: #24273a;">No
+    posts
+    found :(</div>
+{{end}}
+
+
+{{block "post" .}}
+<div class="card mt-2 mb-2 p-3" id="post-{{.Id}}" style="border-radius: 0px; background-color: #292c3c;">
+    <h2 style="text-decoration: none; color: #c6d0f5">{{.Title}}</h2>
+    <p id="post-content"></p>
+    <hr>
+    <small><span id="created">Created: {{.Created}}</span> | Comments {{.Comments}}</small>
+    <script>
+        document.getElementById("post-content").innerHTML = renderMarkdown("{{.Content}}")
+        document.getElementById("created").innerHTML = "Created: " + toDateString_("{{.Created}}")
+    </script>
+</div>
+{{end}}
