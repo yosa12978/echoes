@@ -97,13 +97,12 @@ func (h *post) CreatePost(ctx context.Context) http.Handler {
 		title := body["title"].(string)
 		content := body["content"].(string)
 		_, tweet := body["tweet"]
-		// tweetCheckbox := body["tweet"].(string)
 
 		if _, err := h.postService.CreatePost(
 			ctx,
 			title,
 			content,
-			tweet, // tweetCheckbox == "on",
+			tweet,
 		); err != nil {
 			h.logger.Error(err)
 			utils.RenderBlock(w, "alert", "Failed to create")
@@ -115,9 +114,13 @@ func (h *post) CreatePost(ctx context.Context) http.Handler {
 
 func (h *post) DeletePost(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var body map[string]interface{}
-		json.NewDecoder(r.Body).Decode(&body)
-		if _, err := h.postService.DeletePost(ctx, body["id"].(string)); err != nil {
+		r.ParseForm()
+		// var body map[string]interface{}
+		// if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		// 	h.logger.Error(err)
+		// 	return
+		// }
+		if _, err := h.postService.DeletePost(ctx, r.FormValue("id")); err != nil {
 			h.logger.Error(err)
 			utils.RenderBlock(w, "alert", "Failed to delete")
 			return
