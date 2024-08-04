@@ -1,3 +1,3 @@
 # Echoes
 
-My personal website/blog/playground 
+My personal website/blog

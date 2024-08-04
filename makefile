@@ -21,7 +21,7 @@ postgres:
 		-p 5432:5432 \
 		-e POSTGRES_USER=user \
 		-e POSTGRES_PASSWORD=1234 \
-		-v /postgres-volume:/var/lib/postgresql/data \
+		-v ./postgres-volume:/var/lib/postgresql/data \
 		--network echoes-net \
 		-d postgres
 	@docker run --rm \
