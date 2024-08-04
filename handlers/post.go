@@ -96,13 +96,14 @@ func (h *post) CreatePost(ctx context.Context) http.Handler {
 		}
 		title := body["title"].(string)
 		content := body["content"].(string)
-		tweetCheckbox := body["tweet"].(string)
+		_, tweet := body["tweet"]
+		// tweetCheckbox := body["tweet"].(string)
 
 		if _, err := h.postService.CreatePost(
 			ctx,
 			title,
 			content,
-			tweetCheckbox == "on",
+			tweet, // tweetCheckbox == "on",
 		); err != nil {
 			h.logger.Error(err)
 			utils.RenderBlock(w, "alert", "Failed to create")

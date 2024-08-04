@@ -12,6 +12,9 @@ services:
       - .env_docker
     networks:
       - mainnet
+    volumes:
+      - ./templates:/app/templates
+      - ./assets:/app/assets
   postgres:
     container_name: echoes-postgres
     image: postgres
