@@ -128,16 +128,19 @@ func (s *link) CreateLink(ctx context.Context, name, addr, icon string, place in
 	}
 
 	go func() {
-		linkJson, _ := json.Marshal(link)
-		linkKey := fmt.Sprintf("links:%s", link.Id)
-		tx, _ := s.cache.Tx()
-		tx.Append(ctx, func(pipe cache.Cache) error {
-			pipe.Set(ctx, linkKey, string(linkJson), 0)
-			score, _ := s.cache.ZCard(ctx, "posts")
-			pipe.ZAdd(ctx, "links", cache.Member{Score: float64(score + 1), Member: linkKey})
-			return nil
-		})
-		tx.Exec(ctx)
+		// or even better and simplier just delete link key if it exists
+		// linkJson, _ := json.Marshal(link)
+		// linkKey := fmt.Sprintf("links:%s", link.Id)
+		// tx, _ := s.cache.Tx()
+		// tx.Append(ctx, func(pipe cache.Cache) error {
+		// 	pipe.Set(ctx, linkKey, string(linkJson), 0)
+		// 	score, _ := s.cache.ZCard(ctx, "posts")
+		// 	pipe.ZAdd(ctx, "links", cache.Member{Score: float64(score + 1), Member: linkKey})
+		// 	pipe.Expires(ctx, "links", 60*time.Second)
+		// 	return nil
+		// })
+		// tx.Exec(ctx)
+		s.cache.Del(ctx, "links")
 	}()
 
 	errCh = make(chan error)
