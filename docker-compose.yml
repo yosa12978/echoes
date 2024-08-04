@@ -1,14 +1,15 @@
 services:
   web:
     container_name: echoes-web
-    image: yosaa5782/echoes:0.1
+    build: .
     ports:
-      - "80"
+      - "5000:5000"
     depends_on:
       - postgres
       - redis
+      - migrate
     env_file:
-      - .env
+      - .env_docker
     networks:
       - mainnet
   postgres:
@@ -18,11 +19,28 @@ services:
       - "5432"
     environment:
       - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=fib11235813
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_DB=echoesdb
     volumes:
       - postgres-volume:/var/lib/postgresql/data
     networks:
       - mainnet
+  migrate:
+    image: migrate/migrate
+    networks:
+      - mainnet
+    volumes:
+      - ./migrations:/migrations
+    command:
+      [
+        "-path",
+        "/migrations",
+        "-database",
+        "postgres://user:1234@echoes-postgres:5432/echoesdb?sslmode=disable",
+        "up"
+      ]
+    links:
+      - postgres
   adminer:
     container_name: echoes-adminer
     image: adminer
