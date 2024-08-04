@@ -48,7 +48,7 @@ services:
     container_name: echoes-adminer
     image: adminer
     ports:
-      - "8080"
+      - "5050:8080"
     depends_on:
       - postgres
     networks:
