@@ -8,12 +8,19 @@ import (
 
 func Admin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sessionInfo, err := session.GetInfo(r)
-		if err != nil || sessionInfo == nil {
-			http.Error(w, "forbidden", http.StatusForbidden)
+		s, err := session.GetSession(r)
+		if err != nil || s == nil {
+			http.Error(w,
+				"unauthorized",
+				http.StatusUnauthorized,
+			)
 			return
 		}
-		if sessionInfo.Role != "ADMIN" {
+		if !s.IsAuthenticated {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+		if !s.IsAdmin {
 			http.Error(w, "forbidden", http.StatusForbidden)
 			return
 		}

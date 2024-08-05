@@ -167,7 +167,7 @@ func RegisterBasicHandler(ctx context.Context, router *mux.Router) {
 
 	router.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-cache")
-		if _, err := session.GetInfo(r); err == nil {
+		if _, err := session.GetSession(r); err == nil {
 			http.Redirect(w, r, "/admin", http.StatusMovedPermanently)
 			return
 		}

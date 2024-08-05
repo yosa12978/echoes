@@ -90,10 +90,11 @@ type Profile struct {
 	Icon string `json:"icon"`
 }
 
-type SessionInfo struct {
-	Username  string `json:"username"`
-	Role      string `json:"role"`
-	Timestamp int64  `json:"timestamp"`
+type Session struct {
+	Username        string `json:"username"`
+	IsAdmin         bool   `json:"is_admin"`
+	Timestamp       int64  `json:"timestamp"`
+	IsAuthenticated bool   `json:"is_authenticated"`
 }
 
 type CommentsInfo struct {

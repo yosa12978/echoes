@@ -38,12 +38,12 @@ func (h *account) Login(ctx context.Context) http.Handler {
 		}
 		username := body["username"].(string)
 		password := body["password"].(string)
-		account, err := h.accountService.IsUserExist(ctx, username, password)
+		account, err := h.accountService.GetByCredentials(ctx, username, password)
 		if err != nil {
 			utils.RenderBlock(w, "alert", "user not found")
 			return
 		}
-		if err := session.SetInfo(w, r, account); err != nil {
+		if err := session.StartSession(r, w, *account); err != nil {
 			utils.RenderBlock(w, "alert", err.Error())
 			return
 		}
@@ -54,12 +54,11 @@ func (h *account) Login(ctx context.Context) http.Handler {
 
 func (h *account) Logout(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, err := session.GetInfo(r)
+		err := session.EndSession(r, w)
 		if err != nil {
 			http.Error(w, "you can't logout unless you logged in", http.StatusUnauthorized)
 			return
 		}
-		session.SetInfo(w, r, nil)
 		w.Header().Set("HX-Redirect", "/")
 	})
 }

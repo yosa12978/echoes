@@ -15,7 +15,7 @@ import (
 )
 
 type Account interface {
-	IsUserExist(ctx context.Context, username, password string) (*types.Account, error)
+	GetByCredentials(ctx context.Context, username, password string) (*types.Account, error)
 	CreateAccount(ctx context.Context, username, password string, isAdmin bool) (*types.Account, error)
 	Seed(ctx context.Context) error
 }
@@ -33,7 +33,7 @@ func (a *account) isUsernameTaken(ctx context.Context, username string) bool {
 	return err == nil
 }
 
-func (a *account) IsUserExist(ctx context.Context, username, password string) (*types.Account, error) {
+func (a *account) GetByCredentials(ctx context.Context, username, password string) (*types.Account, error) {
 	account, err := a.accountRepo.FindByUsername(ctx, username)
 	if err != nil {
 		return nil, errors.New("wrong credentials")

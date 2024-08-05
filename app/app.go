@@ -10,6 +10,7 @@ import (
 	"github.com/yosa12978/echoes/configs"
 	"github.com/yosa12978/echoes/data"
 	"github.com/yosa12978/echoes/logging"
+	"github.com/yosa12978/echoes/session"
 )
 
 func init() {
@@ -27,6 +28,8 @@ func Run(ctx context.Context) error {
 
 	rdb := data.Redis(ctx)
 	defer rdb.Close()
+
+	session.SetupStore()
 
 	cfg := configs.Get()
 
