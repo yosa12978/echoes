@@ -14,7 +14,7 @@
         <a href="/posts/{{.Id}}"><span class="badge bg-warning  text-dark mx-1">Comments: {{.Comments}}</span></a>
     </div>
     <script>
-        document.getElementById("created-{{.Id}}").innerHTML = toDateString_("{{.Created}}")
+        document.getElementById("created-{{.Id}}").innerHTML = "Posted " + toDateString_("{{.Created}}")
     </script>
 </div>
 {{ end }}
@@ -41,7 +41,7 @@
     </div>
     <script>
         document.getElementById("post-content").innerHTML = renderMarkdown("{{.Content}}")
-        document.getElementById("created").innerHTML = "Created: " + toDateString_("{{.Created}}")
+        document.getElementById("created").innerHTML = "Posted " + toDateString_("{{.Created}}")
     </script>
 </div>
 <script>

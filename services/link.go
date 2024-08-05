@@ -117,7 +117,7 @@ func (s *link) CreateLink(ctx context.Context, name, addr, icon string, place in
 		Id:      uuid.NewString(),
 		Name:    nameTrim,
 		URL:     addr,
-		Created: time.Now().Format(time.RFC3339),
+		Created: time.Now().UTC().Format(time.RFC3339),
 		Icon:    icon,
 		Place:   place,
 	}

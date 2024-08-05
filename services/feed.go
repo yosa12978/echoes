@@ -30,7 +30,7 @@ func (f *feed) GenerateFeed(ctx context.Context) (string, error) {
 		Link:        &feeds.Link{Href: "https://blinkk.org/blog"},
 		Description: "30 latest posts from yusuf's microblog",
 		Author:      &feeds.Author{Name: "Yusuf Yakubov", Email: "yosa12978@gmail.com"},
-		Created:     time.Now(),
+		Created:     time.Now().UTC(),
 	}
 	items := []*feeds.Item{}
 	posts, err := f.postService.GetPostsPaged(ctx, 1, 30)

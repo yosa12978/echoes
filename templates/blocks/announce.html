@@ -8,7 +8,7 @@
         <script>
             console.log(renderMarkdown("{{.Content}}"))
             document.getElementById("announce-text").innerHTML = renderMarkdown("{{.Content}}")
-            document.getElementById("announce-created").innerHTML = toDateString_("{{.Date}}")
+            document.getElementById("announce-created").innerHTML = "Posted "+toDateString_("{{.Date}}")
         </script>
     </div>
 </div>
