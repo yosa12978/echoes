@@ -147,7 +147,7 @@ func (s *post) CreatePost(ctx context.Context, title, content string, tweet bool
 		Id:      id,
 		Title:   titleTrim,
 		Content: contentTrim,
-		Created: time.Now().Format(time.RFC3339),
+		Created: time.Now().UTC().Format(time.RFC3339),
 		Pinned:  false,
 		Tweet:   tweet,
 	}

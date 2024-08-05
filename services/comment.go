@@ -139,7 +139,7 @@ func (s *comment) CreateComment(ctx context.Context, postId, name, email, conten
 	}
 	comm := types.Comment{
 		Id:      uuid.NewString(),
-		Created: time.Now().Format(time.RFC3339),
+		Created: time.Now().UTC().Format(time.RFC3339),
 		Name:    name,
 		Email:   email,
 		Content: content,

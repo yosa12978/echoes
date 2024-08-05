@@ -58,7 +58,7 @@ func (a *account) CreateAccount(ctx context.Context, username, password string, 
 		Id:       uuid.NewString(),
 		Username: username,
 		Password: pwdHash,
-		Created:  time.Now().Format(time.RFC3339),
+		Created:  time.Now().UTC().Format(time.RFC3339),
 		IsAdmin:  isAdmin,
 		Salt:     salt,
 	}
