@@ -1,10 +1,9 @@
 package session
 
 import (
-	"encoding/json"
+	"encoding/gob"
 	"errors"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/gorilla/sessions"
@@ -13,31 +12,27 @@ import (
 )
 
 var (
-	store  *sessions.CookieStore
-	once   sync.Once
-	config types.Config
+	store *sessions.CookieStore
 )
 
+func init() {
+	gob.Register(types.Session{})
+}
+
 func SetupStore() {
-	config = configs.Get()
-	store = sessions.NewCookieStore([]byte(config.SessionKey))
+	store = sessions.NewCookieStore([]byte(configs.Get().SessionKey))
 }
 
-// return session storage here
-// or may be implement get/set functions for storage
 func Get(r *http.Request, key string) (interface{}, error) {
-	//change this once
-	once.Do(SetupStore)
-
-	session, err := store.Get(r, "user_store")
-	return session.Values[key], err
+	session, err := store.Get(r, "echoes_session")
+	if err != nil {
+		return nil, err
+	}
+	return session.Values[key], nil
 }
 
-func Set(w http.ResponseWriter, r *http.Request, key string, value interface{}) error {
-	//change this to something better
-	once.Do(SetupStore)
-
-	session, err := store.Get(r, "user_store")
+func Set(r *http.Request, w http.ResponseWriter, key string, value interface{}) error {
+	session, err := store.Get(r, "echoes_session")
 	if err != nil {
 		return err
 	}
@@ -45,51 +40,45 @@ func Set(w http.ResponseWriter, r *http.Request, key string, value interface{}) 
 	return session.Save(r, w)
 }
 
-func GetInfo(r *http.Request) (*types.SessionInfo, error) {
-	//change this to something better
-	once.Do(SetupStore)
+func Delete(r *http.Request, w http.ResponseWriter, key string) error {
+	session, err := store.Get(r, "echoes_session")
+	if err != nil {
+		return err
+	}
+	delete(session.Values, key)
+	return session.Save(r, w)
+}
 
-	session, err := store.Get(r, "user_store")
+func EndSession(r *http.Request, w http.ResponseWriter) error {
+	session, err := store.Get(r, "echoes_session")
+	if err != nil {
+		return err
+	}
+	session.Options.MaxAge = -1
+	return session.Save(r, w)
+}
+
+func StartSession(r *http.Request, w http.ResponseWriter, account types.Account) error {
+	session, err := store.New(r, "echoes_session")
+	if err != nil {
+		return err
+	}
+	session.Values["account"] = types.Session{
+		Username:        account.Username,
+		IsAdmin:         account.IsAdmin,
+		IsAuthenticated: true,
+		Timestamp:       time.Now().UTC().UnixNano(),
+	}
+	return session.Save(r, w)
+}
+
+func GetSession(r *http.Request) (*types.Session, error) {
+	session, err := store.Get(r, "echoes_session")
 	if err != nil {
 		return nil, err
 	}
-	userval := session.Values["account"]
-	if userval == nil {
-		return nil, errors.New("session is empty")
+	if value, ok := session.Values["account"].(types.Session); ok {
+		return &value, nil
 	}
-	var info types.SessionInfo
-	err = json.Unmarshal([]byte(userval.(string)), &info)
-	return &info, err
-}
-
-func SetInfo(w http.ResponseWriter, r *http.Request, account *types.Account) error {
-	//change this to something better
-	once.Do(SetupStore)
-
-	session, err := store.Get(r, "user_store")
-	if err != nil {
-		return err
-	}
-
-	if account == nil {
-		session.Values["account"] = nil
-		return session.Save(r, w)
-	}
-
-	var role = "USER"
-	if account.IsAdmin {
-		role = "ADMIN"
-	}
-
-	sessionInfo := types.SessionInfo{
-		Username:  account.Username,
-		Role:      role,
-		Timestamp: time.Now().UnixNano(),
-	}
-	acc, err := json.Marshal(sessionInfo)
-	if err != nil {
-		return err
-	}
-	session.Values["account"] = string(acc)
-	return session.Save(r, w)
+	return nil, errors.New("user is not logged in")
 }
