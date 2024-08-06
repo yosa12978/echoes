@@ -40,7 +40,7 @@ func (h *account) Login(ctx context.Context) http.Handler {
 		password := body["password"].(string)
 		account, err := h.accountService.GetByCredentials(ctx, username, password)
 		if err != nil {
-			utils.RenderBlock(w, "alert", "user not found")
+			utils.RenderBlock(w, "alert", err.Error())
 			return
 		}
 		if err := session.StartSession(r, w, *account); err != nil {

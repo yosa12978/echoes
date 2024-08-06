@@ -3,7 +3,7 @@ build:
 	@cp .env bin
 
 run: build
-	@DEBUG=true ./bin/echoes
+	@./bin/echoes
 
 test:
 	@go test
@@ -22,7 +22,7 @@ postgres:
 		-e POSTGRES_USER=user \
 		-e POSTGRES_PASSWORD=1234 \
 		-e POSTGRES_DB=echoesdb \
-		-v ./postgres_data:/var/lib/postgresql/data \
+		-v postgres_data:/var/lib/postgresql/data \
 		--network echoes-net \
 		-d postgres
 	@docker run --rm \

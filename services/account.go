@@ -38,6 +38,7 @@ func (a *account) GetByCredentials(ctx context.Context, username, password strin
 	if err != nil {
 		return nil, errors.New("wrong credentials")
 	}
+	fmt.Printf("\"%s\"\n", account.Password)
 	if !utils.CheckPasswordHash(password+account.Salt, account.Password) {
 		return nil, errors.New("wrong credentials")
 	}
@@ -82,14 +83,14 @@ func (a *account) Seed(ctx context.Context) error {
 	}
 	if usr != nil {
 		if !utils.CheckPasswordHash(cfg.Server.RootPass+usr.Salt, usr.Password) {
-			a.ChangePassword(ctx, usr.Id, cfg.Server.RootPass)
+			a.changeRootPassword(ctx, usr.Id, cfg.Server.RootPass)
 		}
 	}
 	return nil
 }
 
-// add check for old password
-func (a *account) ChangePassword(ctx context.Context, userId, newPassword string) error {
+// remove userId
+func (a *account) changeRootPassword(ctx context.Context, userId, newPassword string) error {
 	fmt.Println("changing password")
 	if strings.Contains(newPassword, " ") {
 		return errors.New("password can't contain spaces")
@@ -100,6 +101,8 @@ func (a *account) ChangePassword(ctx context.Context, userId, newPassword string
 	salt := uuid.NewString()
 	passwordHash, _ := utils.HashPassword(newPassword + salt)
 	return a.accountRepo.Update(ctx, userId, types.Account{
+		Username: "root",
+		IsAdmin:  true,
 		Password: passwordHash,
 		Salt:     salt,
 	})

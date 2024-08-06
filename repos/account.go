@@ -74,11 +74,12 @@ func (repo *account) Create(ctx context.Context, account types.Account) (*types.
 }
 
 func (repo *account) Update(ctx context.Context, accountId string, account types.Account) error {
-	q := "UPDATE accounts SET username=$1, password=$2, isadmin=$3 WHERE id=$4;"
+	q := "UPDATE accounts SET username=$1, password=$2, isadmin=$3, salt=$4 WHERE id=$5;"
 	_, err := repo.db.ExecContext(ctx, q,
 		strings.ToLower(account.Username),
 		account.Password,
 		account.IsAdmin,
+		account.Salt,
 		accountId)
 	return err
 }
