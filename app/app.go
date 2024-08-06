@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	"github.com/yosa12978/echoes/configs"
+	"github.com/yosa12978/echoes/config"
 	"github.com/yosa12978/echoes/data"
 	"github.com/yosa12978/echoes/logging"
 	"github.com/yosa12978/echoes/session"
@@ -31,16 +31,16 @@ func Run(ctx context.Context) error {
 
 	session.SetupStore()
 
-	cfg := configs.Get()
+	cfg := config.Get()
 
 	server := http.Server{
-		Addr:    cfg.Addr,
+		Addr:    cfg.Server.Addr,
 		Handler: NewRouter(ctx),
 	}
 
 	errch := make(chan error, 1)
 	go func() {
-		logger.Printf("server listening @ %s", cfg.Addr)
+		logger.Printf("server listening @ %s", cfg.Server.Addr)
 		if err := server.ListenAndServe(); err != nil {
 			errch <- err
 		}

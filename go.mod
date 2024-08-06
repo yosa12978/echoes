@@ -12,11 +12,13 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/sessions v1.2.2
 	github.com/joho/godotenv v1.5.1
+	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lib/pq v1.10.9
 	github.com/redis/go-redis/v9 v9.5.1
 	github.com/rs/zerolog v1.32.0
 	github.com/yuin/goldmark v1.7.4
 	golang.org/x/crypto v0.19.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (

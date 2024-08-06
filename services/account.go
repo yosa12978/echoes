@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/yosa12978/echoes/configs"
+	"github.com/yosa12978/echoes/config"
 	"github.com/yosa12978/echoes/repos"
 	"github.com/yosa12978/echoes/types"
 	"github.com/yosa12978/echoes/utils"
@@ -67,13 +67,13 @@ func (a *account) CreateAccount(ctx context.Context, username, password string, 
 
 // refactor this
 func (a *account) Seed(ctx context.Context) error {
-	cfg := configs.Get()
+	cfg := config.Get()
 	usr, err := a.accountRepo.FindByUsername(ctx, "root")
 	if err != nil {
 		if _, err := a.CreateAccount(
 			ctx,
 			"root",
-			cfg.RootPass,
+			cfg.Server.RootPass,
 			true,
 		); err != nil {
 			return err
@@ -81,8 +81,8 @@ func (a *account) Seed(ctx context.Context) error {
 
 	}
 	if usr != nil {
-		if !utils.CheckPasswordHash(cfg.RootPass+usr.Salt, usr.Password) {
-			a.ChangePassword(ctx, usr.Id, cfg.RootPass)
+		if !utils.CheckPasswordHash(cfg.Server.RootPass+usr.Salt, usr.Password) {
+			a.ChangePassword(ctx, usr.Id, cfg.Server.RootPass)
 		}
 	}
 	return nil

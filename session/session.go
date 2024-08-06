@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/gorilla/sessions"
-	"github.com/yosa12978/echoes/configs"
+	"github.com/yosa12978/echoes/config"
 	"github.com/yosa12978/echoes/types"
 )
 
@@ -20,7 +20,7 @@ func init() {
 }
 
 func SetupStore() {
-	store = sessions.NewCookieStore([]byte(configs.Get().SessionKey))
+	store = sessions.NewCookieStore([]byte(config.Get().Server.SessionKey))
 }
 
 func Get(r *http.Request, key string) (interface{}, error) {
