@@ -20,8 +20,6 @@ type Config struct {
 		RootPass   string `yaml:"root_pass" envconfig:"SERVER_ROOT_PASS"`
 	} `yaml:"server"`
 	Postgres struct {
-		User string `yaml:"username" envconfig:"POSTGRES_USER"`
-		Pass string `yaml:"password" envconfig:"POSTGRES_PASS"`
 		Addr string `yaml:"addr" envconfig:"POSTGRES_ADDR"`
 	} `yaml:"postgres"`
 	Redis struct {
