@@ -17,33 +17,33 @@ var (
 
 type Config struct {
 	Server struct {
-		Addr       string `yaml:"addr" envconfig:"SERVER_ADDR"`
-		SessionKey string `yaml:"session_key" envconfig:"SERVER_SESSION_KEY"`
-		RootPass   string `yaml:"root_pass" envconfig:"SERVER_ROOT_PASS"`
-	} `yaml:"server"`
+		Addr       string `yaml:"addr" envconfig:"SERVER_ADDR" json:"addr"`
+		SessionKey string `yaml:"session_key" envconfig:"SERVER_SESSION_KEY" json:"session_key"`
+		RootPass   string `yaml:"root_pass" envconfig:"SERVER_ROOT_PASS" json:"root_pass"`
+	} `yaml:"server" json:"server"`
 	Postgres struct {
-		User string `yaml:"username" envconfig:"POSTGRES_USER"`
-		Pass string `yaml:"password" envconfig:"POSTGRES_PASS"`
-		Addr string `yaml:"addr" envconfig:"POSTGRES_ADDR"`
-	} `yaml:"postgres"`
+		User string `yaml:"username" envconfig:"POSTGRES_USER" json:"username"`
+		Pass string `yaml:"password" envconfig:"POSTGRES_PASS" json:"password"`
+		Addr string `yaml:"addr" envconfig:"POSTGRES_ADDR" json:"addr"`
+	} `yaml:"postgres" json:"postgres"`
 	Redis struct {
-		Addr     string `yaml:"addr" envconfig:"REDIS_ADDR"`
-		Db       int    `yaml:"db" envconfig:"REDIS_DB"`
-		Password string `yaml:"password" envconfig:"REDIS_PASSWORD"`
-	} `yaml:"redis"`
+		Addr     string `yaml:"addr" envconfig:"REDIS_ADDR" json:"addr"`
+		Db       int    `yaml:"db" envconfig:"REDIS_DB" json:"db"`
+		Password string `yaml:"password" envconfig:"REDIS_PASSWORD" json:"password"`
+	} `yaml:"redis" json:"redis"`
 	Feed struct {
-		Title      string `yaml:"title" envconfig:"FEED_TITLE"`
-		Desc       string `yaml:"desc" envconfig:"FEED_DESC"`
-		Link       string `yaml:"link" envconfig:"FEED_LINK"`
-		DetailLink string `yaml:"detail_link" envconfig:"FEED_DETAIL_LINK"`
-		Author     string `yaml:"author" envconfig:"FEED_AUTHOR"`
-		Email      string `yaml:"email" envconfig:"FEED_EMAIL"`
-	} `yaml:"feed"`
+		Title      string `yaml:"title" envconfig:"FEED_TITLE" json:"title"`
+		Desc       string `yaml:"desc" envconfig:"FEED_DESC" json:"desc"`
+		Link       string `yaml:"link" envconfig:"FEED_LINK" json:"link"`
+		DetailLink string `yaml:"detail_link" envconfig:"FEED_DETAIL_LINK" json:"detail_link"`
+		Author     string `yaml:"author" envconfig:"FEED_AUTHOR" json:"author"`
+		Email      string `yaml:"email" envconfig:"FEED_EMAIL" json:"email"`
+	} `yaml:"feed" json:"feed"`
 	Profile struct {
-		Name    string `yaml:"name" envconfig:"PROFILE_NAME"`
-		Bio     string `yaml:"bio" envconfig:"PROFILE_BIO"`
-		Picture string `yaml:"picture" envconfig:"PROFILE_PICTURE"`
-	} `yaml:"profile"`
+		Name    string `yaml:"name" envconfig:"PROFILE_NAME" json:"name"`
+		Bio     string `yaml:"bio" envconfig:"PROFILE_BIO" json:"bio"`
+		Picture string `yaml:"picture" envconfig:"PROFILE_PICTURE" json:"picture"`
+	} `yaml:"profile" json:"profile"`
 }
 
 func Get() Config {
@@ -54,8 +54,9 @@ func Get() Config {
 		if err := readEnv(&c); err != nil {
 			panic(err)
 		}
-		j, _ := json.MarshalIndent(c, "", "    ")
-		fmt.Println(string(j))
+
+		foo, _ := json.MarshalIndent(c, "", "    ")
+		fmt.Println(string(foo))
 	})
 	return c
 }
