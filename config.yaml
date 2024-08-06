@@ -1,6 +1,6 @@
 server:
   addr: "0.0.0.0:5000"
-  session_key: "34b6e28d-1b15-4739-9de0-8955586e56c2"
+  session_key: "super_secret_session_key"
   root_pass: "root"
 
 redis:

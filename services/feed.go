@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gorilla/feeds"
+	"github.com/yosa12978/echoes/config"
 	"github.com/yuin/goldmark"
 )
 
@@ -25,11 +26,12 @@ func NewFeedService(postService Post) Feed {
 
 // TODO: refactor
 func (f *feed) GenerateFeed(ctx context.Context) (string, error) {
+	cfg := config.Get()
 	feed := &feeds.Feed{
-		Title:       "yusuf's microblog recent posts",
-		Link:        &feeds.Link{Href: "https://blinkk.org/blog"},
-		Description: "30 latest posts from yusuf's microblog",
-		Author:      &feeds.Author{Name: "Yusuf Yakubov", Email: "yosa12978@gmail.com"},
+		Title:       cfg.Feed.Title,
+		Link:        &feeds.Link{Href: cfg.Feed.Link},
+		Description: cfg.Feed.Desc,
+		Author:      &feeds.Author{Name: cfg.Feed.Author, Email: cfg.Feed.Email},
 		Created:     time.Now().UTC(),
 	}
 	items := []*feeds.Item{}
@@ -42,8 +44,8 @@ func (f *feed) GenerateFeed(ctx context.Context) (string, error) {
 		item := &feeds.Item{
 			Id:      v.Id,
 			Title:   v.Title,
-			Link:    &feeds.Link{Href: "https://blinkk.org/posts/" + v.Id},
-			Author:  &feeds.Author{Name: "Yusuf Yakubov", Email: "yosa12978@gmail.com"},
+			Link:    &feeds.Link{Href: cfg.Feed.DetailLink + v.Id},
+			Author:  &feeds.Author{Name: cfg.Feed.Author, Email: cfg.Feed.Email},
 			Created: created,
 		}
 		var buf bytes.Buffer

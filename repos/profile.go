@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/yosa12978/echoes/cache"
+	"github.com/yosa12978/echoes/config"
 	"github.com/yosa12978/echoes/types"
 )
 
@@ -59,4 +60,27 @@ func (p *profileRedis) Get(ctx context.Context) (*types.Profile, error) {
 
 func (p *profileRedis) Update(ctx context.Context, profile types.Profile) (*types.Profile, error) {
 	return nil, nil
+}
+
+type profileFromConfig struct {
+	cfg config.Config
+}
+
+func NewProfileFromConfig() Profile {
+	return &profileFromConfig{
+		cfg: config.Get(),
+	}
+}
+
+// better load profile info from config to redis and change or smth
+func (p *profileFromConfig) Get(ctx context.Context) (*types.Profile, error) {
+	return &types.Profile{
+		Name: p.cfg.Profile.Name,
+		Bio:  p.cfg.Profile.Bio,
+		Icon: p.cfg.Profile.Picture,
+	}, nil
+}
+
+func (p *profileFromConfig) Update(ctx context.Context, profile types.Profile) (*types.Profile, error) {
+	panic("unimplemented")
 }

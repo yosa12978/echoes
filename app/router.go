@@ -52,10 +52,13 @@ func NewRouter(ctx context.Context) http.Handler {
 	accountService := services.NewAccount(accountRepo)
 	accountService.Seed(ctx)
 
-	profileRepo, err := repos.NewProfileJson("./assets/profile.json")
-	if err != nil {
-		logger.Error(err)
-	}
+	//profileRepo, err := repos.NewProfileJson("./assets/profile.json")
+	// if err != nil {
+	// 	logger.Error(err)
+	// }
+
+	profileRepo := repos.NewProfileFromConfig()
+	logger.Info("fade out again")
 	profileService := services.NewProfile(profileRepo)
 
 	feedService := services.NewFeedService(postService)
