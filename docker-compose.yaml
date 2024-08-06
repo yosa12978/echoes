@@ -15,10 +15,7 @@ services:
     volumes:
       - ./templates:/app/templates
       - ./assets:/app/assets
-      - type: bind
-        source: ./config.yaml
-        target: /app/config.yaml
-        read_only: false
+      - ./config.yaml:/app/config.yaml
   postgres:
     container_name: echoes-postgres
     image: postgres
