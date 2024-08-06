@@ -1,11 +1,17 @@
 package utils
 
-import "github.com/bytedance/sonic"
+import (
+	"encoding/json"
+	"io"
+	"net/http"
+)
 
-func ToJson(val interface{}) ([]byte, error) {
-	return sonic.Marshal(val)
+func WriteJson(w http.ResponseWriter, payload any, code int) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	return json.NewEncoder(w).Encode(payload)
 }
 
-func FromJson(d []byte, val interface{}) error {
-	return sonic.Unmarshal(d, val)
+func ReadJson(body io.Reader, dest any) error {
+	return json.NewDecoder(body).Decode(dest)
 }

@@ -48,6 +48,7 @@ func (repo *profileJson) Update(ctx context.Context, profile types.Profile) (*ty
 
 type profileRedis struct {
 	cache cache.Cache
+	cfg   config.Config
 }
 
 func NewProfileRedis(cache cache.Cache) Profile {
@@ -55,7 +56,20 @@ func NewProfileRedis(cache cache.Cache) Profile {
 }
 
 func (p *profileRedis) Get(ctx context.Context) (*types.Profile, error) {
-	return nil, nil
+	profileJson, err := p.cache.Get(ctx, "profile")
+	if err != nil {
+		profile := types.Profile{
+			Name: p.cfg.Profile.Name,
+			Bio:  p.cfg.Profile.Bio,
+			Icon: p.cfg.Profile.Picture,
+		}
+		j, _ := json.Marshal(profile)
+		_, err := p.cache.Set(ctx, "profile", string(j), -1)
+		return &profile, err
+	}
+	profile := types.Profile{}
+	err = json.Unmarshal([]byte(profileJson), &profile)
+	return &profile, err
 }
 
 func (p *profileRedis) Update(ctx context.Context, profile types.Profile) (*types.Profile, error) {
