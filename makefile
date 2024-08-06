@@ -1,6 +1,6 @@
 build:
 	@go build -o bin/echoes ./main.go
-	@cp .env bin
+	@cp config.yaml bin
 
 run: build
 	@./bin/echoes

@@ -61,16 +61,6 @@ type Announce struct {
 	Date    string
 }
 
-type Config struct {
-	Addr       string
-	Postgres   string
-	SessionKey string
-	RedisAddr  string
-	RedisDb    int
-	RedisPwd   string
-	RootPass   string
-}
-
 type Page[T interface{}] struct {
 	HasNext  bool
 	Size     int
@@ -102,17 +92,23 @@ type CommentsInfo struct {
 	PostId string
 }
 
-type ApiMsg struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
+type Templ struct {
+	Title   string
+	Payload interface{}
 }
 
+// Backlog: for future api or smth
 type ApiFunc func(w http.ResponseWriter, r *http.Request) (ApiResponse, error)
 
 type ApiResponse struct {
 	Body  interface{}
 	Templ string // for htmx
 	Code  int
+}
+
+type ApiMsg struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
 }
 
 func NewApiResp(
@@ -125,9 +121,4 @@ func NewApiResp(
 		Templ: Templ,
 		Code:  Code,
 	}
-}
-
-type Templ struct {
-	Title   string
-	Payload interface{}
 }

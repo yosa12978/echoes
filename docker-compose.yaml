@@ -9,7 +9,7 @@ services:
       - redis
       - migrate
     env_file:
-      - .env_docker
+      - docker.env
     networks:
       - mainnet
     volumes:
