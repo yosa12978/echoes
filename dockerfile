@@ -10,7 +10,6 @@ FROM alpine:3.19
 
 WORKDIR /app
 COPY --from=builder /app/bin .
-COPY --from=builder /app/.env .
 COPY --from=builder /app/templates ./templates
 COPY --from=builder /app/assets ./assets
 COPY --from=builder /app/config.yaml .
