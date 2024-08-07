@@ -71,11 +71,11 @@ func NewRouter(ctx context.Context) http.Handler {
 	commentHandler := handlers.NewComment(commentService, logging.New("commentHandler"))
 	feedHandler := handlers.NewFeedHandler(feedService)
 
-	//latencyLogger := middleware.Logger(logging.New("request"))
+	latencyLogger := middleware.Logger(logging.New("incoming request"))
 	router := mux.NewRouter()
 	router.StrictSlash(true)
 
-	//router.Use(latencyLogger)
+	router.Use(latencyLogger)
 
 	RegisterBasicHandler(ctx, router)
 
