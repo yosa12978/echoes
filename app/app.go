@@ -3,23 +3,13 @@ package app
 import (
 	"context"
 	"net/http"
-	"os"
 	"time"
 
-	"github.com/joho/godotenv"
 	"github.com/yosa12978/echoes/config"
 	"github.com/yosa12978/echoes/data"
 	"github.com/yosa12978/echoes/logging"
 	"github.com/yosa12978/echoes/session"
 )
-
-func init() {
-	if os.Getenv("DEBUG") == "true" {
-		if err := godotenv.Load(); err != nil {
-			panic(err)
-		}
-	}
-}
 
 func Run(ctx context.Context) error {
 	logger := logging.New("app.Run")

@@ -8,6 +8,10 @@
     background-color: #363a4f;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 * {
     font-family: "Reddit Mono", monospace;
     font-family: "Rubik", sans-serif;

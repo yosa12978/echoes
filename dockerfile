@@ -16,5 +16,5 @@ COPY --from=builder /app/config.yaml .
 
 RUN apk --update --no-cache add curl
 
-EXPOSE 5000
+EXPOSE 80
 ENTRYPOINT ["./echoes"]

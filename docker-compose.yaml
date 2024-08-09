@@ -1,40 +1,43 @@
 services:
   web:
     container_name: echoes-web
-    build: .
+    build:
+      context: .
+      dockerfile: air.dockerfile
     ports:
-      - "5000:5000"
+      - "5000:80"
     depends_on:
       - postgres
       - redis
       - migrate
-    env_file:
-      - docker.env
+    environment:
+      - ECHOES_POSTGRES_ADDR=echoes-postgres:5432/echoesdb?sslmode=disable
+      - ECHOES_POSTGRES_USER=user
+      - ECHOES_POSTGRES_PASS=1234
+      - ECHOES_REDIS_ADDR=echoes-redis:6379
     networks:
-      - mainnet
+      - echoes-network
     volumes:
-      - ./templates:/app/templates
-      - ./assets:/app/assets
-      - ./config.yaml:/app/config.yaml
+      - ./:/app
   postgres:
     container_name: echoes-postgres
     image: postgres
-    ports:
-      - "5432"
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=1234
       - POSTGRES_DB=echoesdb
     volumes:
-      - postgres-volume:/var/lib/postgresql/data
+      - echoes_postgres-vol:/var/lib/postgresql/data
     networks:
-      - mainnet
+      - echoes-network
   migrate:
     image: migrate/migrate
     networks:
-      - mainnet
+      - echoes-network
     volumes:
       - ./migrations:/migrations
+    depends_on:
+      - postgres
     command:
       [
         "-path",
@@ -49,25 +52,23 @@ services:
     container_name: echoes-adminer
     image: adminer
     ports:
-      - "5050:8080"
+      - "5001:8080"
     depends_on:
       - postgres
     networks:
-      - mainnet
+      - echoes-network
   redis:
     container_name: echoes-redis
     image: redis
-    ports:
-      - '6379'
     networks:
-      - mainnet
+      - echoes-network
     volumes:
-      - cache:/data
+      - echoes_cache-vol:/data
 
 networks:
-  mainnet:
+  echoes-network:
     driver: bridge
 
 volumes:
-  postgres-volume:
-  cache:
+  echoes_postgres-vol:
+  echoes_cache-vol:

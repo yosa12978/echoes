@@ -1,5 +1,5 @@
 server:
-  addr: "0.0.0.0:5000"
+  addr: "0.0.0.0:80"
   session_key: "super_secret_session_key"
   root_pass: "root"
 
