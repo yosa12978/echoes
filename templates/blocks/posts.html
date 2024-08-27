@@ -11,8 +11,8 @@
     </script>
     {{end}}
     <div class="my-2">
-        <span id="created-{{.Id}}" class="text-alt badge bg-warning mx-1">Created: {{.Created}}</span>
-        <a href="/posts/{{.Id}}"><span class="text-alt badge bg-warning text-alt mx-1">Comments:
+        <span id="created-{{.Id}}" class="text-alt badge mx-1">Created: {{.Created}}</span>
+        <a href="/posts/{{.Id}}"><span class="text-alt badge mx-1">Comments:
                 {{.Comments}}</span></a>
     </div>
     <script>
@@ -38,8 +38,8 @@
     <h3 style="text-decoration: none;" class="primary mb-3">{{.Title}}</h3>
     <span id="post-content"></span>
     <div class="my-2">
-        <span id="created" class="text-alt badge bg-warning mx-1">Created: {{.Created}}</span>
-        <span class="text-alt badge bg-warning mx-1">Comments: {{.Comments}}</span>
+        <span id="created" class="text-alt badge mx-1">Created: {{.Created}}</span>
+        <span class="text-alt badge mx-1">Comments: {{.Comments}}</span>
     </div>
     <script>
         document.getElementById("post-content").innerHTML = renderMarkdown("{{.Content}}")
