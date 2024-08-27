@@ -19,7 +19,7 @@ profile:
     Hi there! 
     My name is Yusuf 
     I'm a programming enthusiast who loves rock music and Formula 1.
-  picture: "https://assets.blinkk.org/images/thom.jpg"
+  picture: "/assets/images/icon.png"
 
 feed:
   title: "yusuf's microblog recent posts"

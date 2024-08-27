@@ -1,8 +1,9 @@
 {{block "postsPage" .}}
 {{ range .Content }}
 <div class="card mt-4 mb-4 p-3" id="post-{{.Id}}">
-    <h3><a href="/posts/{{.Id}}" class="text-decoration-none">{{if .Pinned}}<i class="bi bi-pin-angle-fill text-warning"
-                style="font-size: large; vertical-align: middle;"></i>{{end}} {{.Title}}</a></h3>
+    <h3><a href="/posts/{{.Id}}" style="font-weight: 500;" class="text-decoration-none">{{if .Pinned}}<i
+                class="bi bi-pin-angle-fill text-warning" style="font-size: large; vertical-align: middle;"></i>{{end}}
+            {{.Title}}</a></h3>
     {{if .Tweet}}
     <span id="post-content-{{.Id}}"></span>
     <script>

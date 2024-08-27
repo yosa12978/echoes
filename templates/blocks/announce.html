@@ -6,7 +6,6 @@
     <p class="card-text mt-2" id="announce-text"></p>
     <small class="card-text" id="announce-created">{{.Date}}</small>
     <script>
-        console.log(renderMarkdown("{{.Content}}"))
         document.getElementById("announce-text").innerHTML = renderMarkdown("{{.Content}}")
         document.getElementById("announce-created").innerHTML = "Posted " + toDateString_("{{.Date}}")
     </script>
