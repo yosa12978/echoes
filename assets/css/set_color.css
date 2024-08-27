@@ -1,0 +1,169 @@
+@import "./colorscheme.css";
+
+html {
+    background-color: var(--bg) !important;
+}
+
+.announce {
+    background-color: var(--announce) !important;
+}
+
+.text-alt {
+    color: var(--text-alt) !important;
+}
+
+.primary {
+    color: var(--primary) !important;
+}
+
+.danger {
+    color: var(--danger) !important;
+}
+
+.warn {
+    color: var(--warn) !important;
+}
+
+.success {
+    color: var(--success) !important;
+}
+
+.text {
+    color: var(--text) !important;
+}
+
+.bg-primary {
+    color: var(--text-alt) !important;
+    background-color: var(--primary) !important;
+}
+
+.bg-danger {
+    color: var(--text)-alt !important;
+    background-color: var(--danger) !important;
+}
+
+.bg-warning {
+    color: var(--text)-alt !important;
+    background-color: var(--warn) !important;
+}
+
+.bg-success {
+    color: var(--text)-alt !important;
+    background-color: var(--success) !important;
+}
+
+.bg-0 {
+    background-color: var(--bg) !important;
+}
+
+.bg-1 {
+    background-color: var(--bg1) !important;
+}
+
+.bg-2 {
+    background-color: var(--bg2) !important;
+}
+
+.bg-3 {
+    background-color: var(--bg3) !important;
+}
+
+.badge {
+    color: var(--badge-text) !important;
+    background-color: var(--badge) !important;
+}
+
+.card {
+    background-color: var(--bg1);
+}
+
+* {
+    color: var(--text);
+}
+
+
+.container {
+    background-color: var(--bg);
+}
+
+body {
+    background-color: var(--bg);
+}
+
+.form-control:focus {
+    border-color: var(--bg1);
+}
+
+
+.navbar {
+    background-color: var(--bg);
+}
+
+.announce {
+    color: var(--text);
+}
+
+.text-dark {
+    color: var(--bg3) !important;
+}
+
+
+.text-warning {
+    color: var(--warn) !important;
+}
+
+a {
+    color: var(--primary);
+}
+
+.btn-danger {
+    color: var(--text)-alt !important;
+    background-color: var(--danger) !important;
+    border-color: var(--danger) !important;
+}
+
+.btn-primary {
+    border-color: var(--primary) !important;
+    color: var(--text)-alt !important;
+    background-color: var(--primary) !important;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary) !important;
+    border-color: var(--primary) !important;
+}
+
+
+.form-control {
+    background-color: var(--bg1) !important;
+    border-color: var(--primary) !important;
+    color: var(--text) !important;
+}
+
+.form-control::placeholder {
+    color: var(--text) !important;
+}
+
+
+
+.alert-primary {
+    border-color: var(--primary) !important;
+    color: var(--bg2) !important;
+    background-color: var(--primary) !important;
+}
+
+pre {
+    background-color: var(--bg);
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--bg2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--bg1);
+}
