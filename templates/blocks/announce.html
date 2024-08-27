@@ -1,16 +1,15 @@
 {{block "announce" .}}
 {{if .}}
 <br>
-<div class="card mb-3 mt-2 announce" style="border-radius: 0px; background-color: #24273a;">
-    <div class="card-body">
-        <p class="card-text mt-2" id="announce-text"></p>
-        <small class="card-text" id="announce-created">{{.Date}}</small>
-        <script>
-            console.log(renderMarkdown("{{.Content}}"))
-            document.getElementById("announce-text").innerHTML = renderMarkdown("{{.Content}}")
-            document.getElementById("announce-created").innerHTML = "Posted "+toDateString_("{{.Date}}")
-        </script>
-    </div>
+
+<div class="announce card mb-3 mt-2 px-3 pb-3 pt-2">
+    <p class="card-text mt-2" id="announce-text"></p>
+    <small class="card-text" id="announce-created">{{.Date}}</small>
+    <script>
+        console.log(renderMarkdown("{{.Content}}"))
+        document.getElementById("announce-text").innerHTML = renderMarkdown("{{.Content}}")
+        document.getElementById("announce-created").innerHTML = "Posted " + toDateString_("{{.Date}}")
+    </script>
 </div>
 <br>
 {{end}}

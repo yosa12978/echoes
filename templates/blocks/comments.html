@@ -1,6 +1,6 @@
 {{block "comments" .}}
 {{range .Content}}
-<div class="card mt-2 mb-2 p-2" style="border-radius: 0px; background-color: #363a4f;">
+<div class="card mt-2 mb-2 p-2" style="border-radius: 0px;">
     <div class="card-body">
         <p><b>{{.Name}}</b></p>
         <p>{{.Content}}</p>
@@ -25,7 +25,7 @@
 
 
 {{block "comment" .}}
-<div class="card mt-2 mb-2 p-2 text-bg-light" style="border-radius: 0px; background-color: #363a4f;">
+<div class="card mt-2 mb-2 p-2 text-bg-light" style="border-radius: 0px;">
     <div class="card-body">
         <p><b>{{.Name}} | {{.Email}}</b></p>
         <p>{{.Content}}</p>

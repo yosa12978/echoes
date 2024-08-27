@@ -109,7 +109,7 @@ func (s *post) GetPostById(ctx context.Context, id string) (*types.Post, error) 
 
 	go func() {
 		postBytes, _ := json.Marshal(post)
-		_, err = s.cache.Set(ctx, "posts:"+id, string(postBytes), 0)
+		_, err = s.cache.Set(ctx, "posts:"+id, string(postBytes), 120*time.Second)
 		if err != nil {
 			s.logger.Error(err.Error())
 		}

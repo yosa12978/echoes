@@ -148,7 +148,7 @@ func (s *comment) CreateComment(ctx context.Context, postId, name, email, conten
 
 	go func() {
 		commentJson, _ := json.Marshal(comm)
-		_, err := s.cache.Set(ctx, "comments:"+comm.Id, commentJson, 0)
+		_, err := s.cache.Set(ctx, "comments:"+comm.Id, commentJson, 120*time.Second)
 		if err != nil {
 			s.logger.Error(err.Error())
 		}
