@@ -7,9 +7,12 @@ services:
     ports:
       - "5000:80"
     depends_on:
-      - postgres
-      - redis
-      - migrate
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     environment:
       - ECHOES_POSTGRES_ADDR=echoes-postgres:5432/echoesdb?sslmode=disable
       - ECHOES_POSTGRES_USER=user
@@ -19,25 +22,54 @@ services:
       - echoes-network
     volumes:
       - ./:/app
+    healthcheck:
+      test: curl -f http://localhost:80/health || exit 1
+      interval: 1m
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+  redis:
+    container_name: echoes-redis
+    image: redis
+    ports:
+      - "5002:6379"
+    networks:
+      - echoes-network
+    volumes:
+      - redis-vol:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
   postgres:
     container_name: echoes-postgres
     image: postgres
+    ports:
+      - "5001:6379"
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=1234
       - POSTGRES_DB=echoesdb
     volumes:
-      - echoes_postgres-vol:/var/lib/postgresql/data
+      - postgres-vol:/var/lib/postgresql/data
     networks:
       - echoes-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user -d hjkl_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
   migrate:
+    container_name: echoes-migrate
     image: migrate/migrate
     networks:
       - echoes-network
     volumes:
       - ./migrations:/migrations
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     command:
       [
         "-path",
@@ -52,23 +84,16 @@ services:
     container_name: echoes-adminer
     image: adminer
     ports:
-      - "5001:8080"
+      - "5003:8080"
     depends_on:
       - postgres
     networks:
       - echoes-network
-  redis:
-    container_name: echoes-redis
-    image: redis
-    networks:
-      - echoes-network
-    volumes:
-      - echoes_cache-vol:/data
 
 networks:
   echoes-network:
     driver: bridge
 
 volumes:
-  echoes_postgres-vol:
-  echoes_cache-vol:
+  postgres-vol:
+  redis-vol:
