@@ -42,6 +42,9 @@ type Config struct {
 		Bio     string `yaml:"bio" envconfig:"ECHOES_PROFILE_BIO" json:"bio"`
 		Picture string `yaml:"picture" envconfig:"ECHOES_PROFILE_PICTURE" json:"picture"`
 	} `yaml:"profile" json:"profile"`
+	Website struct {
+		Title string `yaml:"title" envconfig:"ECHOES_WEBSITE_TITLE" json:"title"`
+	} `yaml:"website" json:"website"`
 }
 
 func Get() Config {

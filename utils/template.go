@@ -6,8 +6,11 @@ import (
 	"io"
 	"log"
 
+	"github.com/yosa12978/echoes/config"
 	"github.com/yosa12978/echoes/types"
 )
+
+var cfg = config.Get()
 
 func RenderView(w io.Writer, view string, title string, payload any) error {
 	templPath := fmt.Sprintf("templates/views/%s.html", view)
@@ -24,7 +27,7 @@ func RenderView(w io.Writer, view string, title string, payload any) error {
 		title = "/" + title
 	}
 	data := types.Templ{
-		Title:   "/home/yusuf" + title,
+		Title:   cfg.Website.Title + title,
 		Payload: payload,
 	}
 	return templ.Execute(w, data)

@@ -2,29 +2,26 @@ server:
   addr: "0.0.0.0:80"
   session_key: "super_secret_session_key"
   root_pass: "root"
-
 redis:
   addr: "localhost:6379"
   db: 0
   password: ""
-
 postgres:
   username: "user"
   password: "1234"
   addr: "localhost:5432/echoesdb?sslmode=disable"
-
 profile:
-  name: "Yusuf Yakubov"
+  name: "Name Surname"
   bio: >
-    Hi there! 
-    My name is Yusuf 
-    I'm a programming enthusiast who loves rock music and Formula 1.
+    Hi there!
+    Add your bio in config.yaml file.
   picture: "/assets/images/icon.png"
-
 feed:
-  title: "yusuf's microblog recent posts"
-  desc: "30 latest posts from yusuf's microblog"
-  link: "https://blinkk.org/blog"
-  detail_link: "https://blinkk.org/posts/"
-  author: "Yusuf Yakubov"
-  email: "yosa12978@gmail.com"
+  title: "microblog recent posts"
+  desc: "30 latest posts from microblog"
+  link: "https://website.com/blog"
+  detail_link: "https://website.com/posts/"
+  author: "Name Surname"
+  email: "address@email.com"
+website:
+  title: "echoes"
