@@ -74,7 +74,7 @@ func (s *post) GetPostsPaged(ctx context.Context, page, size int) (*types.Page[t
 		if err == nil {
 			return res, err
 		}
-		s.logger.Error(err)
+		s.logger.Error(err.Error())
 	}
 
 	t := time.UnixMicro(version).Format(time.RFC3339)
@@ -87,7 +87,7 @@ func (s *post) GetPostsPaged(ctx context.Context, page, size int) (*types.Page[t
 		pageJson, _ := json.Marshal(postsPage)
 		_, err := s.cache.SetNX(ctx, key, pageJson, 65*time.Second)
 		if err != nil {
-			s.logger.Error(err)
+			s.logger.Error(err.Error())
 		}
 	}()
 
@@ -111,7 +111,7 @@ func (s *post) GetPostById(ctx context.Context, id string) (*types.Post, error) 
 		postBytes, _ := json.Marshal(post)
 		_, err = s.cache.Set(ctx, "posts:"+id, string(postBytes), 0)
 		if err != nil {
-			s.logger.Error(err)
+			s.logger.Error(err.Error())
 		}
 	}()
 
@@ -129,7 +129,7 @@ func (s *post) PinPost(ctx context.Context, id string) (*types.Post, error) {
 		postb, _ := json.Marshal(post)
 		_, err := s.cache.SetXX(ctx, "posts:"+id, string(postb), 0)
 		if err != nil {
-			s.logger.Error(err)
+			s.logger.Error(err.Error())
 		}
 	}()
 
@@ -166,7 +166,7 @@ func (s *post) CreatePost(ctx context.Context, title, content string, tweet bool
 			return nil
 		})
 		if err := tx.Exec(ctx); err != nil {
-			s.logger.Error(err)
+			s.logger.Error(err.Error())
 		}
 	}()
 
@@ -183,7 +183,7 @@ func (s *post) DeletePost(ctx context.Context, id string) (*types.Post, error) {
 			return nil
 		})
 		if err := tx.Exec(ctx); err != nil {
-			s.logger.Error(err)
+			s.logger.Error(err.Error())
 		}
 	}()
 	s.refreshPaginationVersion(ctx)

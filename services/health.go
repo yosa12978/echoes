@@ -49,7 +49,7 @@ func (s *healthService) Healthcheck(ctx context.Context) error {
 	errsStr := []string{}
 	for err := range errCh {
 		if err.Error() != "" {
-			s.logger.Error(err)
+			s.logger.Error(err.Error())
 			errsStr = append(errsStr, err.Error())
 		}
 	}

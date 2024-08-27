@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/yosa12978/echoes/config"
@@ -12,7 +13,7 @@ import (
 )
 
 func Run(ctx context.Context) error {
-	logger := logging.New("app.Run")
+	logger := logging.NewJsonLogger(os.Stdout)
 	conn := data.Postgres()
 	defer conn.Close()
 
@@ -30,7 +31,7 @@ func Run(ctx context.Context) error {
 
 	errch := make(chan error, 1)
 	go func() {
-		logger.Printf("server listening @ %s", cfg.Server.Addr)
+		logger.Info("server listening", "addr", cfg.Server.Addr)
 		if err := server.ListenAndServe(); err != nil {
 			errch <- err
 		}

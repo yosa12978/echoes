@@ -216,7 +216,7 @@ func (s *link) GetLinkById(ctx context.Context, id string) (*types.Link, error) 
 	go func() {
 		linkBytes, _ := json.Marshal(link)
 		if _, err := s.cache.Set(ctx, "links:"+id, string(linkBytes), 0); err != nil {
-			s.logger.Error(err)
+			s.logger.Error(err.Error())
 			return
 		}
 	}()

@@ -1,8 +1,6 @@
 package config
 
 import (
-	"encoding/json"
-	"fmt"
 	"os"
 	"sync"
 
@@ -54,9 +52,6 @@ func Get() Config {
 		if err := readEnv(&c); err != nil {
 			panic(err)
 		}
-
-		foo, _ := json.MarshalIndent(c, "", "    ")
-		fmt.Println(string(foo))
 	})
 	return c
 }

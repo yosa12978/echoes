@@ -1,61 +1,45 @@
 package logging
 
 import (
-	"fmt"
-	"os"
-
-	"github.com/rs/zerolog"
+	"io"
+	"log/slog"
 )
 
 type Logger interface {
-	Fields(fields map[string]interface{})
-	Error(err error)
-	Debug(msg string)
-	Info(msg string)
-	Printf(format string, v ...interface{})
-	Fatalf(format string, v ...interface{})
+	Info(msg string, args ...any)
+	Error(msg string, args ...any)
+	Warn(msg string, args ...any)
+	Debug(msg string, args ...any)
 }
 
-type cmdLogger struct {
-	logger zerolog.Logger
+type slogLogger struct {
+	logger *slog.Logger
 }
 
-func New(service string) Logger {
-	l := new(cmdLogger)
-	l.logger = zerolog.
-		New(os.Stdout).
-		With().
-		Timestamp().
-		Str("service", service).
-		Logger()
-	return l
+func NewJsonLogger(w io.Writer) Logger {
+	return &slogLogger{
+		logger: slog.New(slog.NewJSONHandler(w, nil)),
+	}
 }
 
-func (l *cmdLogger) Fields(fields map[string]interface{}) {
-	l.logger.Info().Fields(fields).Send()
+func NewTextLogger(w io.Writer) Logger {
+	return &slogLogger{
+		logger: slog.New(slog.NewTextHandler(w, nil)),
+	}
 }
 
-func (l *cmdLogger) Fatalf(format string, v ...interface{}) {
-	l.logger.Fatal().Msg(fmt.Sprintf(format, v...))
-	os.Exit(1)
+func (l *slogLogger) Info(msg string, args ...any) {
+	l.logger.Info(msg, args...)
 }
 
-func (l *cmdLogger) Error(err error) {
-	l.logger.Err(err).Send()
+func (l *slogLogger) Error(msg string, args ...any) {
+	l.logger.Error(msg, args...)
 }
 
-func (l *cmdLogger) Debug(msg string) {
-	l.logger.Debug().Msg(msg)
+func (l *slogLogger) Warn(msg string, args ...any) {
+	l.logger.Warn(msg, args...)
 }
 
-func (l *cmdLogger) Info(msg string) {
-	l.logger.Info().Msg(msg)
-}
-
-func (l *cmdLogger) Printf(format string, v ...interface{}) {
-	l.logger.Info().Msg(fmt.Sprintf(format, v...))
-}
-
-func (l *cmdLogger) Trace(msg string) {
-	l.logger.Trace().Msg(msg)
+func (l *slogLogger) Debug(msg string, args ...any) {
+	l.logger.Debug(msg, args...)
 }

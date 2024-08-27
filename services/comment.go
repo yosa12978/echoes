@@ -66,7 +66,7 @@ func (s *comment) GetPostComments(ctx context.Context, postId string, page, size
 	}
 	version, err := s.getPaginationVersion(ctx, postId)
 	if err != nil {
-		s.logger.Error(err)
+		s.logger.Error(err.Error())
 	}
 	key := fmt.Sprintf("comments:%s:%v:%d", postId, version, page)
 	commentsFromCache, err := s.cache.Get(ctx, key)
@@ -76,13 +76,13 @@ func (s *comment) GetPostComments(ctx context.Context, postId string, page, size
 		if err == nil {
 			return &res, nil
 		}
-		s.logger.Error(err)
+		s.logger.Error(err.Error())
 	}
 
 	t := time.UnixMicro(version).Format(time.RFC3339)
 	commentsPaged, err := s.commentRepo.GetPageTime(ctx, t, postId, page, size)
 	if err != nil {
-		s.logger.Error(err)
+		s.logger.Error(err.Error())
 		return nil, err
 	}
 	res := types.CommentsInfo{
@@ -94,7 +94,7 @@ func (s *comment) GetPostComments(ctx context.Context, postId string, page, size
 		pageJson, _ := json.Marshal(res)
 		_, err := s.cache.SetNX(ctx, key, pageJson, 65*time.Second)
 		if err != nil {
-			s.logger.Error(err)
+			s.logger.Error(err.Error())
 		}
 	}()
 	return &res, nil
@@ -117,7 +117,7 @@ func (s *comment) GetCommentById(ctx context.Context, commentId string) (*types.
 		commentJson, _ := json.Marshal(comment)
 		_, err := s.cache.Set(ctx, "comments:"+commentId, commentJson, 0)
 		if err != nil {
-			s.logger.Error(err)
+			s.logger.Error(err.Error())
 		}
 	}()
 
@@ -150,7 +150,7 @@ func (s *comment) CreateComment(ctx context.Context, postId, name, email, conten
 		commentJson, _ := json.Marshal(comm)
 		_, err := s.cache.Set(ctx, "comments:"+comm.Id, commentJson, 0)
 		if err != nil {
-			s.logger.Error(err)
+			s.logger.Error(err.Error())
 		}
 	}()
 	return s.commentRepo.Create(ctx, comm)
@@ -160,7 +160,7 @@ func (s *comment) DeleteComment(ctx context.Context, commentId string) (*types.C
 	go func() {
 		_, err := s.cache.Del(ctx, "comments:"+commentId)
 		if err != nil {
-			s.logger.Error(err)
+			s.logger.Error(err.Error())
 		}
 	}()
 	return s.commentRepo.Delete(ctx, commentId)
@@ -193,7 +193,7 @@ func (s *comment) GetCommentsCount(ctx context.Context, postId string) (int, err
 	go func() {
 		_, err = s.cache.Set(ctx, "comments_count:"+postId, count, 60*time.Second)
 		if err != nil {
-			s.logger.Error(err)
+			s.logger.Error(err.Error())
 		}
 	}()
 	return count, nil

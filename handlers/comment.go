@@ -54,7 +54,7 @@ func (h *comment) GetPostComments(ctx context.Context) http.Handler {
 		}
 		commentsPaged, err := h.commentService.GetPostComments(ctx, postId, page, 20)
 		if err != nil {
-			h.logger.Error(err)
+			h.logger.Error(err.Error())
 			utils.RenderBlock(w, "alert", "can't fetch post comments")
 			return
 		}

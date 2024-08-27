@@ -29,7 +29,7 @@ func (h *profile) Get(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		res, err := h.profileService.Get(ctx)
 		if err != nil {
-			h.logger.Error(err)
+			h.logger.Error(err.Error())
 			utils.RenderBlock(w, "alert", "can't render profile information")
 			return
 		}

@@ -42,7 +42,7 @@ func (h *post) GetPosts(ctx context.Context) http.Handler {
 		}
 		page, err := strconv.Atoi(pageS)
 		if err != nil {
-			h.logger.Error(err)
+			h.logger.Error(err.Error())
 			utils.RenderBlock(w, "alert", "wrond page number")
 			return
 		}
@@ -52,7 +52,7 @@ func (h *post) GetPosts(ctx context.Context) http.Handler {
 		}
 		limit, err := strconv.Atoi(limitS)
 		if err != nil {
-			h.logger.Error(err)
+			h.logger.Error(err.Error())
 			utils.RenderBlock(w, "alert", "wrond limit number")
 			return
 		}
@@ -64,7 +64,7 @@ func (h *post) GetPosts(ctx context.Context) http.Handler {
 			posts, err = h.postService.Search(ctx, searchQuery, page, limit)
 		}
 		if err != nil {
-			h.logger.Error(err)
+			h.logger.Error(err.Error())
 		}
 		if posts.Total == 0 {
 			utils.RenderBlock(w, "noPosts", nil)
@@ -79,7 +79,7 @@ func (h *post) GetPostById(ctx context.Context) http.Handler {
 		id := mux.Vars(r)["id"]
 		post, err := h.postService.GetPostById(ctx, id)
 		if err != nil {
-			h.logger.Error(err)
+			h.logger.Error(err.Error())
 			utils.RenderBlock(w, "alert", "post not found")
 			return
 		}
@@ -104,7 +104,7 @@ func (h *post) CreatePost(ctx context.Context) http.Handler {
 			content,
 			tweet,
 		); err != nil {
-			h.logger.Error(err)
+			h.logger.Error(err.Error())
 			utils.RenderBlock(w, "alert", "Failed to create")
 			return
 		}
@@ -117,11 +117,11 @@ func (h *post) DeletePost(ctx context.Context) http.Handler {
 		r.ParseForm()
 		// var body map[string]interface{}
 		// if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		// 	h.logger.Error(err)
+		// 	h.logger.Error(err.Error())
 		// 	return
 		// }
 		if _, err := h.postService.DeletePost(ctx, r.FormValue("id")); err != nil {
-			h.logger.Error(err)
+			h.logger.Error(err.Error())
 			utils.RenderBlock(w, "alert", "Failed to delete")
 			return
 		}
@@ -135,7 +135,7 @@ func (h *post) PinPost(ctx context.Context) http.Handler {
 		json.NewDecoder(r.Body).Decode(&body)
 		_, err := h.postService.PinPost(ctx, body["id"].(string))
 		if err != nil {
-			h.logger.Error(err)
+			h.logger.Error(err.Error())
 			utils.RenderBlock(w, "alert", "Post not found")
 			return
 		}
@@ -153,7 +153,7 @@ func (h *post) Search(ctx context.Context) http.Handler {
 		}
 		page, err := strconv.Atoi(pageS)
 		if err != nil {
-			h.logger.Error(err)
+			h.logger.Error(err.Error())
 			utils.RenderBlock(w, "alert", "wrond page number")
 			return
 		}
@@ -163,13 +163,13 @@ func (h *post) Search(ctx context.Context) http.Handler {
 		}
 		limit, err := strconv.Atoi(limitS)
 		if err != nil {
-			h.logger.Error(err)
+			h.logger.Error(err.Error())
 			utils.RenderBlock(w, "alert", "wrond limit number")
 			return
 		}
 		posts, err := h.postService.Search(ctx, q, page, limit)
 		if err != nil {
-			h.logger.Error(err)
+			h.logger.Error(err.Error())
 		}
 		if posts.Total == 0 {
 			utils.RenderBlock(w, "noPosts", nil)

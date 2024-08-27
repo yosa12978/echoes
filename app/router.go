@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/yosa12978/echoes/cache"
@@ -17,13 +18,13 @@ import (
 )
 
 func NewRouter(ctx context.Context) http.Handler {
-	logger := logging.New("app.NewRouter")
+	logger := logging.NewJsonLogger(os.Stdout)
 
 	postRepo := repos.NewPostPostgres()
 	postService := services.NewPost(
 		postRepo,
 		cache.NewRedisCache(ctx),
-		logging.New("postService"),
+		logger,
 		repos.NewPostSearcherPostgres(),
 	)
 
@@ -31,7 +32,7 @@ func NewRouter(ctx context.Context) http.Handler {
 	linkService := services.NewLink(
 		linkRepo,
 		cache.NewRedisCache(ctx),
-		logging.New("linkService"),
+		logger,
 	)
 
 	commentRepo := repos.NewCommentPostgres()
@@ -39,39 +40,33 @@ func NewRouter(ctx context.Context) http.Handler {
 		commentRepo,
 		postService,
 		cache.NewRedisCache(ctx),
-		logging.New("commentService"),
+		logger,
 	)
 
 	announceRepo := repos.NewAnnounceCache(cache.NewRedisCache(ctx))
 	announceService := services.NewAnnounce(
 		announceRepo,
-		logging.New("announceService"),
+		logger,
 	)
 
 	accountRepo := repos.NewAccountPostgres()
 	accountService := services.NewAccount(accountRepo)
 	accountService.Seed(ctx)
 
-	//profileRepo, err := repos.NewProfileJson("./assets/profile.json")
-	// if err != nil {
-	// 	logger.Error(err)
-	// }
-
 	profileRepo := repos.NewProfileFromConfig()
-	logger.Info("fade out again")
 	profileService := services.NewProfile(profileRepo)
 
 	feedService := services.NewFeedService(postService)
 
-	postHandler := handlers.NewPost(postService, logging.New("postHandler"))
-	linkHandler := handlers.NewLink(linkService, logging.New("linkHandler"))
-	announceHandler := handlers.NewAnnounce(announceService, logging.New("announceHandler"))
-	profileHandler := handlers.NewProfile(profileService, logging.New("profileHandler"))
-	accountHandler := handlers.NewAccount(accountService, logging.New("accountHandler"))
-	commentHandler := handlers.NewComment(commentService, logging.New("commentHandler"))
+	postHandler := handlers.NewPost(postService, logger)
+	linkHandler := handlers.NewLink(linkService, logger)
+	announceHandler := handlers.NewAnnounce(announceService, logger)
+	profileHandler := handlers.NewProfile(profileService, logger)
+	accountHandler := handlers.NewAccount(accountService, logger)
+	commentHandler := handlers.NewComment(commentService, logger)
 	feedHandler := handlers.NewFeedHandler(feedService)
 
-	latencyLogger := middleware.Logger(logging.New("incoming request"))
+	latencyLogger := middleware.Logger(logger)
 	router := mux.NewRouter()
 	router.StrictSlash(true)
 
@@ -88,6 +83,22 @@ func NewRouter(ctx context.Context) http.Handler {
 	RegisterAnnounceHandler(ctx, announceHandler, hateoas)
 	RegisterCommentHandler(ctx, commentHandler, hateoas)
 	RegisterFeedHandler(feedHandler, router)
+
+	healthService := services.NewHealthService(
+		logger,
+		data.NewPgPinger(),
+		data.NewRedisPinger(ctx),
+	)
+	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		err := healthService.Healthcheck(ctx)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		w.WriteHeader(200)
+		w.Write([]byte("healthy"))
+	}).Methods("GET")
 
 	return router
 }
@@ -152,16 +163,6 @@ func RegisterBasicHandler(ctx context.Context, router *mux.Router) {
 		}
 	}).Methods("GET")
 
-	// router.HandleFunc("/portal", func(w http.ResponseWriter, r *http.Request) {
-	// 	url := r.URL.Query().Get("url")
-	// 	if url == "" {
-	// 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
-	// 		return
-	// 	}
-	// 	http.Redirect(w, r, url, http.StatusMovedPermanently)
-	// }).Methods("GET")
-
-	// simplify this (cuz it looks terrible)
 	router.Handle("/admin", middleware.Admin(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := utils.RenderView(w, "admin", "admin", nil); err != nil {
 			http.Error(w, err.Error(), 500)
@@ -184,21 +185,4 @@ func RegisterBasicHandler(ctx context.Context, router *mux.Router) {
 			http.Error(w, err.Error(), 500)
 		}
 	})
-
-	// Healthchecks
-	healthService := services.NewHealthService(
-		logging.New("healthchecks"),
-		data.NewPgPinger(),
-		data.NewRedisPinger(ctx),
-	)
-	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		err := healthService.Healthcheck(ctx)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-			return
-		}
-		w.WriteHeader(200)
-		w.Write([]byte("healthy"))
-	}).Methods("GET")
 }

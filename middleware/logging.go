@@ -13,11 +13,12 @@ func Logger(logger logging.Logger) func(next http.Handler) http.Handler {
 			snapshot := time.Now()
 			next.ServeHTTP(w, r)
 			latencyUs := time.Since(snapshot).Microseconds()
-			logger.Fields(map[string]interface{}{
-				"method":     r.Method,
-				"endpoint":   r.URL.String(),
-				"latency_us": latencyUs,
-			})
+			logger.Info(
+				"incoming request",
+				"method", r.Method,
+				"endpoint", r.URL.String(),
+				"latency_us", latencyUs,
+			)
 		})
 	}
 }

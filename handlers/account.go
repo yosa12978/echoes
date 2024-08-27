@@ -47,7 +47,7 @@ func (h *account) Login(ctx context.Context) http.Handler {
 			utils.RenderBlock(w, "alert", err.Error())
 			return
 		}
-		h.logger.Printf("user %s logged in", username)
+		h.logger.Info("user %s logged in", username)
 		w.Header().Set("HX-Redirect", "/admin")
 	})
 }

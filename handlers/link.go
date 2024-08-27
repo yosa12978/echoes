@@ -36,7 +36,7 @@ func (h *link) GetAll(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		links, err := h.linkService.GetLinks(ctx)
 		if err != nil {
-			h.logger.Error(err)
+			h.logger.Error(err.Error())
 			utils.RenderBlock(w, "links", links)
 			return
 		}
@@ -49,7 +49,7 @@ func (h *link) GetAdmin(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		links, err := h.linkService.GetLinks(ctx)
 		if err != nil {
-			h.logger.Error(err)
+			h.logger.Error(err.Error())
 			utils.RenderBlock(w, "alert", "can't fetch links")
 			return
 		}
@@ -75,7 +75,7 @@ func (h *link) Create(ctx context.Context) http.Handler {
 		}
 		_, err = h.linkService.CreateLink(ctx, name, url, icon, place)
 		if err != nil {
-			h.logger.Error(err)
+			h.logger.Error(err.Error())
 			utils.RenderBlock(w, "alert", err.Error())
 			return
 		}
@@ -87,7 +87,7 @@ func (h *link) Delete(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["id"]
 		if _, err := h.linkService.DeleteLink(ctx, id); err != nil {
-			h.logger.Error(err)
+			h.logger.Error(err.Error())
 			utils.RenderBlock(w, "alert", "Failed to delete")
 			return
 		}
@@ -104,7 +104,7 @@ func (h *link) Portal(ctx context.Context) http.Handler {
 		}
 		link, err := h.linkService.GetLinkById(ctx, id)
 		if err != nil {
-			h.logger.Error(err)
+			h.logger.Error(err.Error())
 			utils.RenderBlock(w, "alert", "not found")
 			return
 		}

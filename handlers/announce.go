@@ -32,7 +32,7 @@ func (h *announce) Get(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		announce, err := h.announceService.Get(ctx)
 		if err != nil {
-			h.logger.Error(err)
+			h.logger.Error(err.Error())
 			utils.RenderBlock(w, "alert", "can't fetch announce")
 			return
 		}
@@ -53,7 +53,7 @@ func (h *announce) Create(ctx context.Context) http.Handler {
 		// content := r.FormValue("content")
 		_, err := h.announceService.Create(ctx, content)
 		if err != nil {
-			h.logger.Error(err)
+			h.logger.Error(err.Error())
 			utils.RenderBlock(w, "alert", "can't create announce")
 			return
 		}
