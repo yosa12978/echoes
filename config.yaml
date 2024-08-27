@@ -15,7 +15,7 @@ profile:
   bio: >
     Hi there!
     Add your bio in config.yaml file.
-  picture: "/assets/images/icon.png"
+  picture: "/assets/images/icon.svg"
 feed:
   title: "microblog recent posts"
   desc: "30 latest posts from microblog"
@@ -25,3 +25,4 @@ feed:
   email: "address@email.com"
 website:
   title: "echoes"
+  logo: "/assets/images/icon.svg"

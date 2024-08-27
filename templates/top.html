@@ -26,6 +26,8 @@
         <div class="header navbar mb-2 mt-3 mx-0">
             <div class="float-start">
                 <a href="/" class="text-decoration-none me-1">
+                    {{if .Logo}}<img style="max-width: 40px; border-radius: 50%;" class="float-start me-2" alt="logo"
+                        src="{{.Logo}}" />{{end}}
                     <span class="primary" style="font-size: x-large; font-weight: 550;">{{ .Title }}</span>
                 </a>
             </div>

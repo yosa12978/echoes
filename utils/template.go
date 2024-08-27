@@ -28,6 +28,7 @@ func RenderView(w io.Writer, view string, title string, payload any) error {
 	}
 	data := types.Templ{
 		Title:   cfg.Website.Title + title,
+		Logo:    cfg.Website.Logo,
 		Payload: payload,
 	}
 	return templ.Execute(w, data)

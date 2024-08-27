@@ -117,14 +117,14 @@ a {
 }
 
 .btn-danger {
-    color: var(--text)-alt !important;
+    color: var(--text-alt) !important;
     background-color: var(--danger) !important;
     border-color: var(--danger) !important;
 }
 
 .btn-primary {
     border-color: var(--primary) !important;
-    color: var(--text)-alt !important;
+    color: var(--text-alt) !important;
     background-color: var(--primary) !important;
 }
 

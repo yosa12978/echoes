@@ -94,6 +94,7 @@ type CommentsInfo struct {
 
 type Templ struct {
 	Title   string
+	Logo    string
 	Payload interface{}
 }
 
