@@ -16,7 +16,7 @@
             <input name="email" type="email" placeholder="Email" class="form-control mb-2" />
             <textarea name="content" type="text" placeholder="Content" class="form-control mb-2"
                 style="min-height: 200px;"></textarea>
-            <button type="submit" class="btn btn-primary mb-3">Add Comment</button>
+            <button type="submit" class="btn btn-primary mb-3"><span class="text-alt">Add Comment</span></button>
         </form><br>
     </div>
     <div hx-get="/api/comments?postId={{.Payload}}&page=1" hx-trigger="load" hx-swap="outerHTML"></div>
