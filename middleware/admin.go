@@ -11,13 +11,13 @@ func Admin(next http.Handler) http.Handler {
 		s, err := session.GetSession(r)
 		if err != nil || s == nil {
 			http.Error(w,
-				"unauthorized",
-				http.StatusUnauthorized,
+				"404 page not found",
+				http.StatusNotFound,
 			)
 			return
 		}
 		if !s.IsAuthenticated {
-			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			http.Error(w, "404 page not found", http.StatusNotFound)
 			return
 		}
 		if !s.IsAdmin {
