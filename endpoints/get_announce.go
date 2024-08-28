@@ -8,7 +8,7 @@ import (
 	"github.com/yosa12978/echoes/utils"
 )
 
-func Get(logger logging.Logger, service services.Announce) http.HandlerFunc {
+func GetAnnounce(logger logging.Logger, service services.Announce) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		announce, err := service.Get(r.Context())
 		if err != nil {

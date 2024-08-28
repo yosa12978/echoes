@@ -8,7 +8,7 @@ import (
 	"github.com/yosa12978/echoes/utils"
 )
 
-func Delete(logger logging.Logger, service services.Announce) http.HandlerFunc {
+func DeleteAnnounce(logger logging.Logger, service services.Announce) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if _, err := service.Delete(r.Context()); err != nil {
 			utils.RenderBlock(w, "alert", "failed to delete announce")

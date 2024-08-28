@@ -9,7 +9,7 @@ import (
 	"github.com/yosa12978/echoes/utils"
 )
 
-func Create(logger logging.Logger, service services.Announce) http.HandlerFunc {
+func CreateAnnounce(logger logging.Logger, service services.Announce) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		body := make(map[string]interface{})
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
