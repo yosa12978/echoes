@@ -198,9 +198,11 @@ func (s *comment) GetCommentsCount(ctx context.Context, postId string) (int, err
 		return 0, err
 	}
 	go func() {
-		_, err = s.cache.Set(ctx, "comments_count:"+postId, count, 60*time.Second)
+		_, err = s.cache.Set(context.Background(), "comments_count:"+postId, count, 60*time.Second)
 		if err != nil {
-			s.logger.Error(err.Error())
+			// probably i should create separate context's for goroutines
+			// i guess serve http returns before it sets value to redis
+			s.logger.Error(err.Error()) // if i use ctx here context cancels
 		}
 	}()
 	return count, nil

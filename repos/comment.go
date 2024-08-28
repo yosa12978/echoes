@@ -179,7 +179,10 @@ func (repo *commentPostgres) GetCommentsCount(ctx context.Context, postId string
 	q := "SELECT COUNT(*) FROM comments WHERE postId=$1;"
 	var count int
 	err := repo.db.QueryRowContext(ctx, q, postId).Scan(&count)
-	return count, err
+	if err != nil {
+		return 0, err
+	}
+	return count, ctx.Err()
 }
 
 func (repo *commentPostgres) GetPageTime(
