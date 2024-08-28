@@ -1,3 +1,4 @@
+/* Custom dark theme (Based on Catppuccin Mocha+Latte and Rose Pine) */
 :root {
     --bg0: #11111b;
     --bg1: #181825;
@@ -29,3 +30,36 @@
     --code-bg: #11111b;
     --code-fg: #cdd6f4;
 }
+
+/* Catppuccin Latte */
+/* :root {
+    --bg0: #dce0e8;
+    --bg1: #e6e9ef;
+    --bg2: #ccd0da;
+    --bg3: #bcc0cc;
+
+    --text: #4c4f69;
+    --text-alt: #eff1f5;
+    --primary: #7287fd;
+    --warning: #fe640b;
+    --danger: #e64553;
+    --success: #4a02b;
+
+    --badge-fg: #191724;
+    --badge-bg: #ea9d34;
+
+    --announce-bg: #ccd0da;
+    --announce-fg: #4c4f69;
+
+    --links-bg: #eff1f5;
+    --links-fg: #4c4f69;
+
+    --card-bg: #eff1f5;
+    --card-fg: #4c4f69;
+
+    --input-bg: #e6e9ef;
+    --input-fg: #4c4f69;
+
+    --code-bg: #dce0e8;
+    --code-fg: #4c4f69;
+} */
