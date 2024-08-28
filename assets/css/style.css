@@ -59,6 +59,9 @@ a {
     border-radius: 0px;
 }
 
+.link {
+    border-radius: 10px;
+}
 
 img {
     width: auto;

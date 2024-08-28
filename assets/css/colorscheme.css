@@ -1,15 +1,31 @@
 :root {
-    --bg: #11111b;
+    --bg0: #11111b;
     --bg1: #181825;
     --bg2: #1e1e2e;
     --bg3: #1b1b29;
-    --announce: #313244;
+
     --text: #cdd6f4;
     --text-alt: #1e1e2e;
     --primary: #ffffff;
-    --warn: #ea9d34;
+    --warning: #ea9d34;
     --danger: #d20f39;
     --success: #40a02b;
-    --badge: #ea9d34;
-    --badge-text: #191724;
+
+    --badge-fg: #191724;
+    --badge-bg: #ea9d34;
+
+    --announce-bg: #191724;
+    --announce-fg: #cdd6f4;
+
+    --links-bg: #1b1b29;
+    --links-fg: #cdd6f4;
+
+    --card-bg: #1b1b29;
+    --card-fg: #cdd6f4;
+
+    --input-bg: #181825;
+    --input-fg: #cdd6f4;
+
+    --code-bg: #11111b;
+    --code-fg: #cdd6f4;
 }

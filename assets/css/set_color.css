@@ -1,11 +1,58 @@
 @import "./colorscheme.css";
 
+
 html {
-    background-color: var(--bg) !important;
+    background-color: var(--bg0) !important;
+}
+
+body {
+    background-color: var(--bg0) !important;
+    color: var(--text) !important;
+}
+
+a {
+    color: var(--primary) !important;
+}
+
+pre {
+    background-color: var(--code-bg) !important;
+    color: var(--code-fg) !important;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg0);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--bg2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--bg1);
 }
 
 .announce {
-    background-color: var(--announce) !important;
+    background-color: var(--announce-bg) !important;
+    color: var(--announce-fg) !important;
+}
+
+.badge {
+    color: var(--badge-fg) !important;
+    background-color: var(--badge-bg) !important;
+}
+
+.card {
+    background-color: var(--card-bg) !important;
+    color: var(--card-fg) !important;
+}
+
+.link {
+    background-color: var(--links-bg) !important;
+    color: var(--links-fg) !important;
+}
+
+.text {
+    color: var(--text) !important;
 }
 
 .text-alt {
@@ -20,16 +67,12 @@ html {
     color: var(--danger) !important;
 }
 
-.warn {
-    color: var(--warn) !important;
+.warning {
+    color: var(--warning) !important;
 }
 
 .success {
     color: var(--success) !important;
-}
-
-.text {
-    color: var(--text) !important;
 }
 
 .bg-primary {
@@ -38,22 +81,22 @@ html {
 }
 
 .bg-danger {
-    color: var(--text)-alt !important;
+    color: var(--text-alt) !important;
     background-color: var(--danger) !important;
 }
 
 .bg-warning {
-    color: var(--text)-alt !important;
-    background-color: var(--warn) !important;
+    color: var(--text-alt) !important;
+    background-color: var(--warning) !important;
 }
 
 .bg-success {
-    color: var(--text)-alt !important;
+    color: var(--text-alt) !important;
     background-color: var(--success) !important;
 }
 
 .bg-0 {
-    background-color: var(--bg) !important;
+    background-color: var(--bg0) !important;
 }
 
 .bg-1 {
@@ -68,52 +111,30 @@ html {
     background-color: var(--bg3) !important;
 }
 
-.badge {
-    color: var(--badge-text) !important;
-    background-color: var(--badge) !important;
-}
-
-.card {
-    background-color: var(--bg1);
-}
-
-* {
-    color: var(--text);
-}
-
-
 .container {
-    background-color: var(--bg);
-}
-
-body {
-    background-color: var(--bg);
+    background-color: var(--bg0) !important;
 }
 
 .form-control:focus {
-    border-color: var(--bg1);
+    border-color: var(--bg1) !important;
 }
 
 
 .navbar {
-    background-color: var(--bg);
+    background-color: var(--bg0) !important;
 }
 
 .announce {
-    color: var(--text);
+    background-color: var(--announce-bg) !important;
+    color: var(--announce-fg) !important;
 }
 
 .text-dark {
-    color: var(--bg3) !important;
+    color: var(--text-alt) !important;
 }
-
 
 .text-warning {
-    color: var(--warn) !important;
-}
-
-a {
-    color: var(--primary);
+    color: var(--warning) !important;
 }
 
 .btn-danger {
@@ -133,37 +154,18 @@ a {
     border-color: var(--primary) !important;
 }
 
-
 .form-control {
-    background-color: var(--bg1) !important;
+    background-color: var(--input-bg) !important;
     border-color: var(--primary) !important;
-    color: var(--text) !important;
+    color: var(--input-fg) !important;
 }
 
 .form-control::placeholder {
-    color: var(--text) !important;
+    color: var(--input-fg) !important;
 }
-
-
 
 .alert-primary {
     border-color: var(--primary) !important;
-    color: var(--bg2) !important;
+    color: var(--text) !important;
     background-color: var(--primary) !important;
-}
-
-pre {
-    background-color: var(--bg);
-}
-
-::-webkit-scrollbar-track {
-    background: var(--bg);
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--bg2);
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--bg1);
 }

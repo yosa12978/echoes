@@ -4,8 +4,8 @@
 
     <div style="text-align: center;">
         {{range .}}
-        <div class="bg-3 card mb-2" style="border-radius: 10px;">
-            <a href="/api/portal/{{.Id}}" target="_blank" class="link link-dark text-decoration-none">
+        <div class="link card mb-2">
+            <a href="/api/portal/{{.Id}}" target="_blank" class="link text-decoration-none">
                 <div class="card-body">
                     <p class="card-text fs-5" style="font-weight: 475;" id="link-{{.Id}}"><i
                             class="bi bi-{{.Icon}} mx-1"></i>
@@ -27,7 +27,7 @@
     <div id="link-delete-alert"></div>
     <div>
         {{range .}}
-        <div class="card mb-3" id="link-{{.Id}}">
+        <div class="link card mb-3" id="link-{{.Id}}">
             <div class="card-body d-flex justify-content-between">
                 <span class="card-text float-left mt-1"><i class="bi bi-{{.Icon}}"></i> <b>{{.Name}}</b></span>
                 <button class="btn btn-danger border-0" hx-delete="/api/links/{{.Id}}" hx-target="#link-delete-alert"
