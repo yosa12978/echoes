@@ -1,5 +1,5 @@
 /* Custom dark theme (Based on Catppuccin Mocha+Latte and Rose Pine) */
-:root {
+/* :root {
     --bg0: #11111b;
     --bg1: #181825;
     --bg2: #1e1e2e;
@@ -29,10 +29,10 @@
 
     --code-bg: #11111b;
     --code-fg: #cdd6f4;
-}
+} */
 
 /* Catppuccin Latte */
-/* :root {
+:root {
     --bg0: #dce0e8;
     --bg1: #e6e9ef;
     --bg2: #ccd0da;
@@ -62,4 +62,4 @@
 
     --code-bg: #dce0e8;
     --code-fg: #4c4f69;
-} */
+}

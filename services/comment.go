@@ -60,6 +60,12 @@ func (s *comment) getPaginationVersion(ctx context.Context, postId string) (int6
 	return version, err
 }
 
+func (s *comment) refreshPaginationVersion(ctx context.Context, postId string) (int64, error) {
+	version := time.Now().UnixMicro()
+	_, err := s.cache.Set(ctx, "comments_pagination_version:"+postId, version, 1*time.Minute)
+	return version, err
+}
+
 func (s *comment) GetPostComments(ctx context.Context, postId string, page, size int) (*types.CommentsInfo, error) {
 	if _, err := s.postService.GetPostById(ctx, postId); err != nil {
 		return nil, err
@@ -153,6 +159,7 @@ func (s *comment) CreateComment(ctx context.Context, postId, name, email, conten
 			s.logger.Error(err.Error())
 		}
 	}()
+	s.refreshPaginationVersion(ctx, postId)
 	return s.commentRepo.Create(ctx, comm)
 }
 
