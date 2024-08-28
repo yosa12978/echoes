@@ -157,7 +157,7 @@ func (s *post) CreatePost(ctx context.Context, title, content string, tweet bool
 		key := "posts:" + id
 		tx, _ := s.cache.Tx()
 		tx.Append(ctx, func(pipe cache.Cache) error {
-			s.cache.Set(ctx, key, string(postb), 0)
+			s.cache.Set(ctx, key, string(postb), 60*time.Second)
 			score, _ := s.cache.ZCard(ctx, "posts")
 			s.cache.ZAdd(ctx, "posts", cache.Member{
 				Score:  float64(score + 1),
