@@ -29,7 +29,7 @@ func addRoutes(r *http.ServeMux, options options) {
 	addLinkRoutes(apiRouter, options)
 	addPostRoutes(apiRouter, options)
 	addProfileRoutes(apiRouter, options)
-	addFeedRoutes(apiRouter, options)
+	addFeedRoutes(r, options)
 	addAccountRoutes(apiRouter, options)
 	addAnnounceRoutes(apiRouter, options)
 	addHealthRoutes(apiRouter, options)
