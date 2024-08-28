@@ -1,4 +1,4 @@
-FROM golang:1.22-alpine3.19 AS builder
+FROM golang:1.23-alpine3.20 AS builder
 
 WORKDIR /app
 COPY go.mod .
@@ -6,7 +6,7 @@ RUN go mod download
 COPY . .
 RUN go build -o bin/echoes ./main.go
 
-FROM alpine:3.19
+FROM alpine:3.20
 
 WORKDIR /app
 COPY --from=builder /app/bin .

@@ -1,4 +1,4 @@
-FROM golang:1.22-alpine3.20
+FROM golang:1.23-alpine3.20
 
 WORKDIR /app
 
@@ -8,5 +8,6 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 RUN apk --update --no-cache add make
+RUN apk --update --no-cache add curl
 
 CMD ["air", "-c", ".air.toml"]
