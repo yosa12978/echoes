@@ -32,7 +32,7 @@ func addRoutes(r *http.ServeMux, options options) {
 	addFeedRoutes(r, options)
 	addAccountRoutes(apiRouter, options)
 	addAnnounceRoutes(apiRouter, options)
-	addHealthRoutes(apiRouter, options)
+	addHealthRoutes(r, options)
 	addCommentRoutes(apiRouter, options)
 	addViewRoutes(r)
 
