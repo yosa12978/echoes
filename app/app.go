@@ -3,6 +3,8 @@ package app
 import (
 	"context"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/yosa12978/echoes/config"
@@ -11,8 +13,16 @@ import (
 	"github.com/yosa12978/echoes/session"
 )
 
-func Run(ctx context.Context) error {
+func Run() error {
+	ctx, cancel := signal.NotifyContext(
+		context.Background(),
+		os.Interrupt,
+		syscall.SIGTERM,
+	)
+	defer cancel()
+
 	logger := logging.NewJsonLogger(os.Stdout)
+
 	conn := data.Postgres()
 	defer conn.Close()
 
@@ -22,25 +32,24 @@ func Run(ctx context.Context) error {
 	session.SetupStore()
 
 	cfg := config.Get()
-
 	server := newServer(
 		ctx,
 		cfg.Server.Addr,
 		logger,
 	)
 
-	errch := make(chan error, 1)
+	errCh := make(chan error, 1)
 	go func() {
 		logger.Info("server listening", "addr", cfg.Server.Addr)
 		if err := server.ListenAndServe(); err != nil {
-			errch <- err
+			errCh <- err
 		}
-		close(errch)
+		close(errCh)
 	}()
 
 	var err error
 	select {
-	case err = <-errch:
+	case err = <-errCh:
 	case <-ctx.Done():
 		timeout, cancel := context.WithTimeout(context.Background(), time.Second*10)
 		defer cancel()
