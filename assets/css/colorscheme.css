@@ -19,7 +19,7 @@
     --announce-fg: #cdd6f4;
 
     --links-bg: #1b1b29;
-    --links-fg: #cdd6f4;
+    --links-fg: #ffffff;
 
     --card-bg: #1b1b29;
     --card-fg: #cdd6f4;
@@ -29,6 +29,8 @@
 
     --code-bg: #11111b;
     --code-fg: #cdd6f4;
+
+    --pin-fg: #ffffff;
 } */
 
 /* Catppuccin Latte */
