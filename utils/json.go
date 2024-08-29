@@ -12,6 +12,8 @@ func WriteJson(w http.ResponseWriter, payload any, code int) error {
 	return json.NewEncoder(w).Encode(payload)
 }
 
-func ReadJson(body io.Reader, dest any) error {
-	return json.NewDecoder(body).Decode(dest)
+func ReadJson[T any](body io.Reader) (T, error) {
+	var dest T
+	err := json.NewDecoder(body).Decode(&dest)
+	return dest, err
 }
