@@ -14,10 +14,6 @@ import (
 	"github.com/yosa12978/echoes/types"
 )
 
-var (
-	ErrPostNotFound = errors.New("post not found")
-)
-
 type Post interface {
 	FindAll(ctx context.Context) ([]types.Post, error)
 	GetPage(ctx context.Context, page, size int) (*types.Page[types.Post], error)
@@ -51,7 +47,7 @@ func (repo *postMock) FindById(ctx context.Context, id string) (*types.Post, err
 			return &repo.posts[i], nil
 		}
 	}
-	return nil, ErrPostNotFound
+	return nil, ErrNotFound
 }
 
 func (repo *postMock) GetPageTime(ctx context.Context, time string, page, size int) (*types.Page[types.Post], error) {
@@ -75,7 +71,7 @@ func (repo *postMock) Delete(ctx context.Context, id string) (*types.Post, error
 			return &temp, nil
 		}
 	}
-	return nil, ErrPostNotFound
+	return nil, ErrNotFound
 }
 func (repo *postMock) Search(ctx context.Context, query string, page, size int) (*types.Page[types.Post], error) {
 	return nil, nil
@@ -99,7 +95,10 @@ func (repo *postPostgres) FindAll(ctx context.Context) ([]types.Post, error) {
 	`
 	rows, err := repo.db.QueryContext(ctx, q)
 	if err != nil {
-		return posts, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return posts, ErrNotFound
+		}
+		return posts, errors.Join(err, ErrInternalFailure)
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -142,30 +141,48 @@ func (repo *postPostgres) FindById(ctx context.Context, id string) (*types.Post,
 		&post.Tweet,
 		&post.Comments,
 	)
-	return &post, err
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, errors.Join(err, ErrInternalFailure)
+	}
+	return &post, nil
 }
 
 func (repo *postPostgres) Create(ctx context.Context, post types.Post) (*types.Post, error) {
 	q := "INSERT INTO posts (id, title, content, created, tweet) VALUES ($1, $2, $3, $4, $5);"
 	_, err := repo.db.ExecContext(ctx, q, post.Id, post.Title, post.Content, post.Created, post.Tweet)
-	return &post, err
+	if err != nil {
+		return nil, errors.Join(err, ErrInternalFailure)
+	}
+	return &post, nil
 }
 
 func (repo *postPostgres) Update(ctx context.Context, id string, post types.Post) (*types.Post, error) {
 	q := "UPDATE posts SET title=$1, content=$2, pinned=$3 WHERE id=$4;"
 	_, err := repo.db.ExecContext(ctx, q, post.Title, post.Content, post.Pinned, id)
-	return &post, err
+	if err != nil {
+		return nil, errors.Join(err, ErrInternalFailure)
+	}
+	return &post, nil
 }
 
 func (repo *postPostgres) Delete(ctx context.Context, id string) (*types.Post, error) {
 	post, err := repo.FindById(ctx, id)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, errors.Join(err, ErrInternalFailure)
 	}
 
 	q := "DELETE FROM posts WHERE id=$1;"
 	_, err = repo.db.ExecContext(ctx, q, id)
-	return post, err
+	if err != nil {
+		return nil, errors.Join(err, ErrInternalFailure)
+	}
+	return post, nil
 }
 
 func (repo *postPostgres) GetPage(ctx context.Context, page, size int) (*types.Page[types.Post], error) {
@@ -180,13 +197,22 @@ func (repo *postPostgres) GetPage(ctx context.Context, page, size int) (*types.P
 	q := "SELECT * FROM posts ORDER BY pinned DESC, created DESC LIMIT $1 OFFSET $2;"
 	rows, err := repo.db.QueryContext(ctx, q, size, (page-1)*size)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return &types.Page[types.Post]{
+				Content:  posts,
+				HasNext:  false,
+				Size:     size,
+				NextPage: 1,
+				Total:    0,
+			}, nil
+		}
 		return &types.Page[types.Post]{
 			Content:  posts,
 			HasNext:  false,
 			Size:     size,
 			NextPage: 1,
 			Total:    0,
-		}, err
+		}, errors.Join(err, ErrInternalFailure)
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -206,7 +232,8 @@ func (repo *postPostgres) GetPage(ctx context.Context, page, size int) (*types.P
 func (repo *postPostgres) GetPageTime(
 	ctx context.Context,
 	time string,
-	page, size int) (*types.Page[types.Post], error) {
+	page, size int,
+) (*types.Page[types.Post], error) {
 	posts := []types.Post{}
 	qcount := "SELECT COUNT(*) FROM posts WHERE created <= $1;"
 	var count int
@@ -223,13 +250,22 @@ func (repo *postPostgres) GetPageTime(
 	//q := "SELECT * FROM posts WHERE created <= $3 ORDER BY pinned DESC, created DESC LIMIT $1 OFFSET $2;"
 	rows, err := repo.db.QueryContext(ctx, q, size, (page-1)*size, time)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return &types.Page[types.Post]{
+				Content:  posts,
+				HasNext:  false,
+				Size:     size,
+				NextPage: 1,
+				Total:    0,
+			}, nil
+		}
 		return &types.Page[types.Post]{
 			Content:  posts,
 			HasNext:  false,
 			Size:     size,
 			NextPage: 1,
 			Total:    0,
-		}, err
+		}, errors.Join(err, ErrInternalFailure)
 	}
 	defer rows.Close()
 	for rows.Next() {
