@@ -31,6 +31,10 @@ pre {
     background: var(--bg1);
 }
 
+.pin {
+    color: var(--pin-fg) !important;
+}
+
 .announce {
     background-color: var(--announce-bg) !important;
     color: var(--announce-fg) !important;
