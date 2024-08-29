@@ -34,7 +34,7 @@ func addRoutes(r *http.ServeMux, options options) {
 	addAnnounceRoutes(apiRouter, options)
 	addHealthRoutes(apiRouter, options)
 	addCommentRoutes(apiRouter, options)
-	addViewRoutes(r, options)
+	addViewRoutes(r)
 
 	r.Handle("/api/", http.StripPrefix("/api", apiRouter))
 	r.Handle("/assets/", http.StripPrefix("/assets",
@@ -143,7 +143,7 @@ func addHealthRoutes(router *http.ServeMux, options options) {
 	router.HandleFunc("GET /health", endpoints.Healthcheck(options.healthService))
 }
 
-func addViewRoutes(router *http.ServeMux, options options) {
+func addViewRoutes(router *http.ServeMux) {
 	router.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
 		if err := utils.RenderView(w, "index", "", nil); err != nil {
 			http.Error(w, err.Error(), 500)
