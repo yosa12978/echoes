@@ -3,6 +3,7 @@ package repos
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/yosa12978/echoes/data"
 	"github.com/yosa12978/echoes/types"
@@ -42,7 +43,10 @@ func (repo *linkPostgres) FindAll(ctx context.Context) ([]types.Link, error) {
 	q := "SELECT * FROM links ORDER BY place ASC"
 	rows, err := repo.db.QueryContext(ctx, q)
 	if err != nil {
-		return links, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return links, nil
+		}
+		return links, errors.Join(err, ErrInternalFailure)
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -65,19 +69,34 @@ func (repo *linkPostgres) FindById(ctx context.Context, id string) (*types.Link,
 			&link.Icon,
 			&link.Place,
 		)
-	return &link, err
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, errors.Join(err, ErrInternalFailure)
+	}
+	return &link, nil
 }
 
 func (repo *linkPostgres) Create(ctx context.Context, link types.Link) (*types.Link, error) {
 	q := "INSERT INTO links (id, name, url, created, icon, place) VALUES ($1, $2, $3, $4, $5, $6);"
 	_, err := repo.db.ExecContext(ctx, q, link.Id, link.Name, link.URL, link.Created, link.Icon, link.Place)
-	return &link, err
+	if err != nil {
+		return nil, errors.Join(err, ErrInternalFailure)
+	}
+	return &link, nil
 }
 
 func (repo *linkPostgres) Update(ctx context.Context, id string, link types.Link) (*types.Link, error) {
 	q := "UPDATE links SET name=$1, url=$2, created=$3, icon=$4, place=$5 WHERE id=$6;"
 	_, err := repo.db.ExecContext(ctx, q, link.Name, link.URL, link.Created, link.Icon, link.Place, id)
-	return &link, err
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, errors.Join(err, ErrInternalFailure)
+	}
+	return &link, nil
 }
 
 func (repo *linkPostgres) Delete(ctx context.Context, id string) (*types.Link, error) {
@@ -87,5 +106,11 @@ func (repo *linkPostgres) Delete(ctx context.Context, id string) (*types.Link, e
 	}
 	q := "DELETE FROM links WHERE id=$1;"
 	_, err = repo.db.ExecContext(ctx, q, id)
-	return link, err
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, errors.Join(err, ErrInternalFailure)
+	}
+	return link, nil
 }

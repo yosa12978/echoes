@@ -3,6 +3,7 @@ package repos
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/yosa12978/echoes/data"
 	"github.com/yosa12978/echoes/types"
@@ -47,7 +48,10 @@ func (repo *commentPostgres) FindAll(ctx context.Context) ([]types.Comment, erro
 	q := "SELECT * FROM comments ORDER BY created DESC;"
 	rows, err := repo.db.QueryContext(ctx, q)
 	if err != nil {
-		return comments, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return comments, nil
+		}
+		return nil, errors.Join(err, ErrInternalFailure)
 	}
 	defer rows.Close()
 
@@ -77,7 +81,13 @@ func (repo *commentPostgres) FindById(ctx context.Context, id string) (*types.Co
 			&comment.Created,
 			&comment.PostId,
 		)
-	return &comment, err
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, errors.Join(err, ErrInternalFailure)
+	}
+	return &comment, nil
 }
 
 func (repo *commentPostgres) FindByPostId(ctx context.Context, postId string) ([]types.Comment, error) {
@@ -85,7 +95,10 @@ func (repo *commentPostgres) FindByPostId(ctx context.Context, postId string) ([
 	q := "SELECT * FROM comments WHERE postid=$1;"
 	rows, err := repo.db.QueryContext(ctx, q, postId)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return comments, nil
+		}
+		return nil, errors.Join(err, ErrInternalFailure)
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -113,12 +126,21 @@ func (repo *commentPostgres) Create(ctx context.Context, comment types.Comment) 
 		comment.Created,
 		comment.PostId,
 	)
+	if err != nil {
+		return nil, errors.Join(err, ErrInternalFailure)
+	}
 	return &comment, err
 }
 
 func (repo *commentPostgres) Update(ctx context.Context, id string, comment types.Comment) (*types.Comment, error) {
 	q := "UPDATE comments SET email=$1, name=$2, content=$3 WHERE id=$4;"
 	_, err := repo.db.ExecContext(ctx, q, comment.Email, comment.Name, comment.Content, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, errors.Join(err, ErrInternalFailure)
+	}
 	return &comment, err
 }
 
@@ -126,11 +148,17 @@ func (repo *commentPostgres) Delete(ctx context.Context, id string) (*types.Comm
 	// delete this and similar checks
 	comment, err := repo.FindById(ctx, id)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, errors.Join(err, ErrInternalFailure)
 	}
 	q := "DELETE FROM comments WHERE id=$1;"
 	_, err = repo.db.ExecContext(ctx, q, id)
-	return comment, err
+	if err != nil {
+		return nil, errors.Join(err, ErrInternalFailure)
+	}
+	return comment, nil
 }
 
 func (repo *commentPostgres) GetPage(ctx context.Context, postId string, page, size int) (*types.Page[types.Comment], error) {
@@ -180,9 +208,12 @@ func (repo *commentPostgres) GetCommentsCount(ctx context.Context, postId string
 	var count int
 	err := repo.db.QueryRowContext(ctx, q, postId).Scan(&count)
 	if err != nil {
-		return 0, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, ErrNotFound
+		}
+		return 0, errors.Join(err, ErrInternalFailure)
 	}
-	return count, ctx.Err()
+	return count, nil
 }
 
 func (repo *commentPostgres) GetPageTime(
@@ -198,13 +229,22 @@ func (repo *commentPostgres) GetPageTime(
 	q := "SELECT * FROM comments WHERE postId=$1 AND created <= $4 ORDER BY created DESC LIMIT $2 OFFSET $3;"
 	rows, err := repo.db.QueryContext(ctx, q, postId, size, (page-1)*size, time)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return &types.Page[types.Comment]{
+				Content:  comments,
+				HasNext:  false,
+				Size:     size,
+				NextPage: 1,
+				Total:    0,
+			}, nil
+		}
 		return &types.Page[types.Comment]{
 			Content:  comments,
 			HasNext:  false,
 			Size:     size,
 			NextPage: 1,
 			Total:    0,
-		}, err
+		}, errors.Join(err, ErrInternalFailure)
 	}
 	defer rows.Close()
 	for rows.Next() {

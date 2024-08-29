@@ -171,12 +171,8 @@ func (repo *postPostgres) Update(ctx context.Context, id string, post types.Post
 func (repo *postPostgres) Delete(ctx context.Context, id string) (*types.Post, error) {
 	post, err := repo.FindById(ctx, id)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNotFound
-		}
-		return nil, errors.Join(err, ErrInternalFailure)
+		return nil, err
 	}
-
 	q := "DELETE FROM posts WHERE id=$1;"
 	_, err = repo.db.ExecContext(ctx, q, id)
 	if err != nil {

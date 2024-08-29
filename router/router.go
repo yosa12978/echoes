@@ -37,10 +37,10 @@ func addRoutes(r *http.ServeMux, options options) {
 	addViewRoutes(r)
 
 	r.Handle("/api/", http.StripPrefix("/api", apiRouter))
+
 	r.Handle("/assets/", http.StripPrefix("/assets",
 		http.FileServer(http.Dir("./assets/")),
 	))
-
 }
 
 func addLinkRoutes(router *http.ServeMux, options options) {
@@ -122,6 +122,7 @@ func addAccountRoutes(router *http.ServeMux, options options) {
 func addAnnounceRoutes(router *http.ServeMux, options options) {
 	router.Handle("GET /announce",
 		endpoints.GetAnnounce(options.logger, options.announceService))
+
 	router.Handle("POST /announce",
 		middleware.Admin(
 			endpoints.CreateAnnounce(options.logger, options.announceService),

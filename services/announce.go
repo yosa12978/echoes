@@ -26,7 +26,13 @@ func NewAnnounce(announceRepo repos.Announce, logger logging.Logger) Announce {
 }
 
 func (s *announce) Get(ctx context.Context) (*types.Announce, error) {
-	return s.announceRepo.Get(ctx)
+	announce, err := s.announceRepo.Get(ctx)
+	if err != nil {
+		if errors.Is(err, repos.ErrInternalFailure) {
+			return nil, err
+		}
+	}
+	return announce, nil
 }
 
 func (s *announce) Create(ctx context.Context, content string) (*types.Announce, error) {

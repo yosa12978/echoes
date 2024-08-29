@@ -3,6 +3,7 @@ package repos
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"strings"
 
 	"github.com/yosa12978/echoes/data"
@@ -40,7 +41,13 @@ func (repo *account) FindById(ctx context.Context, id string) (*types.Account, e
 	var acc types.Account
 	q := "SELECT * FROM accounts WHERE id=$1;"
 	err := repo.db.QueryRowContext(ctx, q, id).Scan(&acc.Id, &acc.Username, &acc.Password, &acc.Created, &acc.IsAdmin, &acc.Salt)
-	return &acc, err
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, errors.Join(err, ErrInternalFailure)
+	}
+	return &acc, nil
 }
 
 // this works wrong
@@ -50,7 +57,13 @@ func (repo *account) FindByCredentials(ctx context.Context, username, passwordHa
 	err := repo.db.
 		QueryRowContext(ctx, q, strings.ToLower(username), passwordHash).
 		Scan(&acc.Id, &acc.Username, &acc.Password, &acc.Created, &acc.IsAdmin, &acc.Salt)
-	return &acc, err
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, errors.Join(err, ErrInternalFailure)
+	}
+	return &acc, nil
 }
 
 func (repo *account) FindByUsername(ctx context.Context, username string) (*types.Account, error) {
@@ -59,17 +72,26 @@ func (repo *account) FindByUsername(ctx context.Context, username string) (*type
 	err := repo.db.
 		QueryRowContext(ctx, q, strings.ToLower(username)).
 		Scan(&acc.Id, &acc.Username, &acc.Password, &acc.Created, &acc.IsAdmin, &acc.Salt)
-	return &acc, err
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, errors.Join(err, ErrInternalFailure)
+	}
+	return &acc, nil
 }
 
 func (repo *account) Create(ctx context.Context, account types.Account) (*types.Account, error) {
 	q := "INSERT INTO accounts (id, username, password, created, isadmin, salt) VALUES ($1, $2, $3, $4, $5, $6);"
-	repo.db.ExecContext(ctx, q,
+	_, err := repo.db.ExecContext(ctx, q,
 		account.Id,
 		strings.ToLower(account.Username),
 		account.Password, account.Created,
 		account.IsAdmin,
 		account.Salt)
+	if err != nil {
+		return nil, errors.Join(err, ErrInternalFailure)
+	}
 	return nil, nil
 }
 
@@ -81,11 +103,23 @@ func (repo *account) Update(ctx context.Context, accountId string, account types
 		account.IsAdmin,
 		account.Salt,
 		accountId)
-	return err
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrNotFound
+		}
+		return errors.Join(err, ErrInternalFailure)
+	}
+	return nil
 }
 
 func (repo *account) Delete(ctx context.Context, accountId string) error {
 	q := "DELETE FROM accounts WHERE id=$1;"
 	_, err := repo.db.ExecContext(ctx, q, accountId)
-	return err
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrNotFound
+		}
+		return errors.Join(err, ErrInternalFailure)
+	}
+	return nil
 }

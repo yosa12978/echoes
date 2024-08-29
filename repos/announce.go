@@ -2,6 +2,7 @@ package repos
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/yosa12978/echoes/cache"
@@ -53,10 +54,10 @@ func NewAnnounceCache(cache cache.Hashmap) Announce {
 func (a *announceCache) Get(ctx context.Context) (*types.Announce, error) {
 	res, err := a.cache.HGetAll(ctx, "announce")
 	if err != nil {
-		if err == cache.ErrNotFound {
-			return nil, nil
+		if errors.Is(err, cache.ErrNotFound) {
+			return nil, ErrNotFound
 		}
-		return nil, err
+		return nil, errors.Join(err, ErrInternalFailure)
 	}
 	announce := types.Announce{
 		Content: res["content"],
@@ -72,14 +73,23 @@ func (a *announceCache) Create(ctx context.Context, content string) (*types.Anno
 	}
 	_, err := a.cache.HSet(ctx, "announce", announce)
 	res := types.Announce{Content: content, Date: time.Now().Format(time.RFC3339)}
-	return &res, err
+	if err != nil {
+		return nil, errors.Join(err, ErrInternalFailure)
+	}
+	return &res, nil
 }
 
 func (a *announceCache) Delete(ctx context.Context) (*types.Announce, error) {
 	announce, err := a.Get(ctx)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, cache.ErrNotFound) {
+			return nil, ErrNotFound
+		}
+		return nil, errors.Join(err, ErrInternalFailure)
 	}
 	_, err = a.cache.Del(ctx, "announce")
+	if err != nil {
+		return nil, errors.Join(err, ErrInternalFailure)
+	}
 	return announce, err
 }
