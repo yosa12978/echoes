@@ -14,6 +14,10 @@ a {
     color: var(--primary) !important;
 }
 
+h1, h2 {
+    color: var(--primary);
+}
+
 pre {
     background-color: var(--code-bg) !important;
     color: var(--code-fg) !important;
@@ -53,6 +57,7 @@ pre {
 .link {
     background-color: var(--links-bg) !important;
     color: var(--links-fg) !important;
+    border-color: var(--primary) !important;
 }
 
 .text {
@@ -119,11 +124,6 @@ pre {
     background-color: var(--bg0) !important;
 }
 
-.form-control:focus {
-    border-color: var(--bg1) !important;
-}
-
-
 .navbar {
     background-color: var(--bg0) !important;
 }
@@ -166,6 +166,10 @@ pre {
 
 .form-control::placeholder {
     color: var(--input-fg) !important;
+}
+
+.form-control:focus {
+    border-color: var(--primary) !important;
 }
 
 .alert-primary {
