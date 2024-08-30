@@ -2,10 +2,8 @@ package services
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -30,15 +28,15 @@ type Post interface {
 
 type post struct {
 	postRepo     repos.Post
-	cache        cache.Cache
+	postCache    cache.Post
 	logger       logging.Logger
 	postSearcher repos.PostSearcher
 }
 
-func NewPost(postRepo repos.Post, cache cache.Cache, logger logging.Logger, postSearcher repos.PostSearcher) Post {
+func NewPost(postRepo repos.Post, postCache cache.Post, logger logging.Logger, postSearcher repos.PostSearcher) Post {
 	return &post{
 		postRepo:     postRepo,
-		cache:        cache,
+		postCache:    postCache,
 		logger:       logger,
 		postSearcher: postSearcher,
 	}
@@ -48,33 +46,15 @@ func (s *post) GetPosts(ctx context.Context) ([]types.Post, error) {
 	return s.postRepo.FindAll(ctx)
 }
 
-func (s *post) refreshPaginationVersion(ctx context.Context) (int64, error) {
-	version := time.Now().UnixMicro()
-	_, err := s.cache.Set(ctx, "posts_pagination_version", version, 1*time.Minute)
-	return version, err
-}
-
-func (s *post) getPaginationVersion(ctx context.Context) (int64, error) {
-	var version int64
-	versionFromCache, err := s.cache.Get(ctx, "posts_pagination_version")
-	if err != nil {
-		return s.refreshPaginationVersion(ctx)
-	}
-	version, err = strconv.ParseInt(versionFromCache, 10, 64)
-	return version, err
-}
-
 func (s *post) GetPostsPaged(ctx context.Context, page, size int) (*types.Page[types.Post], error) {
-	version, _ := s.getPaginationVersion(ctx)
-	key := fmt.Sprintf("posts:%v:page:%d", version, page)
-	pageFromCache, err := s.cache.Get(ctx, key)
-	if err == nil {
-		var res *types.Page[types.Post]
-		err := json.Unmarshal([]byte(pageFromCache), &res)
-		if err == nil {
-			return res, err
+	pageFromCache, version, err := s.postCache.GetPostsByPage(ctx, page, size)
+	if err != nil {
+		if errors.Is(err, cache.ErrInternalFailure) {
+			s.logger.Error(err.Error())
 		}
-		s.logger.Error(err.Error())
+	}
+	if pageFromCache != nil {
+		return pageFromCache, nil
 	}
 
 	t := time.UnixMicro(version).Format(time.RFC3339)
@@ -84,10 +64,10 @@ func (s *post) GetPostsPaged(ctx context.Context, page, size int) (*types.Page[t
 	}
 
 	go func() {
-		pageJson, _ := json.Marshal(postsPage)
-		_, err := s.cache.SetNX(ctx, key, pageJson, 65*time.Second)
-		if err != nil {
-			s.logger.Error(err.Error())
+		if err := s.postCache.AddPageOfPosts(ctx, page, *postsPage); err != nil {
+			if errors.Is(err, cache.ErrInternalFailure) {
+				s.logger.Error(err.Error())
+			}
 		}
 	}()
 
@@ -95,11 +75,12 @@ func (s *post) GetPostsPaged(ctx context.Context, page, size int) (*types.Page[t
 }
 
 func (s *post) GetPostById(ctx context.Context, id string) (*types.Post, error) {
-	postJson, err := s.cache.Get(ctx, "posts:"+id)
+	postFromCache, err := s.postCache.GetPostById(ctx, id)
 	if err == nil {
-		var post types.Post
-		json.Unmarshal([]byte(postJson), &post)
-		return &post, nil
+		return postFromCache, nil
+	}
+	if errors.Is(err, cache.ErrInternalFailure) {
+		s.logger.Error(err.Error())
 	}
 
 	post, err := s.postRepo.FindById(ctx, id)
@@ -108,14 +89,12 @@ func (s *post) GetPostById(ctx context.Context, id string) (*types.Post, error) 
 	}
 
 	go func() {
-		postBytes, _ := json.Marshal(post)
-		_, err = s.cache.Set(ctx, "posts:"+id, string(postBytes), 60*time.Second)
-		if err != nil {
+		if err := s.postCache.AddPost(ctx, *post); err != nil {
 			s.logger.Error(err.Error())
 		}
 	}()
 
-	return post, err
+	return post, nil
 }
 
 func (s *post) PinPost(ctx context.Context, id string) (*types.Post, error) {
@@ -126,10 +105,10 @@ func (s *post) PinPost(ctx context.Context, id string) (*types.Post, error) {
 	post.Pinned = !post.Pinned
 
 	go func() {
-		postb, _ := json.Marshal(post)
-		_, err := s.cache.SetXX(ctx, "posts:"+id, string(postb), 0)
-		if err != nil {
-			s.logger.Error(err.Error())
+		if err := s.postCache.PinPost(ctx, id); err != nil {
+			if errors.Is(err, cache.ErrInternalFailure) {
+				s.logger.Error(err.Error())
+			}
 		}
 	}()
 
@@ -153,19 +132,7 @@ func (s *post) CreatePost(ctx context.Context, title, content string, tweet bool
 	}
 
 	go func() {
-		postb, _ := json.Marshal(post)
-		key := "posts:" + id
-		tx, _ := s.cache.Tx()
-		tx.Append(ctx, func(pipe cache.Cache) error {
-			s.cache.Set(ctx, key, string(postb), 60*time.Second)
-			score, _ := s.cache.ZCard(ctx, "posts")
-			s.cache.ZAdd(ctx, "posts", cache.Member{
-				Score:  float64(score + 1),
-				Member: key,
-			})
-			return nil
-		})
-		if err := tx.Exec(ctx); err != nil {
+		if err := s.postCache.AddPost(ctx, post); err != nil {
 			s.logger.Error(err.Error())
 		}
 	}()
@@ -175,18 +142,10 @@ func (s *post) CreatePost(ctx context.Context, title, content string, tweet bool
 
 func (s *post) DeletePost(ctx context.Context, id string) (*types.Post, error) {
 	go func() {
-		tx, _ := s.cache.Tx()
-		key := "posts:" + id
-		tx.Append(ctx, func(pipe cache.Cache) error {
-			pipe.Del(ctx, key)
-			pipe.ZRem(ctx, "posts", key)
-			return nil
-		})
-		if err := tx.Exec(ctx); err != nil {
+		if err := s.postCache.Delete(ctx, id); err != nil {
 			s.logger.Error(err.Error())
 		}
 	}()
-	s.refreshPaginationVersion(ctx)
 	return s.postRepo.Delete(ctx, id)
 }
 

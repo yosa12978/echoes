@@ -12,7 +12,7 @@ import (
 )
 
 type Post interface {
-	GetPostsByPage(ctx context.Context, page, size int) (*types.Page[types.Post], error)
+	GetPostsByPage(ctx context.Context, page, size int) (*types.Page[types.Post], int64, error)
 	GetPostById(ctx context.Context, id string) (*types.Post, error)
 
 	PinPost(ctx context.Context, id string) error
@@ -71,7 +71,7 @@ func (p *postRedis) getPaginationVersion(ctx context.Context) (int64, error) {
 	return strconv.ParseInt(versionFromCache, 10, 64)
 }
 
-func (p *postRedis) GetPostsByPage(ctx context.Context, page int, size int) (*types.Page[types.Post], error) {
+func (p *postRedis) GetPostsByPage(ctx context.Context, page int, size int) (*types.Page[types.Post], int64, error) {
 	version, _ := p.getPaginationVersion(ctx)
 	valueKey := fmt.Sprintf("posts:%v:page:%d", version, page)
 	metaKey := fmt.Sprintf("posts:%v:page_meta:%d", version, page)
@@ -79,21 +79,21 @@ func (p *postRedis) GetPostsByPage(ctx context.Context, page int, size int) (*ty
 	valueExists, _ := p.rdb.Exists(ctx, valueKey).Result()
 	metaExists, _ := p.rdb.Exists(ctx, metaKey).Result()
 	if valueExists == 0 || metaExists == 0 {
-		return nil, ErrNotFound
+		return nil, version, ErrNotFound
 	}
 	postKeys, err := p.rdb.ZRange(ctx, valueKey, 0, -1).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return nil, nil
+			return nil, version, nil
 		}
-		return nil, errors.Join(err, ErrInternalFailure)
+		return nil, version, errors.Join(err, ErrInternalFailure)
 	}
 	posts := make([]types.Post, 0, len(postKeys))
 	for _, postKey := range postKeys {
 		// make this concurrent
 		post, err := p.getPostByRedisKey(ctx, postKey)
 		if err != nil {
-			return nil, err
+			return nil, version, err
 		}
 		posts = append(posts, *post)
 	}
@@ -102,9 +102,9 @@ func (p *postRedis) GetPostsByPage(ctx context.Context, page int, size int) (*ty
 	metaMap, err := p.rdb.HGetAll(ctx, metaKey).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return nil, ErrNotFound
+			return nil, version, ErrNotFound
 		}
-		return nil, errors.Join(err, ErrInternalFailure)
+		return nil, version, errors.Join(err, ErrInternalFailure)
 	}
 	hasNext, _ := strconv.ParseBool(metaMap["has_next"])
 	page_size, _ := strconv.Atoi(metaMap["size"])
@@ -117,7 +117,7 @@ func (p *postRedis) GetPostsByPage(ctx context.Context, page int, size int) (*ty
 		Total:    total,
 		NextPage: nextPage,
 	}
-	return &postsPage, nil
+	return &postsPage, version, nil
 }
 
 func (p *postRedis) AddPost(ctx context.Context, post types.Post) error {
@@ -131,6 +131,7 @@ func (p *postRedis) AddPost(ctx context.Context, post types.Post) error {
 		"comments": post.Comments,
 	}
 	key := fmt.Sprintf("posts:%s", post.Id)
+	// TODO add transactions for this sequences
 	_, err := p.rdb.HSet(ctx, key, postMap).Result()
 	if err != nil {
 		return errors.Join(err, ErrInternalFailure)
@@ -139,22 +140,19 @@ func (p *postRedis) AddPost(ctx context.Context, post types.Post) error {
 	if err != nil {
 		return errors.Join(err, ErrInternalFailure)
 	}
-	return nil
+	_, err = p.refreshPaginationVersion(ctx) // replace this with adding to cache instead
+	return err
 }
 
 func (p *postRedis) AddPageOfPosts(ctx context.Context, pageNum int, page types.Page[types.Post]) error {
+	// TODO make one big transaction out of this function
+
 	version, _ := p.getPaginationVersion(ctx)
-	metaKey := fmt.Sprintf("posts:%v:page_meta:%d", version, pageNum)
-	metaData := map[string]interface{}{
-		"has_next":  page.HasNext,
-		"next_page": page.HasNext,
-		"total":     page.Total,
-		"size":      page.Size,
-	}
-	_, err := p.rdb.HSet(ctx, metaKey, metaData).Result()
-	if err != nil {
-		return errors.Join(err, ErrInternalFailure)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// here transaction starts
+	// caching posts and preparing data for sorted set
 	postsKeys := make([]redis.Z, 0, len(page.Content))
 	for _, val := range page.Content {
 		if err := p.AddPost(ctx, val); err != nil {
@@ -167,8 +165,10 @@ func (p *postRedis) AddPageOfPosts(ctx context.Context, pageNum int, page types.
 				Score:  float64(timestamp.Unix()),
 			})
 	}
+
+	// caching posts sorted set
 	valueKey := fmt.Sprintf("posts:%v:page:%d", version, pageNum)
-	err = p.rdb.ZAdd(ctx, valueKey, postsKeys...).Err()
+	err := p.rdb.ZAdd(ctx, valueKey, postsKeys...).Err()
 	if err != nil {
 		return errors.Join(err, ErrInternalFailure)
 	}
@@ -179,6 +179,19 @@ func (p *postRedis) AddPageOfPosts(ctx context.Context, pageNum int, page types.
 		}
 		return errors.Join(err, ErrInternalFailure)
 	}
+
+	// setting up metadata
+	metaKey := fmt.Sprintf("posts:%v:page_meta:%d", version, pageNum)
+	metaData := map[string]interface{}{
+		"has_next":  page.HasNext,
+		"next_page": page.HasNext,
+		"total":     page.Total,
+		"size":      page.Size,
+	}
+	_, err = p.rdb.HSet(ctx, metaKey, metaData).Result()
+	if err != nil {
+		return errors.Join(err, ErrInternalFailure)
+	}
 	err = p.rdb.Expire(ctx, metaKey, 1*time.Minute).Err()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
@@ -186,6 +199,7 @@ func (p *postRedis) AddPageOfPosts(ctx context.Context, pageNum int, page types.
 		}
 		return errors.Join(err, ErrInternalFailure)
 	}
+	// here transaction ends
 	return nil
 }
 
@@ -198,7 +212,8 @@ func (p *postRedis) Delete(ctx context.Context, id string) error {
 		}
 		return errors.Join(err, ErrInternalFailure)
 	}
-	return nil
+	_, err = p.refreshPaginationVersion(ctx)
+	return err
 }
 
 func (p *postRedis) PinPost(ctx context.Context, id string) error {
