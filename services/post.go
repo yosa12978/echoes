@@ -191,7 +191,7 @@ func (s *post) DeletePost(ctx context.Context, id string) (*types.Post, error) {
 }
 
 func (s *post) Seed(ctx context.Context) error {
-	for i := 0; i < 30; i++ {
+	for i := 0; i < 60; i++ {
 		time.Sleep(1000 * time.Millisecond)
 		_, err := s.postRepo.Create(ctx, types.NewPost(fmt.Sprintf("post #%d", 30-i), fmt.Sprintf("post content #%d", 30-i), false))
 		if err != nil {

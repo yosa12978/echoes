@@ -9,8 +9,6 @@ import (
 	"github.com/yosa12978/echoes/data"
 )
 
-var ErrNotFound = errors.New("key doesn't exist")
-
 type Cache interface {
 	String
 	Hashmap
