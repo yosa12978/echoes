@@ -33,8 +33,8 @@ func NewPostRedis(rdb *redis.Client, logger logging.Logger) Post {
 	return &postRedis{rdb: rdb, logger: logger}
 }
 
-func (p *postRedis) getPostByRedisKey(ctx context.Context, key string) (*types.Post, error) {
-	postMap, err := p.rdb.HGetAll(ctx, key).Result()
+func (p *postRedis) GetPostById(ctx context.Context, id string) (*types.Post, error) {
+	postMap, err := p.rdb.HGetAll(ctx, "posts:"+id).Result()
 	if len(postMap) == 0 {
 		return nil, ErrNotFound
 	}
@@ -56,10 +56,6 @@ func (p *postRedis) getPostByRedisKey(ctx context.Context, key string) (*types.P
 	return &post, nil
 }
 
-func (p *postRedis) GetPostById(ctx context.Context, id string) (*types.Post, error) {
-	return p.getPostByRedisKey(ctx, "posts:"+id)
-}
-
 func (p *postRedis) refreshPaginationVersion(ctx context.Context) (int64, error) {
 	version := time.Now().UnixMicro()
 	res, err := p.rdb.Set(ctx, "posts_pagination_version", version, 1*time.Minute).Result()
@@ -78,6 +74,7 @@ func (p *postRedis) getPaginationVersion(ctx context.Context) (int64, error) {
 	return strconv.ParseInt(versionFromCache, 10, 64)
 }
 
+// latency here 2ms+ size=20
 func (p *postRedis) GetPostsByPage(ctx context.Context, page int, size int) (*types.Page[types.Post], int64, error) {
 	version, _ := p.getPaginationVersion(ctx)
 	valueKey := fmt.Sprintf("posts:%v:page:%d", version, page)
@@ -96,11 +93,11 @@ func (p *postRedis) GetPostsByPage(ctx context.Context, page int, size int) (*ty
 		return nil, version, errors.Join(err, ErrInternalFailure)
 	}
 	posts := make([]types.Post, 0, len(postKeysJson))
-	var postKeys []string
-	json.Unmarshal([]byte(postKeysJson), &postKeys)
-	for _, postKey := range postKeys {
+	var postIDs []string
+	json.Unmarshal([]byte(postKeysJson), &postIDs)
+	for _, postId := range postIDs {
 		// make this concurrent
-		post, err := p.getPostByRedisKey(ctx, postKey)
+		post, err := p.GetPostById(ctx, postId)
 		if err != nil {
 			return nil, version, err
 		}
@@ -177,14 +174,14 @@ func (p *postRedis) AddPageOfPosts(
 
 	// caching posts and preparing data for sorted set
 	// make this concurrent
-	postsKeys := make([]string, 0, len(page.Content))
+	postsIDs := make([]string, 0, len(page.Content))
 	for _, val := range page.Content {
 		if err := addPost(ctx, val, pipe); err != nil {
 			return err
 		}
-		postsKeys = append(postsKeys, "posts:"+val.Id)
+		postsIDs = append(postsIDs, val.Id)
 	}
-	postsKeysJson, _ := json.Marshal(postsKeys)
+	postsKeysJson, _ := json.Marshal(postsIDs)
 
 	// caching posts sorted set
 	valueKey := fmt.Sprintf("posts:%v:page:%d", version, pageNum)

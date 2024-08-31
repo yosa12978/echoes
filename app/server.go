@@ -28,7 +28,7 @@ func newServer(ctx context.Context, addr string, logger logging.Logger) http.Ser
 	)
 	linkService := services.NewLink(
 		linkRepo,
-		cache.NewRedisCache(ctx),
+		cache.NewLinkRedis(data.Redis(ctx), logger),
 		logger,
 	)
 	commentService := services.NewComment(

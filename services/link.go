@@ -2,12 +2,9 @@ package services
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"net/url"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -27,77 +24,39 @@ type Link interface {
 
 type link struct {
 	linkRepo repos.Link
-	cache    cache.Cache
+	cache    cache.Link
 	logger   logging.Logger
 }
 
-func NewLink(linkRepo repos.Link, cache cache.Cache, logger logging.Logger) Link {
+func NewLink(linkRepo repos.Link, cache cache.Link, logger logging.Logger) Link {
 	return &link{linkRepo: linkRepo, cache: cache, logger: logger}
 }
 
-// Migrate to hashmaps instead of json-encoded string for caching
-// Here is some helpful funcs
-// func linkToMap(l types.Link) map[string]interface{} {
-// 	return map[string]interface{}{
-// 		"Id":      l.Id,
-// 		"Name":    l.Name,
-// 		"Created": l.Created,
-// 		"URL":     l.URL,
-// 	}
-// }
-
-// func mapToLink(m map[string]string) types.Link {
-// 	return types.Link{
-// 		Id:      m["Id"],
-// 		Name:    m["Name"],
-// 		Created: m["Created"],
-// 		URL:     m["URL"],
-// 	}
-// }
-
 func (s *link) GetLinks(ctx context.Context) ([]types.Link, error) {
-	inCache, _ := s.cache.Exists(ctx, "links")
-	if inCache == 1 {
-		setRes, err := s.cache.ZRange(ctx, "links", 0, -1)
-		if err == nil {
-			links := make([]types.Link, len(setRes))
-			linksFromSet, _ := s.cache.MGet(ctx, setRes...)
-			var wg sync.WaitGroup
-			for k, v := range linksFromSet {
-				wg.Add(1)
-				go func(key int, val string) {
-					defer wg.Done()
-					json.Unmarshal([]byte(val), &links[key])
-				}(k, v.(string))
-			}
-			wg.Wait()
-			return links, nil
+	links, err := s.cache.GetLinks(ctx)
+	if err != nil {
+		if errors.Is(err, cache.ErrInternalFailure) {
+			s.logger.Error(err.Error())
 		}
 	}
+	if links != nil {
+		return links, nil
+	}
 
-	links, err := s.linkRepo.FindAll(ctx)
+	links, err = s.linkRepo.FindAll(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	go func() {
-		tx, _ := s.cache.Tx()
-		tx.Append(ctx, func(pipe cache.Cache) error {
-			members := make([]cache.Member, len(links))
-			for k, v := range links {
-				link, _ := json.Marshal(v)
-				key := fmt.Sprintf("links:%s", v.Id)
-				pipe.Set(ctx, key, link, 0)
-				members[k] = cache.Member{Member: key, Score: float64(k)}
-			}
-			pipe.ZAdd(ctx, "links", members...)
-			pipe.Expires(ctx, "links", 60*time.Second)
-			return nil
-		})
-		tx.Exec(ctx)
+		timeout, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := s.cache.AddLinks(timeout, links...); err != nil {
+			s.logger.Error(err.Error())
+		}
 	}()
 
-	return links, err
+	return links, nil
 }
 
 func (s *link) CreateLink(ctx context.Context, name, addr, icon string, place int) (*types.Link, error) {
@@ -128,19 +87,7 @@ func (s *link) CreateLink(ctx context.Context, name, addr, icon string, place in
 	}
 
 	go func() {
-		// or even better and simplier just delete link key if it exists
-		// linkJson, _ := json.Marshal(link)
-		// linkKey := fmt.Sprintf("links:%s", link.Id)
-		// tx, _ := s.cache.Tx()
-		// tx.Append(ctx, func(pipe cache.Cache) error {
-		// 	pipe.Set(ctx, linkKey, string(linkJson), 0)
-		// 	score, _ := s.cache.ZCard(ctx, "posts")
-		// 	pipe.ZAdd(ctx, "links", cache.Member{Score: float64(score + 1), Member: linkKey})
-		// 	pipe.Expires(ctx, "links", 60*time.Second)
-		// 	return nil
-		// })
-		// tx.Exec(ctx)
-		s.cache.Del(ctx, "links")
+		s.cache.Referesh(context.Background())
 	}()
 
 	errCh = make(chan error)
@@ -154,14 +101,9 @@ func (s *link) CreateLink(ctx context.Context, name, addr, icon string, place in
 
 func (s *link) DeleteLink(ctx context.Context, id string) (*types.Link, error) {
 	go func() {
-		key := fmt.Sprintf("links:%s", id)
-		tx, _ := s.cache.Tx()
-		tx.Append(ctx, func(pipe cache.Cache) error {
-			_, err := pipe.Del(ctx, key)
-			pipe.ZRem(ctx, "links", key)
-			return err
-		})
-		tx.Exec(ctx)
+		if err := s.cache.Delete(context.Background(), id); err != nil {
+			s.logger.Error(err.Error())
+		}
 	}()
 	return s.linkRepo.Delete(ctx, id)
 }
@@ -201,25 +143,26 @@ func (s *link) Seed(ctx context.Context) error {
 }
 
 func (s *link) GetLinkById(ctx context.Context, id string) (*types.Link, error) {
-	linkFromCache, err := s.cache.Get(ctx, "links:"+id)
-	if err == nil {
-		var link types.Link
-		err := json.Unmarshal([]byte(linkFromCache), &link)
-		return &link, err
-	}
+	// linkFromCache, err := s.cache.Get(ctx, "links:"+id)
+	// if err == nil {
+	// 	var link types.Link
+	// 	err := json.Unmarshal([]byte(linkFromCache), &link)
+	// 	return &link, err
+	// }
 
-	link, err := s.linkRepo.FindById(ctx, id)
-	if err != nil {
-		return link, err
-	}
+	// link, err := s.linkRepo.FindById(ctx, id)
+	// if err != nil {
+	// 	return link, err
+	// }
 
-	go func() {
-		linkBytes, _ := json.Marshal(link)
-		if _, err := s.cache.Set(ctx, "links:"+id, string(linkBytes), 0); err != nil {
-			s.logger.Error(err.Error())
-			return
-		}
-	}()
+	// go func() {
+	// 	linkBytes, _ := json.Marshal(link)
+	// 	if _, err := s.cache.Set(ctx, "links:"+id, string(linkBytes), 0); err != nil {
+	// 		s.logger.Error(err.Error())
+	// 		return
+	// 	}
+	// }()
 
-	return link, err
+	// return link, err
+	panic("unimplemented")
 }
