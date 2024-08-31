@@ -64,7 +64,9 @@ func (s *post) GetPostsPaged(ctx context.Context, page, size int) (*types.Page[t
 	}
 
 	go func() {
-		if err := s.postCache.AddPageOfPosts(ctx, page, *postsPage); err != nil {
+		timeout, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := s.postCache.AddPageOfPosts(timeout, page, *postsPage); err != nil {
 			if errors.Is(err, cache.ErrInternalFailure) {
 				s.logger.Error(err.Error())
 			}

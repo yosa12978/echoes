@@ -22,7 +22,7 @@ func newServer(ctx context.Context, addr string, logger logging.Logger) http.Ser
 
 	postService := services.NewPost(
 		postRepo,
-		cache.NewPostRedis(data.Redis(ctx)),
+		cache.NewPostRedis(data.Redis(ctx), logger),
 		logger,
 		repos.NewPostSearcherPostgres(),
 	)
