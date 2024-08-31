@@ -30,8 +30,8 @@
         <div class="link card mb-3" id="link-{{.Id}}">
             <div class="card-body d-flex justify-content-between">
                 <span class="card-text float-left mt-1"><i class="bi bi-{{.Icon}}"></i> <b>{{.Name}}</b></span>
-                <button class="btn btn-danger border-0" hx-delete="/api/links/{{.Id}}" hx-target="#link-delete-alert"
-                    hx-swap="innerHTML">Delete</button>
+                <button class="btn btn-danger border-0" hx-delete="/api/links/{{.Id}}" style="border-radius: 5px"
+                    hx-target="#link-delete-alert" hx-swap="innerHTML">Delete</button>
             </div>
         </div>
         {{end}}
