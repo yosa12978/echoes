@@ -87,7 +87,7 @@ func (s *link) CreateLink(ctx context.Context, name, addr, icon string, place in
 	}
 
 	go func() {
-		s.cache.Referesh(context.Background())
+		s.cache.Flush(context.Background())
 	}()
 
 	errCh = make(chan error)

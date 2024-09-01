@@ -15,7 +15,7 @@ import (
 type Link interface {
 	GetLinks(ctx context.Context) ([]types.Link, error)
 	AddLinks(ctx context.Context, links ...types.Link) error
-	Referesh(ctx context.Context) error
+	Flush(ctx context.Context) error
 	Delete(ctx context.Context, id string) error
 
 	//Deprecated
@@ -144,7 +144,7 @@ func (l *linkCache) Update(ctx context.Context, id string, link types.Link) erro
 	panic("unimplemented")
 }
 
-func (l *linkCache) Referesh(ctx context.Context) error {
+func (l *linkCache) Flush(ctx context.Context) error {
 	if err := l.rdb.Del(ctx, "links").Err(); err != nil {
 		if errors.Is(err, redis.Nil) {
 			return newNotFound(err)
