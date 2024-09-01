@@ -194,7 +194,7 @@ func (p *postRedis) AddPageOfPosts(
 	metaKey := fmt.Sprintf("posts:%v:page_meta:%d", version, pageNum)
 	metaData := map[string]interface{}{
 		"has_next":  page.HasNext,
-		"next_page": page.HasNext,
+		"next_page": page.NextPage,
 		"total":     page.Total,
 		"size":      page.Size,
 	}
