@@ -2,7 +2,6 @@ package repos
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/yosa12978/echoes/cache"
@@ -11,8 +10,8 @@ import (
 
 type Announce interface {
 	Get(ctx context.Context) (*types.Announce, error)
-	Create(ctx context.Context, content string) (*types.Announce, error)
-	Delete(ctx context.Context) (*types.Announce, error)
+	Create(ctx context.Context, content string) error
+	Delete(ctx context.Context) error
 }
 
 type announce struct {
@@ -25,71 +24,40 @@ func NewAnnounce() Announce {
 	return repo
 }
 
-func (repo *announce) Create(ctx context.Context, content string) (*types.Announce, error) {
+func (repo *announce) Create(ctx context.Context, content string) error {
 	repo.storage = new(types.Announce)
 	repo.storage.Content = content
 	repo.storage.Date = time.Now().Format(time.RFC3339)
-	return repo.storage, nil
+	return nil
 }
 
-func (repo *announce) Delete(ctx context.Context) (*types.Announce, error) {
+func (repo *announce) Delete(ctx context.Context) error {
 	repo.storage = nil
-	return repo.storage, nil
+	return nil
 }
 
 func (repo *announce) Get(ctx context.Context) (*types.Announce, error) {
 	return repo.storage, nil
 }
 
-type announceCache struct {
-	cache cache.Hashmap
+type announceCacheAdapter struct {
+	cache cache.Announce
 }
 
-func NewAnnounceCache(cache cache.Hashmap) Announce {
-	return &announceCache{
+func NewAnnounceCacheAdapter(cache cache.Announce) Announce {
+	return &announceCacheAdapter{
 		cache: cache,
 	}
 }
 
-func (a *announceCache) Get(ctx context.Context) (*types.Announce, error) {
-	res, err := a.cache.HGetAll(ctx, "announce")
-	if err != nil {
-		if errors.Is(err, cache.ErrNotFound) {
-			return nil, ErrNotFound
-		}
-		return nil, errors.Join(err, ErrInternalFailure)
-	}
-	announce := types.Announce{
-		Content: res["content"],
-		Date:    res["date"],
-	}
-	return &announce, nil
+func (a *announceCacheAdapter) Create(ctx context.Context, content string) error {
+	return a.cache.Create(ctx, content)
 }
 
-func (a *announceCache) Create(ctx context.Context, content string) (*types.Announce, error) {
-	announce := map[string]string{
-		"content": content,
-		"date":    time.Now().Format(time.RFC3339),
-	}
-	_, err := a.cache.HSet(ctx, "announce", announce)
-	res := types.Announce{Content: content, Date: time.Now().Format(time.RFC3339)}
-	if err != nil {
-		return nil, errors.Join(err, ErrInternalFailure)
-	}
-	return &res, nil
+func (a *announceCacheAdapter) Delete(ctx context.Context) error {
+	return a.cache.Delete(ctx)
 }
 
-func (a *announceCache) Delete(ctx context.Context) (*types.Announce, error) {
-	announce, err := a.Get(ctx)
-	if err != nil {
-		if errors.Is(err, cache.ErrNotFound) {
-			return nil, ErrNotFound
-		}
-		return nil, errors.Join(err, ErrInternalFailure)
-	}
-	_, err = a.cache.Del(ctx, "announce")
-	if err != nil {
-		return nil, errors.Join(err, ErrInternalFailure)
-	}
-	return announce, err
+func (a *announceCacheAdapter) Get(ctx context.Context) (*types.Announce, error) {
+	return a.cache.Get(ctx)
 }

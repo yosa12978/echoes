@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/yosa12978/echoes/cache"
+	"github.com/redis/go-redis/v9"
 	"github.com/yosa12978/echoes/config"
 	"github.com/yosa12978/echoes/types"
 )
@@ -47,16 +47,16 @@ func (repo *profileJson) Update(ctx context.Context, profile types.Profile) (*ty
 }
 
 type profileRedis struct {
-	cache cache.Cache
+	cache *redis.Client
 	cfg   config.Config
 }
 
-func NewProfileRedis(cache cache.Cache) Profile {
+func NewProfileRedis(cache *redis.Client) Profile {
 	return &profileRedis{cache: cache}
 }
 
 func (p *profileRedis) Get(ctx context.Context) (*types.Profile, error) {
-	profileJson, err := p.cache.Get(ctx, "profile")
+	profileJson, err := p.cache.Get(ctx, "profile").Result()
 	if err != nil {
 		profile := types.Profile{
 			Name: p.cfg.Profile.Name,
@@ -64,7 +64,7 @@ func (p *profileRedis) Get(ctx context.Context) (*types.Profile, error) {
 			Icon: p.cfg.Profile.Picture,
 		}
 		j, _ := json.Marshal(profile)
-		_, err := p.cache.Set(ctx, "profile", string(j), -1)
+		_, err := p.cache.Set(ctx, "profile", string(j), -1).Result()
 		return &profile, err
 	}
 	profile := types.Profile{}

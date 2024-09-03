@@ -20,8 +20,7 @@ func CreateAnnounce(logger logging.Logger, service services.Announce) http.Handl
 
 		// r.ParseForm()
 		// content := r.FormValue("content")
-		_, err := service.Create(r.Context(), content)
-		if err != nil {
+		if err := service.Create(r.Context(), content); err != nil {
 			logger.Error(err.Error())
 			utils.RenderBlock(w, "alert", "can't create announce")
 			return

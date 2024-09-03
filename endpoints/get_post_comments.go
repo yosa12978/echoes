@@ -6,6 +6,7 @@ import (
 
 	"github.com/yosa12978/echoes/logging"
 	"github.com/yosa12978/echoes/services"
+	"github.com/yosa12978/echoes/types"
 	"github.com/yosa12978/echoes/utils"
 )
 
@@ -27,6 +28,6 @@ func GetPostComments(logger logging.Logger, service services.Comment) http.Handl
 			utils.RenderBlock(w, "alert", "can't fetch post comments")
 			return
 		}
-		utils.RenderBlock(w, "comments", commentsPaged)
+		utils.RenderBlock(w, "comments", types.CommentsInfo{Page: *commentsPaged, PostId: postId})
 	}
 }

@@ -12,8 +12,8 @@ import (
 
 type Announce interface {
 	Get(ctx context.Context) (*types.Announce, error)
-	Create(ctx context.Context, content string) (*types.Announce, error)
-	Delete(ctx context.Context) (*types.Announce, error)
+	Create(ctx context.Context, content string) error
+	Delete(ctx context.Context) error
 }
 
 type announce struct {
@@ -35,14 +35,14 @@ func (s *announce) Get(ctx context.Context) (*types.Announce, error) {
 	return announce, nil
 }
 
-func (s *announce) Create(ctx context.Context, content string) (*types.Announce, error) {
+func (s *announce) Create(ctx context.Context, content string) error {
 	content = strings.TrimSpace(content)
 	if content == "" {
-		return nil, errors.New("announce can't be empty")
+		return errors.New("announce can't be empty")
 	}
 	return s.announceRepo.Create(ctx, content)
 }
 
-func (s *announce) Delete(ctx context.Context) (*types.Announce, error) {
+func (s *announce) Delete(ctx context.Context) error {
 	return s.announceRepo.Delete(ctx)
 }

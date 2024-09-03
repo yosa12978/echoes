@@ -16,7 +16,7 @@ import (
 )
 
 type Comment interface {
-	GetPostComments(ctx context.Context, postId string, page, size int) (*types.CommentsInfo, error)
+	GetPostComments(ctx context.Context, postId string, page, size int) (*types.Page[types.Comment], error)
 	GetCommentById(ctx context.Context, commentId string) (*types.Comment, error)
 	CreateComment(ctx context.Context, postId, name, email, content string) (*types.Comment, error)
 	DeleteComment(ctx context.Context, commentId string) (*types.Comment, error)
@@ -40,23 +40,18 @@ func NewComment(commentRepo repos.Comment, postService Post, cache cache.Comment
 	}
 }
 
-// change return type leater to types.Page[types.Comment]
-func (s *comment) GetPostComments(ctx context.Context, postId string, page, size int) (*types.CommentsInfo, error) {
-	if _, err := s.postService.GetPostById(ctx, postId); err != nil {
-		return nil, err
-	}
-
+func (s *comment) GetPostComments(ctx context.Context, postId string, page, size int) (*types.Page[types.Comment], error) {
+	// if _, err := s.postService.GetPostById(ctx, postId); err != nil {
+	// 	return nil, err
+	// }
 	commentsFromCache, version, err := s.cache.GetPostComments(ctx, postId, page)
 	if err != nil {
 		if errors.Is(err, cache.ErrInternalFailure) {
 			s.logger.Error(err.Error())
 		}
 	}
-	if commentsFromCache != nil && err == nil { // cheching err again because ErrNotFound might occur. Refactor this later
-		return &types.CommentsInfo{
-			Page:   *commentsFromCache,
-			PostId: postId,
-		}, nil
+	if commentsFromCache != nil { // cheching err again because ErrNotFound might occur. Refactor this later
+		return commentsFromCache, nil
 	}
 
 	t := time.UnixMicro(version).Format(time.RFC3339)
@@ -65,16 +60,12 @@ func (s *comment) GetPostComments(ctx context.Context, postId string, page, size
 		s.logger.Error(err.Error())
 		return nil, err
 	}
-
 	go func() {
 		timeout, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		s.cache.AddPostComments(timeout, postId, page, *commentsPaged)
 	}()
-	return &types.CommentsInfo{
-		Page:   *commentsPaged,
-		PostId: postId,
-	}, nil
+	return commentsPaged, nil
 }
 
 func (s *comment) GetCommentById(ctx context.Context, commentId string) (*types.Comment, error) {

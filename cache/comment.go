@@ -63,7 +63,7 @@ func (c *commentRedis) RefreshPagination(ctx context.Context, postId string) (in
 func (c *commentRedis) AddComment(ctx context.Context, comment types.Comment) error {
 	key := fmt.Sprintf("comments:%s", comment.Id)
 	commentJson, _ := json.Marshal(comment)
-	err := c.rdb.Set(ctx, key, commentJson, 1*time.Minute).Err()
+	err := c.rdb.Set(ctx, key, commentJson, 2*time.Minute).Err()
 	if err != nil {
 		return newInternalFailure(err)
 	}
@@ -82,7 +82,7 @@ func (c *commentRedis) AddPostComments(
 	}
 	key := fmt.Sprintf("comments:%s:%v:%d", postId, version, page)
 	pageJson, _ := json.Marshal(comments)
-	err = c.rdb.SetNX(ctx, key, pageJson, 1*time.Minute).Err()
+	err = c.rdb.Set(ctx, key, pageJson, 1*time.Minute).Err()
 	if err != nil {
 		return newInternalFailure(err)
 	}
@@ -92,15 +92,15 @@ func (c *commentRedis) AddPostComments(
 func (c *commentRedis) GetPostComments(ctx context.Context, postId string, page int) (*types.Page[types.Comment], int64, error) {
 	version, err := c.getPaginationVersion(ctx, postId)
 	if err != nil {
-		return nil, 0, err
+		return nil, version, err
 	}
 	key := fmt.Sprintf("comments:%s:%v:%d", postId, version, page)
 	pageJson, err := c.rdb.Get(ctx, key).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return nil, 0, ErrNotFound
+			return nil, version, ErrNotFound
 		}
-		return nil, 0, newInternalFailure(err)
+		return nil, version, newInternalFailure(err)
 	}
 	var res types.Page[types.Comment]
 	json.Unmarshal([]byte(pageJson), &res)
