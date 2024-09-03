@@ -2,11 +2,9 @@ package services
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/mail"
-	"strconv"
 	"strings"
 	"time"
 
@@ -29,11 +27,11 @@ type Comment interface {
 type comment struct {
 	commentRepo repos.Comment
 	postService Post
-	cache       cache.Cache
+	cache       cache.Comment
 	logger      logging.Logger
 }
 
-func NewComment(commentRepo repos.Comment, postService Post, cache cache.Cache, logger logging.Logger) Comment {
+func NewComment(commentRepo repos.Comment, postService Post, cache cache.Comment, logger logging.Logger) Comment {
 	return &comment{
 		commentRepo: commentRepo,
 		postService: postService,
@@ -42,47 +40,23 @@ func NewComment(commentRepo repos.Comment, postService Post, cache cache.Cache, 
 	}
 }
 
-func (s *comment) getPaginationVersion(ctx context.Context, postId string) (int64, error) {
-	var version int64
-	key := "comments_pagination_version:" + postId
-	versionFromCache, err := s.cache.Get(ctx, key)
-	if err != nil {
-		version := time.Now().UnixMicro()
-		_, err = s.cache.Set(
-			ctx,
-			key,
-			version,
-			1*time.Minute,
-		)
-		return version, err
-	}
-	version, err = strconv.ParseInt(versionFromCache, 10, 64)
-	return version, err
-}
-
-func (s *comment) refreshPaginationVersion(ctx context.Context, postId string) (int64, error) {
-	version := time.Now().UnixMicro()
-	_, err := s.cache.Set(ctx, "comments_pagination_version:"+postId, version, 1*time.Minute)
-	return version, err
-}
-
+// change return type leater to types.Page[types.Comment]
 func (s *comment) GetPostComments(ctx context.Context, postId string, page, size int) (*types.CommentsInfo, error) {
 	if _, err := s.postService.GetPostById(ctx, postId); err != nil {
 		return nil, err
 	}
-	version, err := s.getPaginationVersion(ctx, postId)
+
+	commentsFromCache, version, err := s.cache.GetPostComments(ctx, postId, page)
 	if err != nil {
-		s.logger.Error(err.Error())
-	}
-	key := fmt.Sprintf("comments:%s:%v:%d", postId, version, page)
-	commentsFromCache, err := s.cache.Get(ctx, key)
-	if err == nil {
-		var res types.CommentsInfo
-		err := json.Unmarshal([]byte(commentsFromCache), &res)
-		if err == nil {
-			return &res, nil
+		if errors.Is(err, cache.ErrInternalFailure) {
+			s.logger.Error(err.Error())
 		}
-		s.logger.Error(err.Error())
+	}
+	if commentsFromCache != nil && err == nil { // cheching err again because ErrNotFound might occur. Refactor this later
+		return &types.CommentsInfo{
+			Page:   *commentsFromCache,
+			PostId: postId,
+		}, nil
 	}
 
 	t := time.UnixMicro(version).Format(time.RFC3339)
@@ -91,27 +65,25 @@ func (s *comment) GetPostComments(ctx context.Context, postId string, page, size
 		s.logger.Error(err.Error())
 		return nil, err
 	}
-	res := types.CommentsInfo{
-		Page:   *commentsPaged,
-		PostId: postId,
-	}
 
 	go func() {
-		pageJson, _ := json.Marshal(res)
-		_, err := s.cache.SetNX(ctx, key, pageJson, 65*time.Second)
-		if err != nil {
-			s.logger.Error(err.Error())
-		}
+		timeout, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		s.cache.AddPostComments(timeout, postId, page, *commentsPaged)
 	}()
-	return &res, nil
+	return &types.CommentsInfo{
+		Page:   *commentsPaged,
+		PostId: postId,
+	}, nil
 }
 
 func (s *comment) GetCommentById(ctx context.Context, commentId string) (*types.Comment, error) {
-	commentFromCache, err := s.cache.Get(ctx, "comments:"+commentId)
+	commentFromCache, err := s.cache.GetCommentById(ctx, commentId)
 	if err == nil {
-		var comment types.Comment
-		err := json.Unmarshal([]byte(commentFromCache), &comment)
-		return &comment, err
+		return commentFromCache, nil
+	}
+	if errors.Is(err, cache.ErrInternalFailure) {
+		s.logger.Error(err.Error())
 	}
 
 	comment, err := s.commentRepo.FindById(ctx, commentId)
@@ -120,9 +92,9 @@ func (s *comment) GetCommentById(ctx context.Context, commentId string) (*types.
 	}
 
 	go func() {
-		commentJson, _ := json.Marshal(comment)
-		_, err := s.cache.Set(ctx, "comments:"+commentId, commentJson, 0)
-		if err != nil {
+		timeout, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := s.cache.AddComment(timeout, *comment); err != nil {
 			s.logger.Error(err.Error())
 		}
 	}()
@@ -152,21 +124,24 @@ func (s *comment) CreateComment(ctx context.Context, postId, name, email, conten
 		PostId:  postId,
 	}
 
-	go func() {
-		commentJson, _ := json.Marshal(comm)
-		_, err := s.cache.Set(ctx, "comments:"+comm.Id, commentJson, 120*time.Second)
-		if err != nil {
+	go func() { // i don't like this. refactor
+		timeout, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := s.cache.AddComment(timeout, comm); err != nil {
+			s.logger.Error(err.Error())
+		}
+		if _, err := s.cache.RefreshPagination(timeout, postId); err != nil {
 			s.logger.Error(err.Error())
 		}
 	}()
-	s.refreshPaginationVersion(ctx, postId)
 	return s.commentRepo.Create(ctx, comm)
 }
 
 func (s *comment) DeleteComment(ctx context.Context, commentId string) (*types.Comment, error) {
 	go func() {
-		_, err := s.cache.Del(ctx, "comments:"+commentId)
-		if err != nil {
+		timeout, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := s.cache.DeleteComment(timeout, commentId); err != nil {
 			s.logger.Error(err.Error())
 		}
 	}()
@@ -188,21 +163,20 @@ func (s *comment) Seed(ctx context.Context) error {
 }
 
 func (s *comment) GetCommentsCount(ctx context.Context, postId string) (int, error) {
-	countstr, err := s.cache.Get(ctx, "comments_count:"+postId)
+	count, err := s.cache.GetCommentsCount(ctx, postId)
 	if err == nil {
-		return strconv.Atoi(countstr)
+		return count, nil
 	}
 
-	count, err := s.commentRepo.GetCommentsCount(ctx, postId)
+	count, err = s.commentRepo.GetCommentsCount(ctx, postId)
 	if err != nil {
 		return 0, err
 	}
 	go func() {
-		_, err = s.cache.Set(context.Background(), "comments_count:"+postId, count, 60*time.Second)
-		if err != nil {
-			// probably i should create separate context's for goroutines
-			// i guess serve http returns before it sets value to redis
-			s.logger.Error(err.Error()) // if i use ctx here context cancels
+		timeout, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := s.cache.SetCommentsCount(timeout, postId, count); err != nil {
+			s.logger.Error(err.Error())
 		}
 	}()
 	return count, nil

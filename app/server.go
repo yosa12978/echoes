@@ -34,7 +34,7 @@ func newServer(ctx context.Context, addr string, logger logging.Logger) http.Ser
 	commentService := services.NewComment(
 		commentRepo,
 		postService,
-		cache.NewRedisCache(ctx),
+		cache.NewCommentRedis(data.Redis(ctx), logger),
 		logger,
 	)
 	announceService := services.NewAnnounce(
