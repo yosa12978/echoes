@@ -18,7 +18,8 @@ func newServer(ctx context.Context, addr string, logger logging.Logger) http.Ser
 	commentRepo := repos.NewCommentPostgres()
 	accountRepo := repos.NewAccountPostgres()
 	profileRepo := repos.NewProfileFromConfig()
-	announceRepo := cache.NewAnnounceRedis(data.Redis(ctx))
+	announceRepo := repos.NewAnnounceCacheAdapter(
+		cache.NewAnnounceRedis(data.Redis(ctx)))
 
 	postService := services.NewPost(
 		postRepo,
