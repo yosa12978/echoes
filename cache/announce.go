@@ -34,6 +34,9 @@ func (a *announceRedis) Get(ctx context.Context) (*types.Announce, error) {
 		}
 		return nil, errors.Join(err, ErrInternalFailure)
 	}
+	if len(res) == 0 {
+		return nil, ErrNotFound
+	}
 	announce := types.Announce{
 		Content: res["content"],
 		Date:    res["date"],
