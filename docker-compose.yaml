@@ -56,7 +56,7 @@ services:
     networks:
       - echoes-network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U user -d hjkl_db" ]
+      test: [ "CMD-SHELL", "pg_isready -U user -d echoesdb" ]
       interval: 10s
       timeout: 5s
       retries: 3
