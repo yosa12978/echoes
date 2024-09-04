@@ -153,7 +153,7 @@ func addViewRoutes(router *http.ServeMux) {
 
 	router.HandleFunc("GET /posts/{id}", func(w http.ResponseWriter, r *http.Request) {
 		idStr := r.PathValue("id")
-		if err := utils.RenderView(w, "post", "", idStr); err != nil {
+		if err := utils.RenderView(w, "post", "blog", idStr); err != nil {
 			http.Error(w, err.Error(), 500)
 		}
 	})
