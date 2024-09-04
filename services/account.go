@@ -36,23 +36,23 @@ func (a *account) isUsernameTaken(ctx context.Context, username string) bool {
 func (a *account) GetByCredentials(ctx context.Context, username, password string) (*types.Account, error) {
 	account, err := a.accountRepo.FindByUsername(ctx, username)
 	if err != nil {
-		return nil, errors.New("wrong credentials")
+		return nil, types.NewErrNotFound(errors.New("wrong credentials"))
 	}
 	fmt.Printf("\"%s\"\n", account.Password)
 	if !utils.CheckPasswordHash(password+account.Salt, account.Password) {
-		return nil, errors.New("wrong credentials")
+		return nil, types.NewErrNotFound(errors.New("wrong credentials"))
 	}
 	return account, nil
 }
 
 func (a *account) CreateAccount(ctx context.Context, username, password string, isAdmin bool) (*types.Account, error) {
 	if a.isUsernameTaken(ctx, username) {
-		return nil, errors.New("username is already taken")
+		return nil, types.NewErrBadRequest(errors.New("username is already taken"))
 	}
 	salt := uuid.NewString()
 	pwdHash, err := utils.HashPassword(password + salt)
 	if err != nil {
-		return nil, err
+		return nil, types.NewErrInternalFailure(err)
 	}
 
 	acc := types.Account{
@@ -63,7 +63,11 @@ func (a *account) CreateAccount(ctx context.Context, username, password string, 
 		IsAdmin:  isAdmin,
 		Salt:     salt,
 	}
-	return a.accountRepo.Create(ctx, acc)
+	res, err := a.accountRepo.Create(ctx, acc)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 // refactor this
@@ -93,17 +97,20 @@ func (a *account) Seed(ctx context.Context) error {
 func (a *account) changeRootPassword(ctx context.Context, userId, newPassword string) error {
 	fmt.Println("changing password")
 	if strings.Contains(newPassword, " ") {
-		return errors.New("password can't contain spaces")
+		return types.NewErrBadRequest(errors.New("password can't contain spaces"))
 	}
 	if len(newPassword) < 4 {
-		return errors.New("length of your password can't be less then 4 characters")
+		return types.NewErrBadRequest(errors.New("length of your password can't be less then 4 characters"))
 	}
 	salt := uuid.NewString()
 	passwordHash, _ := utils.HashPassword(newPassword + salt)
-	return a.accountRepo.Update(ctx, userId, types.Account{
+	if err := a.accountRepo.Update(ctx, userId, types.Account{
 		Username: "root",
 		IsAdmin:  true,
 		Password: passwordHash,
 		Salt:     salt,
-	})
+	}); err != nil {
+		return err
+	}
+	return nil
 }

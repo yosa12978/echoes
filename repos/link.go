@@ -46,7 +46,7 @@ func (repo *linkPostgres) FindAll(ctx context.Context) ([]types.Link, error) {
 		if errors.Is(err, sql.ErrNoRows) {
 			return links, nil
 		}
-		return links, errors.Join(err, ErrInternalFailure)
+		return links, types.NewErrInternalFailure(err)
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -71,9 +71,9 @@ func (repo *linkPostgres) FindById(ctx context.Context, id string) (*types.Link,
 		)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNotFound
+			return nil, types.ErrNotFound
 		}
-		return nil, errors.Join(err, ErrInternalFailure)
+		return nil, types.NewErrInternalFailure(err)
 	}
 	return &link, nil
 }
@@ -82,7 +82,7 @@ func (repo *linkPostgres) Create(ctx context.Context, link types.Link) (*types.L
 	q := "INSERT INTO links (id, name, url, created, icon, place) VALUES ($1, $2, $3, $4, $5, $6);"
 	_, err := repo.db.ExecContext(ctx, q, link.Id, link.Name, link.URL, link.Created, link.Icon, link.Place)
 	if err != nil {
-		return nil, errors.Join(err, ErrInternalFailure)
+		return nil, types.NewErrInternalFailure(err)
 	}
 	return &link, nil
 }
@@ -92,9 +92,9 @@ func (repo *linkPostgres) Update(ctx context.Context, id string, link types.Link
 	_, err := repo.db.ExecContext(ctx, q, link.Name, link.URL, link.Created, link.Icon, link.Place, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNotFound
+			return nil, types.ErrNotFound
 		}
-		return nil, errors.Join(err, ErrInternalFailure)
+		return nil, types.NewErrInternalFailure(err)
 	}
 	return &link, nil
 }
@@ -108,9 +108,9 @@ func (repo *linkPostgres) Delete(ctx context.Context, id string) (*types.Link, e
 	_, err = repo.db.ExecContext(ctx, q, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNotFound
+			return nil, types.ErrNotFound
 		}
-		return nil, errors.Join(err, ErrInternalFailure)
+		return nil, types.NewErrInternalFailure(err)
 	}
 	return link, nil
 }

@@ -1,10 +1,9 @@
 {{ template "header" . }}
-<div class="mx-md-4">
+<div class="mx-md-4" style="max-width: 500px;">
     <h1><b>Login</b></h1>
     <div>
         <div id="login-alert"></div>
-        <form hx-post="/api/login" hx-target="#login-alert" hx-swap="innerHTML" hx-ext="json-enc"
-            style="max-width: 500px;">
+        <form hx-post="/api/login" hx-target="#login-alert" hx-swap="innerHTML" hx-ext="json-enc">
             <label>Username</label>
             <input name="username" type="text" placeholder="Username" class="form-control mb-2" />
             <label>Password</label>

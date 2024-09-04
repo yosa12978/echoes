@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/feeds"
 	"github.com/yosa12978/echoes/config"
+	"github.com/yosa12978/echoes/types"
 	"github.com/yuin/goldmark"
 )
 
@@ -50,7 +51,7 @@ func (f *feed) GenerateFeed(ctx context.Context) (string, error) {
 		}
 		var buf bytes.Buffer
 		if err := goldmark.Convert([]byte(v.Content), &buf); err != nil {
-			return err.Error(), err
+			return err.Error(), types.NewErrInternalFailure(err)
 		}
 		item.Content = buf.String()
 		items = append(items, item)

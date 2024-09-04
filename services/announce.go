@@ -26,19 +26,13 @@ func NewAnnounce(announceRepo repos.Announce, logger logging.Logger) Announce {
 }
 
 func (s *announce) Get(ctx context.Context) (*types.Announce, error) {
-	announce, err := s.announceRepo.Get(ctx)
-	if err != nil {
-		if errors.Is(err, repos.ErrInternalFailure) {
-			return nil, err
-		}
-	}
-	return announce, nil
+	return s.announceRepo.Get(ctx)
 }
 
 func (s *announce) Create(ctx context.Context, content string) error {
 	content = strings.TrimSpace(content)
 	if content == "" {
-		return errors.New("announce can't be empty")
+		return types.NewErrBadRequest(errors.New("announce can't be empty"))
 	}
 	return s.announceRepo.Create(ctx, content)
 }

@@ -46,7 +46,7 @@ func (s *comment) GetPostComments(ctx context.Context, postId string, page, size
 	// }
 	commentsFromCache, version, err := s.cache.GetPostComments(ctx, postId, page)
 	if err != nil {
-		if errors.Is(err, cache.ErrInternalFailure) {
+		if errors.Is(err, types.ErrInternalFailure) {
 			s.logger.Error(err.Error())
 		}
 	}
@@ -63,7 +63,9 @@ func (s *comment) GetPostComments(ctx context.Context, postId string, page, size
 	go func() {
 		timeout, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		s.cache.AddPostComments(timeout, postId, page, *commentsPaged)
+		if err := s.cache.AddPostComments(timeout, postId, page, *commentsPaged); err != nil {
+			s.logger.Error(err.Error())
+		}
 	}()
 	return commentsPaged, nil
 }
@@ -73,7 +75,7 @@ func (s *comment) GetCommentById(ctx context.Context, commentId string) (*types.
 	if err == nil {
 		return commentFromCache, nil
 	}
-	if errors.Is(err, cache.ErrInternalFailure) {
+	if errors.Is(err, types.ErrInternalFailure) {
 		s.logger.Error(err.Error())
 	}
 
@@ -101,10 +103,10 @@ func (s *comment) CreateComment(ctx context.Context, postId, name, email, conten
 	email = strings.TrimSpace(email)
 	content = strings.TrimSpace(content)
 	if name == "" || email == "" || content == "" {
-		return nil, errors.New("name, email or content field can't be empty")
+		return nil, types.NewErrBadRequest(errors.New("name, email or content field can't be empty"))
 	}
 	if _, err := mail.ParseAddress(email); err != nil {
-		return nil, errors.New("email address isn't valid")
+		return nil, types.NewErrBadRequest(errors.New("email address isn't valid"))
 	}
 	comm := types.Comment{
 		Id:      uuid.NewString(),

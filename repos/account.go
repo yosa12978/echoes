@@ -43,9 +43,9 @@ func (repo *account) FindById(ctx context.Context, id string) (*types.Account, e
 	err := repo.db.QueryRowContext(ctx, q, id).Scan(&acc.Id, &acc.Username, &acc.Password, &acc.Created, &acc.IsAdmin, &acc.Salt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNotFound
+			return nil, types.ErrNotFound
 		}
-		return nil, errors.Join(err, ErrInternalFailure)
+		return nil, types.NewErrInternalFailure(err)
 	}
 	return &acc, nil
 }
@@ -59,9 +59,9 @@ func (repo *account) FindByCredentials(ctx context.Context, username, passwordHa
 		Scan(&acc.Id, &acc.Username, &acc.Password, &acc.Created, &acc.IsAdmin, &acc.Salt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNotFound
+			return nil, types.ErrNotFound
 		}
-		return nil, errors.Join(err, ErrInternalFailure)
+		return nil, types.NewErrInternalFailure(err)
 	}
 	return &acc, nil
 }
@@ -74,9 +74,9 @@ func (repo *account) FindByUsername(ctx context.Context, username string) (*type
 		Scan(&acc.Id, &acc.Username, &acc.Password, &acc.Created, &acc.IsAdmin, &acc.Salt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNotFound
+			return nil, types.ErrNotFound
 		}
-		return nil, errors.Join(err, ErrInternalFailure)
+		return nil, types.NewErrInternalFailure(err)
 	}
 	return &acc, nil
 }
@@ -90,7 +90,7 @@ func (repo *account) Create(ctx context.Context, account types.Account) (*types.
 		account.IsAdmin,
 		account.Salt)
 	if err != nil {
-		return nil, errors.Join(err, ErrInternalFailure)
+		return nil, types.NewErrInternalFailure(err)
 	}
 	return nil, nil
 }
@@ -105,9 +105,9 @@ func (repo *account) Update(ctx context.Context, accountId string, account types
 		accountId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return ErrNotFound
+			return types.ErrNotFound
 		}
-		return errors.Join(err, ErrInternalFailure)
+		return types.NewErrInternalFailure(err)
 	}
 	return nil
 }
@@ -117,9 +117,9 @@ func (repo *account) Delete(ctx context.Context, accountId string) error {
 	_, err := repo.db.ExecContext(ctx, q, accountId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return ErrNotFound
+			return types.ErrNotFound
 		}
-		return errors.Join(err, ErrInternalFailure)
+		return types.NewErrInternalFailure(err)
 	}
 	return nil
 }

@@ -36,10 +36,10 @@ func NewPostRedis(rdb *redis.Client, logger logging.Logger) Post {
 func (p *postRedis) GetPostById(ctx context.Context, id string) (*types.Post, error) {
 	postMap, err := p.rdb.HGetAll(ctx, "posts:"+id).Result()
 	if len(postMap) == 0 {
-		return nil, ErrNotFound
+		return nil, types.ErrNotFound
 	}
 	if err != nil {
-		return nil, errors.Join(err, ErrInternalFailure)
+		return nil, types.NewErrInternalFailure(err)
 	}
 	pinned, _ := strconv.ParseBool(postMap["pinned"])
 	tweet, _ := strconv.ParseBool(postMap["tweet"])
@@ -60,7 +60,7 @@ func (p *postRedis) refreshPaginationVersion(ctx context.Context) (int64, error)
 	version := time.Now().UnixMicro()
 	res, err := p.rdb.Set(ctx, "posts_pagination_version", version, 1*time.Minute).Result()
 	if res != "OK" || err != nil {
-		return 0, fmt.Errorf("failed to update posts_pagination_version: %w", ErrInternalFailure)
+		return 0, fmt.Errorf("failed to update posts_pagination_version: %w", types.ErrInternalFailure)
 	}
 	p.logger.Info("updated posts_pagination_version", "version", version)
 	return version, err
@@ -83,14 +83,14 @@ func (p *postRedis) GetPostsByPage(ctx context.Context, page int, size int) (*ty
 	valueExists, _ := p.rdb.Exists(ctx, valueKey).Result()
 	metaExists, _ := p.rdb.Exists(ctx, metaKey).Result()
 	if valueExists == 0 || metaExists == 0 {
-		return nil, version, ErrNotFound
+		return nil, version, types.ErrNotFound
 	}
 	postKeysJson, err := p.rdb.Get(ctx, valueKey).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return nil, version, nil
 		}
-		return nil, version, errors.Join(err, ErrInternalFailure)
+		return nil, version, types.NewErrInternalFailure(err)
 	}
 	posts := make([]types.Post, 0, len(postKeysJson))
 	var postIDs []string
@@ -107,10 +107,10 @@ func (p *postRedis) GetPostsByPage(ctx context.Context, page int, size int) (*ty
 	// or even move this part to the beginning before posts fetching
 	metaMap, err := p.rdb.HGetAll(ctx, metaKey).Result()
 	if len(metaMap) == 0 {
-		return nil, version, ErrNotFound
+		return nil, version, types.ErrNotFound
 	}
 	if err != nil {
-		return nil, version, errors.Join(err, ErrInternalFailure)
+		return nil, version, types.NewErrInternalFailure(err)
 	}
 	hasNext, _ := strconv.ParseBool(metaMap["has_next"])
 	page_size, _ := strconv.Atoi(metaMap["size"])
@@ -135,7 +135,7 @@ func (p *postRedis) AddPost(ctx context.Context, post types.Post) error {
 	}
 
 	if _, err := pipe.Exec(ctx); err != nil {
-		return errors.Join(err, ErrInternalFailure)
+		return types.NewErrInternalFailure(err)
 	}
 	_, err := p.refreshPaginationVersion(ctx) // replace this with adding to cache instead
 	return err
@@ -154,11 +154,11 @@ func addPost(ctx context.Context, post types.Post, rdb redis.Cmdable) error {
 	key := fmt.Sprintf("posts:%s", post.Id)
 	_, err := rdb.HSet(ctx, key, postMap).Result()
 	if err != nil {
-		return errors.Join(err, ErrInternalFailure)
+		return types.NewErrInternalFailure(err)
 	}
 	_, err = rdb.Expire(ctx, key, 150*time.Second).Result()
 	if err != nil {
-		return errors.Join(err, ErrInternalFailure)
+		return types.NewErrInternalFailure(err)
 	}
 	return err
 }
@@ -187,7 +187,7 @@ func (p *postRedis) AddPageOfPosts(
 	valueKey := fmt.Sprintf("posts:%v:page:%d", version, pageNum)
 	err := pipe.Set(ctx, valueKey, postsKeysJson, 2*time.Minute).Err()
 	if err != nil {
-		return errors.Join(err, ErrInternalFailure)
+		return types.NewErrInternalFailure(err)
 	}
 
 	// setting up metadata
@@ -200,14 +200,14 @@ func (p *postRedis) AddPageOfPosts(
 	}
 	_, err = pipe.HSet(ctx, metaKey, metaData).Result()
 	if err != nil {
-		return errors.Join(err, ErrInternalFailure)
+		return types.NewErrInternalFailure(err)
 	}
 	err = pipe.Expire(ctx, metaKey, 2*time.Minute).Err()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return ErrNotFound
+			return types.ErrNotFound
 		}
-		return errors.Join(err, ErrInternalFailure)
+		return types.NewErrInternalFailure(err)
 	}
 
 	_, err = pipe.Exec(ctx)
@@ -220,9 +220,9 @@ func (p *postRedis) Delete(ctx context.Context, id string) error {
 	_, err := p.rdb.Del(ctx, key).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return ErrNotFound
+			return types.ErrNotFound
 		}
-		return errors.Join(err, ErrInternalFailure)
+		return types.NewErrInternalFailure(err)
 	}
 	_, err = p.refreshPaginationVersion(ctx)
 	return err
@@ -233,16 +233,16 @@ func (p *postRedis) PinPost(ctx context.Context, id string) error {
 
 	pinnedStr, err := p.rdb.HGet(ctx, key, "pinned").Result()
 	if len(pinnedStr) == 0 {
-		return ErrNotFound
+		return types.ErrNotFound
 	}
 	if err != nil {
-		return errors.Join(err, ErrInternalFailure)
+		return types.NewErrInternalFailure(err)
 	}
 	pinned, _ := strconv.ParseBool(pinnedStr)
 	pinned = !pinned
 	_, err = p.rdb.HSet(ctx, key, "pinned", pinned).Result()
 	if err != nil {
-		return errors.Join(err, ErrInternalFailure)
+		return types.NewErrInternalFailure(err)
 	}
 	_, err = p.refreshPaginationVersion(ctx)
 	return err

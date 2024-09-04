@@ -50,7 +50,7 @@ func (c *commentRedis) refreshPaginationVersion(ctx context.Context, postId stri
 	version := time.Now().UnixMicro()
 	res, err := c.rdb.Set(ctx, key, version, 1*time.Minute).Result()
 	if res != "OK" || err != nil {
-		return 0, fmt.Errorf("failed to update posts_pagination_version: %w", ErrInternalFailure)
+		return 0, fmt.Errorf("failed to update posts_pagination_version: %w", types.ErrInternalFailure)
 	}
 	c.logger.Info("updated posts_pagination_version", "version", version)
 	return version, err
@@ -65,7 +65,7 @@ func (c *commentRedis) AddComment(ctx context.Context, comment types.Comment) er
 	commentJson, _ := json.Marshal(comment)
 	err := c.rdb.Set(ctx, key, commentJson, 2*time.Minute).Err()
 	if err != nil {
-		return newInternalFailure(err)
+		return types.NewErrInternalFailure(err)
 	}
 	return nil
 }
@@ -84,7 +84,7 @@ func (c *commentRedis) AddPostComments(
 	pageJson, _ := json.Marshal(comments)
 	err = c.rdb.Set(ctx, key, pageJson, 1*time.Minute).Err()
 	if err != nil {
-		return newInternalFailure(err)
+		return types.NewErrInternalFailure(err)
 	}
 	return nil
 }
@@ -98,9 +98,9 @@ func (c *commentRedis) GetPostComments(ctx context.Context, postId string, page 
 	pageJson, err := c.rdb.Get(ctx, key).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return nil, version, ErrNotFound
+			return nil, version, types.ErrNotFound
 		}
-		return nil, version, newInternalFailure(err)
+		return nil, version, types.NewErrInternalFailure(err)
 	}
 	var res types.Page[types.Comment]
 	json.Unmarshal([]byte(pageJson), &res)
@@ -111,9 +111,9 @@ func (c *commentRedis) DeleteComment(ctx context.Context, id string) error {
 	key := fmt.Sprintf("comments:%s", id)
 	if err := c.rdb.Del(ctx, key).Err(); err != nil {
 		if errors.Is(err, redis.Nil) {
-			return ErrNotFound
+			return types.ErrNotFound
 		}
-		return newInternalFailure(err)
+		return types.NewErrInternalFailure(err)
 	}
 	return nil
 }
@@ -123,9 +123,9 @@ func (c *commentRedis) GetCommentById(ctx context.Context, id string) (*types.Co
 	commentJson, err := c.rdb.Get(ctx, key).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return nil, ErrNotFound
+			return nil, types.ErrNotFound
 		}
-		return nil, newInternalFailure(err)
+		return nil, types.NewErrInternalFailure(err)
 	}
 	var comment types.Comment
 	json.Unmarshal([]byte(commentJson), &comment)
@@ -137,9 +137,9 @@ func (c *commentRedis) GetCommentsCount(ctx context.Context, postId string) (int
 	countStr, err := c.rdb.Get(ctx, "comments_count"+postId).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return 0, ErrNotFound
+			return 0, types.ErrNotFound
 		}
-		return 0, newInternalFailure(err)
+		return 0, types.NewErrInternalFailure(err)
 	}
 	return strconv.Atoi(countStr)
 }
@@ -148,7 +148,7 @@ func (c *commentRedis) GetCommentsCount(ctx context.Context, postId string) (int
 func (c *commentRedis) SetCommentsCount(ctx context.Context, postId string, count int) error {
 	err := c.rdb.Set(ctx, "comments_count:"+postId, count, 60*time.Second).Err()
 	if err != nil {
-		return newInternalFailure(err)
+		return types.NewErrInternalFailure(err)
 	}
 	return nil
 }

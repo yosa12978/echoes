@@ -51,7 +51,7 @@ func (repo *commentPostgres) FindAll(ctx context.Context) ([]types.Comment, erro
 		if errors.Is(err, sql.ErrNoRows) {
 			return comments, nil
 		}
-		return nil, errors.Join(err, ErrInternalFailure)
+		return nil, types.NewErrInternalFailure(err)
 	}
 	defer rows.Close()
 
@@ -83,9 +83,9 @@ func (repo *commentPostgres) FindById(ctx context.Context, id string) (*types.Co
 		)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNotFound
+			return nil, types.ErrNotFound
 		}
-		return nil, errors.Join(err, ErrInternalFailure)
+		return nil, types.NewErrInternalFailure(err)
 	}
 	return &comment, nil
 }
@@ -98,7 +98,7 @@ func (repo *commentPostgres) FindByPostId(ctx context.Context, postId string) ([
 		if errors.Is(err, sql.ErrNoRows) {
 			return comments, nil
 		}
-		return nil, errors.Join(err, ErrInternalFailure)
+		return nil, types.NewErrInternalFailure(err)
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -127,7 +127,7 @@ func (repo *commentPostgres) Create(ctx context.Context, comment types.Comment) 
 		comment.PostId,
 	)
 	if err != nil {
-		return nil, errors.Join(err, ErrInternalFailure)
+		return nil, types.NewErrInternalFailure(err)
 	}
 	return &comment, err
 }
@@ -137,9 +137,9 @@ func (repo *commentPostgres) Update(ctx context.Context, id string, comment type
 	_, err := repo.db.ExecContext(ctx, q, comment.Email, comment.Name, comment.Content, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNotFound
+			return nil, types.ErrNotFound
 		}
-		return nil, errors.Join(err, ErrInternalFailure)
+		return nil, types.NewErrInternalFailure(err)
 	}
 	return &comment, err
 }
@@ -149,14 +149,14 @@ func (repo *commentPostgres) Delete(ctx context.Context, id string) (*types.Comm
 	comment, err := repo.FindById(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNotFound
+			return nil, types.ErrNotFound
 		}
-		return nil, errors.Join(err, ErrInternalFailure)
+		return nil, types.NewErrInternalFailure(err)
 	}
 	q := "DELETE FROM comments WHERE id=$1;"
 	_, err = repo.db.ExecContext(ctx, q, id)
 	if err != nil {
-		return nil, errors.Join(err, ErrInternalFailure)
+		return nil, types.NewErrInternalFailure(err)
 	}
 	return comment, nil
 }
@@ -209,9 +209,9 @@ func (repo *commentPostgres) GetCommentsCount(ctx context.Context, postId string
 	err := repo.db.QueryRowContext(ctx, q, postId).Scan(&count)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return 0, ErrNotFound
+			return 0, types.ErrNotFound
 		}
-		return 0, errors.Join(err, ErrInternalFailure)
+		return 0, types.NewErrInternalFailure(err)
 	}
 	return count, nil
 }
@@ -244,7 +244,7 @@ func (repo *commentPostgres) GetPageTime(
 			Size:     size,
 			NextPage: 1,
 			Total:    0,
-		}, errors.Join(err, ErrInternalFailure)
+		}, types.NewErrInternalFailure(err)
 	}
 	defer rows.Close()
 	for rows.Next() {

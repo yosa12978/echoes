@@ -49,7 +49,7 @@ func (s *post) GetPosts(ctx context.Context) ([]types.Post, error) {
 func (s *post) GetPostsPaged(ctx context.Context, page, size int) (*types.Page[types.Post], error) {
 	pageFromCache, version, err := s.postCache.GetPostsByPage(ctx, page, size)
 	if err != nil {
-		if errors.Is(err, cache.ErrInternalFailure) {
+		if errors.Is(err, types.ErrInternalFailure) {
 			s.logger.Error(err.Error())
 		}
 	}
@@ -67,7 +67,7 @@ func (s *post) GetPostsPaged(ctx context.Context, page, size int) (*types.Page[t
 		timeout, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		if err := s.postCache.AddPageOfPosts(timeout, page, *postsPage); err != nil {
-			if errors.Is(err, cache.ErrInternalFailure) {
+			if errors.Is(err, types.ErrInternalFailure) {
 				s.logger.Error(err.Error())
 			}
 		}
@@ -81,7 +81,7 @@ func (s *post) GetPostById(ctx context.Context, id string) (*types.Post, error) 
 	if err == nil {
 		return postFromCache, nil
 	}
-	if errors.Is(err, cache.ErrInternalFailure) {
+	if errors.Is(err, types.ErrInternalFailure) {
 		s.logger.Error(err.Error())
 	}
 
@@ -100,7 +100,7 @@ func (s *post) GetPostById(ctx context.Context, id string) (*types.Post, error) 
 }
 
 func (s *post) PinPost(ctx context.Context, id string) (*types.Post, error) {
-	post, err := s.postRepo.FindById(ctx, id)
+	post, err := s.GetPostById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func (s *post) PinPost(ctx context.Context, id string) (*types.Post, error) {
 
 	go func() {
 		if err := s.postCache.PinPost(ctx, id); err != nil {
-			if errors.Is(err, cache.ErrInternalFailure) {
+			if errors.Is(err, types.ErrInternalFailure) {
 				s.logger.Error(err.Error())
 			}
 		}
@@ -121,7 +121,7 @@ func (s *post) CreatePost(ctx context.Context, title, content string, tweet bool
 	titleTrim := strings.TrimSpace(title)
 	contentTrim := strings.TrimSpace(content)
 	if titleTrim == "" || contentTrim == "" {
-		return nil, errors.New("can't create post with empty title or content")
+		return nil, types.NewErrBadRequest(errors.New("can't create post with empty title or content"))
 	}
 	id := uuid.NewString()
 	post := types.Post{
@@ -134,7 +134,9 @@ func (s *post) CreatePost(ctx context.Context, title, content string, tweet bool
 	}
 
 	go func() {
-		if err := s.postCache.AddPost(ctx, post); err != nil {
+		timeout, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := s.postCache.AddPost(timeout, post); err != nil {
 			s.logger.Error(err.Error())
 		}
 	}()
@@ -144,7 +146,9 @@ func (s *post) CreatePost(ctx context.Context, title, content string, tweet bool
 
 func (s *post) DeletePost(ctx context.Context, id string) (*types.Post, error) {
 	go func() {
-		if err := s.postCache.Delete(ctx, id); err != nil {
+		timeout, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := s.postCache.Delete(timeout, id); err != nil {
 			s.logger.Error(err.Error())
 		}
 	}()

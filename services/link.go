@@ -35,7 +35,7 @@ func NewLink(linkRepo repos.Link, cache cache.Link, logger logging.Logger) Link 
 func (s *link) GetLinks(ctx context.Context) ([]types.Link, error) {
 	links, err := s.cache.GetLinks(ctx)
 	if err != nil {
-		if errors.Is(err, cache.ErrInternalFailure) {
+		if errors.Is(err, types.ErrInternalFailure) {
 			s.logger.Error(err.Error())
 		}
 	}
@@ -45,7 +45,7 @@ func (s *link) GetLinks(ctx context.Context) ([]types.Link, error) {
 
 	links, err = s.linkRepo.FindAll(ctx)
 	if err != nil {
-		return nil, err
+		return links, err
 	}
 
 	go func() {
@@ -63,7 +63,7 @@ func (s *link) CreateLink(ctx context.Context, name, addr, icon string, place in
 	nameTrim := strings.TrimSpace(name)
 	addrTrim := strings.TrimSpace(addr)
 	if nameTrim == "" || addrTrim == "" {
-		return nil, errors.New("link's name or url can't be an empty string")
+		return nil, types.NewErrBadRequest(errors.New("link's name or url can't be an empty string"))
 	}
 
 	errCh := make(chan error)
@@ -83,7 +83,7 @@ func (s *link) CreateLink(ctx context.Context, name, addr, icon string, place in
 
 	err := <-errCh
 	if err != nil {
-		return nil, err
+		return nil, types.NewErrBadRequest(err)
 	}
 
 	go func() {
@@ -101,7 +101,9 @@ func (s *link) CreateLink(ctx context.Context, name, addr, icon string, place in
 
 func (s *link) DeleteLink(ctx context.Context, id string) (*types.Link, error) {
 	go func() {
-		if err := s.cache.Delete(context.Background(), id); err != nil {
+		timeout, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+		if err := s.cache.Delete(timeout, id); err != nil {
 			s.logger.Error(err.Error())
 		}
 	}()
