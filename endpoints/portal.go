@@ -10,6 +10,8 @@ import (
 
 func Portal(logger logging.Logger, service services.Link) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
+
 		id := r.PathValue("id")
 		if id == "" {
 			http.Redirect(w, r, "/", http.StatusMovedPermanently)
