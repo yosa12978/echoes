@@ -1,3 +1,3 @@
 # Echoes
 
-My personal website/blog
+Self-hosted blog engine
