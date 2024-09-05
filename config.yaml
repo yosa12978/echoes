@@ -26,3 +26,4 @@ feed:
 website:
   title: "echoes"
   logo: "/assets/images/icon.svg"
+  bg_img: ""

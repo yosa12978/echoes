@@ -45,6 +45,7 @@ type Config struct {
 	Website struct {
 		Title string `yaml:"title" envconfig:"ECHOES_WEBSITE_TITLE" json:"title"`
 		Logo  string `yaml:"logo" envconfig:"ECHOES_WEBSITE_LOGO" json:"logo"`
+		BgImg string `yaml:"bg_img" envconfig:"ECHOES_WEBSITE_BG_IMG" json:"bg_img"`
 	} `yaml:"website" json:"website"`
 }
 

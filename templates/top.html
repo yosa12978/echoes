@@ -23,6 +23,17 @@
 </head>
 
 <body>
+    {{if .BgImg}}
+    <style>
+        body {
+            background-image: url("{{.BgImg}}");
+            background-repeat: no-repeat;
+            background-position: right top;
+            background-attachment: fixed;
+            background-size: 100% 100%;
+        }
+    </style>
+    {{end}}
     <div class="container d-flex flex-column" style="min-height: 99vh;">
         <div class="header navbar mb-2 mt-3 mx-0">
             <div class="float-start">
