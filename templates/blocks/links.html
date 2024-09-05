@@ -22,20 +22,26 @@
 
 
 {{block "links_admin" .}}
-<div id="links">
-    <h3><i class="bi bi-link"></i> Delete Link</h3>
-    <div id="link-delete-alert"></div>
-    <div>
-        {{range .}}
-        <div class="link card mb-3" id="link-{{.Id}}">
-            <div class="card-body d-flex justify-content-between">
-                <span class="card-text float-left mt-1"><i class="bi bi-{{.Icon}}"></i> <b>{{.Name}}</b></span>
-                <button class="btn btn-danger border-0" hx-delete="/api/links/{{.Id}}" style="border-radius: 5px"
-                    hx-target="#link-delete-alert" hx-swap="innerHTML">Delete</button>
+<div id="links" class="mt-1">
+    <div class="collapse bg-0" style="height: 30px;" id="link-delete-collapse">&nbsp;</div>
+    <a class="btn btn-primary mb-3" data-bs-toggle="collapse" href="#link-delete-collapse" role="button"
+        aria-expanded="false" aria-controls="link-delete-collapse">
+        <span style="font-weight: 600; font-size: large;"><i class="bi bi-link"></i> Delete Link</span>
+    </a>
+    <div class="collapse" id="link-delete-collapse">
+        <div id="link-delete-alert"></div>
+        <div>
+            {{range .}}
+            <div class="link card mb-3" id="link-{{.Id}}">
+                <div class="card-body d-flex justify-content-between">
+                    <span class="card-text float-left mt-1"><i class="bi bi-{{.Icon}}"></i> <b>{{.Name}}</b></span>
+                    <button class="btn btn-danger border-0" hx-delete="/api/links/{{.Id}}" style="border-radius: 5px"
+                        hx-target="#link-delete-alert" hx-swap="innerHTML">Delete</button>
+                </div>
             </div>
+            {{end}}
         </div>
-        {{end}}
     </div>
+    <br>
 </div>
-<br>
 {{end}}

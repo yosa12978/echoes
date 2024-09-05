@@ -10,7 +10,7 @@ function toDateString_(dateISO8601, timezone = 'GMT') {
             day: "numeric",
             hour12: true
         })
-    } 
+    }
     return moment(dateISO8601).utc().fromNow()
 }
 

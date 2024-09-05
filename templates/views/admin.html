@@ -1,4 +1,5 @@
 {{ template "header" . }}
+
 <div class="mx-md-2 mt-2">
     <h2 class="float-start"><b>Admin Page</b></h2>
 
@@ -6,73 +7,187 @@
         <a class="btn btn-danger border-0 mt-2 mb-2" hx-get="/api/logout">Logout</a>
     </div><br><br>
 
-    <div class="mt-3">
-        <h3><i class="bi bi-megaphone-fill"></i> Announce</h3>
-        <div id="announce-alert"></div>
-        <form hx-post="/api/announce" hx-target="#announce-alert" hx-swap="innerHTML" hx-ext="json-enc">
-            <textarea name="content" type="text" placeholder="Content" class="form-control mb-2"
-                style="min-height: 200px;"></textarea>
-            <button type="submit" class="btn btn-primary float-start">Add announce</button>
-        </form>
-        <button class="btn btn-primary mb-3 ms-3" hx-delete="/api/announce" hx-target="#announce-alert">Remove
-            announce</button>
+    <div class="mt-4">
+        <div class="collapse bg-0" style="height: 30px;" id="announce-collapse">&nbsp;</div>
+        <a class="btn btn-primary bg-0 mb-2" data-bs-toggle="collapse" href="#announce-collapse" role="button"
+            aria-expanded="false" aria-controls="announce-collapse">
+            <span style="font-weight: 600; font-size: large;"><i class="bi bi-megaphone-fill"></i> Announce</span>
+        </a>
+        <div class="collapse mb-4" id="announce-collapse">
+            <div id="announce-alert"></div>
+            <form hx-post="/api/announce" hx-target="#announce-alert" hx-swap="innerHTML" hx-ext="json-enc">
+                <textarea name="content" type="text" id="announce-editor" placeholder="Content"
+                    class="form-control mb-2" style="min-height: 200px;"></textarea>
+                <button type="submit" class="btn btn-primary float-start">Add announce</button>
+            </form>
+            <button class="btn btn-primary mb-3 ms-3" hx-delete="/api/announce" hx-target="#announce-alert">Remove
+                announce</button>
+            <h5 class="mt-2">Preview</h5>
+            <div class="announce card mb-3 mt-2 px-3 pb-3 pt-2">
+                <p class="card-text mt-2" id="announce-preview"></p>
+                <small class="card-text" id="announce-created">Posted a few seconds ago</small>
+            </div>
+            <br>
+        </div>
+
+        <script>
+            const announce_editor = document.getElementById("announce-editor")
+            const announce_preview = document.getElementById("announce-preview")
+            document.addEventListener("DOMContentLoaded", () => {
+                function updatePreviewa() {
+                    var markdown = announce_editor.value;
+                    if (markdown.trim() === "") {
+                        markdown = "Content"
+                    }
+                    const html = renderMarkdown(markdown);
+                    announce_preview.innerHTML = html;
+                }
+                announce_editor.addEventListener("input", updatePreviewa);
+                updatePreviewa();
+            });
+        </script>
     </div>
 
-    <div class="mt-3">
-        <h3><i class="bi bi-newspaper"></i> Create Post</h3>
-        <div id="create-post-alert"></div>
-        <form hx-post="/api/posts" hx-target="#create-post-alert" hx-swap="innerHTML" hx-ext="json-enc">
-            <input name="title" type="text" placeholder="Title" class="form-control mb-2" />
-            <textarea name="content" type="text" placeholder="Content" class="form-control mb-2"
-                style="min-height: 200px;"></textarea>
-            <input name="tweet" type="checkbox" /><label class="m-2 ">Display post content on home page </label><br>
-            <button type="submit" class="btn btn-primary mb-3">Create Post</button>
-        </form><br>
-    </div>
-
-    <div class="mt-3">
-        <h3><i class="bi bi-pin-angle-fill"></i> Pin Post</h3>
-        <div id="pin-post-alert"></div>
-        <form hx-patch="/api/post-pin" hx-ext="json-enc" hx-target="#pin-post-alert" class="form-inline"
-            hx-swap="innerHTML">
-            <div class="input-group">
-                <input name="id" type="text" placeholder="Post id" class="form-control mb-3" />
-
-                <div class="input-group-append">
-                    <button type="submit" class="btn btn-primary mb-3">Pin</button>
+    <div class="mt-1">
+        <div class="collapse bg-0" style="height: 30px;" id="post-create-collapse">&nbsp;</div>
+        <a class="btn btn-primary mb-2" data-bs-toggle="collapse" href="#post-create-collapse" role="button"
+            aria-expanded="false" aria-controls="post-create-collapse">
+            <span style="font-weight: 600; font-size: large;"><i class="bi bi-newspaper"></i> Create Post</span>
+        </a>
+        <div class="collapse" id="post-create-collapse">
+            <div id="create-post-alert"></div>
+            <form hx-post="/api/posts" hx-target="#create-post-alert" hx-swap="innerHTML" hx-ext="json-enc">
+                <input name="title" type="text" id="post-title" placeholder="Title" class="form-control mb-2" />
+                <textarea name="content" type="text" id="post-editor" placeholder="Content" class="form-control mb-2"
+                    style="min-height: 200px;"></textarea>
+                <input name="tweet" type="checkbox" /><label class="m-2 ">Display post content on blog page </label><br>
+                <button type="submit" class="btn btn-primary mb-3">Create Post</button>
+            </form>
+            <h5 class="mt-2">Preview</h5>
+            <div class="card mt-2 mb-3 p-3" style="font-weight: 500; border-radius: 0px">
+                <h3 style="text-decoration: none;" id="post-title-preview" class="primary mb-3"></h3>
+                <span id="post-content-preview"></span>
+                <div class="my-2">
+                    <span id="created" class="badge me-2">Posted a few seconds ago</span>
+                    <span class="badge me-2">Comments: 19</span>
                 </div>
             </div>
-        </form><br>
+            <script>
+                const editor = document.getElementById("post-editor")
+                const title = document.getElementById("post-title")
+                const title_preview = document.getElementById("post-title-preview")
+                const preview = document.getElementById("post-content-preview")
+                document.addEventListener("DOMContentLoaded", () => {
+                    function updatePreview() {
+                        var markdown = editor.value;
+                        var titleStr = title.value;
+                        if (titleStr.trim() === "") {
+                            titleStr = "Title"
+                        }
+                        if (markdown.trim() === "") {
+                            markdown = "Content"
+                        }
+                        const html = renderMarkdown(markdown);
+                        preview.innerHTML = html;
+                        title_preview.innerHTML = titleStr;
+                    }
+                    editor.addEventListener("input", updatePreview);
+                    title.addEventListener("input", updatePreview);
+                    updatePreview();
+                });
+            </script>
+            <br>
+        </div>
     </div>
 
-    <div class="mt-3">
-        <h3><i class="bi bi-newspaper"></i> Delete Post</h3>
-        <div id="delete-post-alert"></div>
-        <!-- <form action="/api/posts" method="post"> -->
-        <form hx-delete="/api/posts" hx-target="#delete-post-alert" hx-swap="innerHTML" class="form-inline"
-            hx-trigger="submit">
-            <div class="input-group">
-                <input name="id" type="text" placeholder="Post id" class="form-control mb-3" />
-                <div class="input-group-append">
-                    <button type="submit" class="btn btn-primary mb-3">Del</button>
+    <div class="mt-1">
+        <div class="collapse bg-0" style="height: 30px;" id="post-pin-collapse">&nbsp;</div>
+        <a class="btn btn-primary mb-2" data-bs-toggle="collapse" href="#post-pin-collapse" role="button"
+            aria-expanded="false" aria-controls="post-pin-collapse">
+            <span style="font-weight: 600; font-size: large;"><i class="bi bi-pin-angle-fill"></i> Pin Post</span>
+        </a>
+        <div class="collapse" id="post-pin-collapse">
+            <div id="pin-post-alert"></div>
+            <form hx-patch="/api/post-pin" hx-ext="json-enc" hx-target="#pin-post-alert" class="form-inline"
+                hx-swap="innerHTML">
+                <div class="input-group">
+                    <input name="id" type="text" placeholder="Post id" class="form-control mb-3" />
+
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-primary mb-3">Pin</button>
+                    </div>
+                </div>
+            </form><br>
+        </div>
+    </div>
+
+    <div class="mt-1">
+        <div class="collapse bg-0" style="height: 30px;" id="post-delete-collapse">&nbsp;</div>
+        <a class="btn btn-primary mb-2" data-bs-toggle="collapse" href="#post-delete-collapse" role="button"
+            aria-expanded="false" aria-controls="post-delete-collapse">
+            <span style="font-weight: 600; font-size: large;"><i class="bi bi-newspaper"></i> Delete Post</span>
+        </a>
+        <div class="collapse" id="post-delete-collapse">
+            <div id="delete-post-alert"></div>
+            <!-- <form action="/api/posts" method="post"> -->
+            <form hx-delete="/api/posts" hx-target="#delete-post-alert" hx-swap="innerHTML" class="form-inline"
+                hx-trigger="submit">
+                <div class="input-group">
+                    <input name="id" type="text" placeholder="Post id" class="form-control mb-3" />
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-primary mb-3">Del</button>
+                    </div>
+                </div>
+            </form><br>
+        </div>
+    </div>
+
+    <div class="mt-1">
+        <div class="collapse bg-0" style="height: 30px;" id="link-create-collapse">&nbsp;</div>
+        <a class="btn btn-primary mb-2" data-bs-toggle="collapse" href="#link-create-collapse" role="button"
+            aria-expanded="false" aria-controls="link-create-collapse">
+            <span style="font-weight: 600; font-size: large;"><i class="bi bi-link"></i> Add Link</span>
+        </a>
+        <div class="collapse" id="link-create-collapse">
+            <div id="link-create-alert"></div>
+            <form hx-post="/api/links" hx-target="#link-create-alert" hx-swap="innerHTML" hx-ext="json-enc">
+                <input name="name" type="text" id="link-name" placeholder="Name" class="form-control mb-2" />
+                <input name="url" type="text" placeholder="URL" class="form-control mb-2" />
+                <input name="icon" type="text" id="link-icon"
+                    placeholder="icon name (icons fetch from bootstrap icon service)" class="form-control mb-2" />
+                <input name="place" type="number" placeholder="place" class="form-control mb-2" />
+                <button type="submit" class="btn btn-primary mb-3">Add Link</button>
+            </form>
+            <h5 class="mt-2">Preview</h5>
+            <div class="link card mb-4" style="text-align: center;">
+                <div class="card-body">
+                    <p class="card-text fs-5" style="font-weight: 475;"><i class="bi mx-1" id="link-icon-preview"></i>
+                        <span id="link-title-preview" style="font-weight: 475;"></span>
+                    </p>
                 </div>
             </div>
-        </form><br>
+            <script>
+                const link_title = document.getElementById("link-name")
+                const link_icon = document.getElementById("link-icon")
+                const link_title_preview = document.getElementById("link-title-preview")
+                const link_icon_preview = document.getElementById("link-icon-preview")
+                document.addEventListener("DOMContentLoaded", () => {
+                    function updatePreview() {
+                        var titleStr = link_title.value;
+                        if (titleStr.trim() === "") {
+                            titleStr = "Name"
+                        }
+                        link_icon_preview.className = "mx-1 bi bi-" + link_icon.value;
+                        link_title_preview.innerHTML = titleStr;
+                    }
+                    link_title.addEventListener("input", updatePreview);
+                    link_icon.addEventListener("input", updatePreview);
+                    updatePreview();
+                });
+            </script>
+        </div>
     </div>
 
-    <div class="mt-2">
-        <h3><i class="bi bi-link"></i> Add Link</h3>
-        <div id="link-create-alert"></div>
-        <form hx-post="/api/links" hx-target="#link-create-alert" hx-swap="innerHTML" hx-ext="json-enc">
-            <input name="name" type="text" placeholder="Name" class="form-control mb-2" />
-            <input name="url" type="text" placeholder="URL" class="form-control mb-2" />
-            <input name="icon" type="text" placeholder="icon name (icons fetch from bootstrap icon service)"
-                class="form-control mb-2" />
-            <input name="place" type="number" placeholder="place" class="form-control mb-2" />
-            <button type="submit" class="btn btn-primary mb-3">Add Link</button>
-        </form><br>
-    </div>
-
-    <div class="mt-2" hx-get="/api/links-admin" hx-swap="outerHTML" hx-trigger="load"></div>
+    <div hx-get="/api/links-admin" hx-swap="outerHTML" hx-trigger="load"></div>
 </div>
 {{ template "footer" . }}
