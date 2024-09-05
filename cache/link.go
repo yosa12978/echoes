@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -17,12 +16,10 @@ type Link interface {
 	AddLinks(ctx context.Context, links ...types.Link) error
 	Flush(ctx context.Context) error
 	Delete(ctx context.Context, id string) error
-
-	//Deprecated
 	GetLinkById(ctx context.Context, id string) (*types.Link, error)
-	//Deprecated
 	AddLink(ctx context.Context, link types.Link) error
-	//Deprecated
+
+	//Unimplemented
 	Update(ctx context.Context, id string, link types.Link) error
 }
 
@@ -38,35 +35,15 @@ func NewLinkRedis(rdb *redis.Client, logger logging.Logger) Link {
 	}
 }
 
-// Deprecated
-func addLinkCmdable(ctx context.Context, link types.Link, rdb redis.Cmdable) error {
-	linkMap := map[string]interface{}{
-		"id":      link.Id,
-		"name":    link.Name,
-		"created": link.Created,
-		"icon":    link.Icon,
-		"place":   link.Place,
-	}
-	if err := rdb.HSet(ctx, "links:"+link.Id, linkMap).Err(); err != nil {
-		return types.NewErrInternalFailure(err)
-	}
-	if err := rdb.Del(ctx, "links").Err(); err != nil { // refresh links on main page
-		if errors.Is(err, redis.Nil) {
-			return types.NewErrNotFound(err)
-		}
+func (l *linkCache) AddLink(ctx context.Context, link types.Link) error {
+	linkJson, _ := json.Marshal(link)
+	if err := l.rdb.Set(ctx,
+		"links:"+link.Id,
+		linkJson,
+		100*time.Second).Err(); err != nil {
 		return types.NewErrInternalFailure(err)
 	}
 	return nil
-}
-
-// Deprecated
-func (l *linkCache) AddLink(ctx context.Context, link types.Link) error {
-	pipe := l.rdb.Pipeline()
-	if err := addLinkCmdable(ctx, link, pipe); err != nil {
-		return err
-	}
-	_, err := pipe.Exec(ctx)
-	return err
 }
 
 func (l *linkCache) Delete(ctx context.Context, id string) error {
@@ -97,24 +74,16 @@ func (l *linkCache) Delete(ctx context.Context, id string) error {
 	return l.AddLinks(ctx, links...)
 }
 
-// Deprecated
 func (l *linkCache) GetLinkById(ctx context.Context, id string) (*types.Link, error) {
-	linkMap, err := l.rdb.HGetAll(ctx, "links:"+id).Result()
+	linkJson, err := l.rdb.Get(ctx, "links:"+id).Result()
 	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, types.NewErrNotFound(err)
+		}
 		return nil, types.NewErrInternalFailure(err)
 	}
-	if len(linkMap) == 0 {
-		return nil, types.NewErrNotFound(err)
-	}
-
-	place, _ := strconv.Atoi(linkMap["place"])
-	link := types.Link{
-		Id:      linkMap["id"],
-		Name:    linkMap["name"],
-		Created: linkMap["created"],
-		Icon:    linkMap["icon"],
-		Place:   place,
-	}
+	var link types.Link
+	json.Unmarshal([]byte(linkJson), &link)
 	return &link, nil
 }
 

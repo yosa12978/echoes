@@ -145,26 +145,27 @@ func (s *link) Seed(ctx context.Context) error {
 }
 
 func (s *link) GetLinkById(ctx context.Context, id string) (*types.Link, error) {
-	// linkFromCache, err := s.cache.Get(ctx, "links:"+id)
-	// if err == nil {
-	// 	var link types.Link
-	// 	err := json.Unmarshal([]byte(linkFromCache), &link)
-	// 	return &link, err
-	// }
+	link, err := s.cache.GetLinkById(ctx, id)
+	if err != nil {
+		if errors.Is(err, types.ErrInternalFailure) {
+			s.logger.Error(err.Error())
+		}
+	}
+	if link != nil && !errors.Is(err, types.ErrNotFound) {
+		return link, nil
+	}
 
-	// link, err := s.linkRepo.FindById(ctx, id)
-	// if err != nil {
-	// 	return link, err
-	// }
+	link, err = s.linkRepo.FindById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
 
-	// go func() {
-	// 	linkBytes, _ := json.Marshal(link)
-	// 	if _, err := s.cache.Set(ctx, "links:"+id, string(linkBytes), 0); err != nil {
-	// 		s.logger.Error(err.Error())
-	// 		return
-	// 	}
-	// }()
-
-	// return link, err
-	panic("unimplemented")
+	go func() {
+		timeout, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+		defer cancel()
+		if err := s.cache.AddLink(timeout, *link); err != nil {
+			s.logger.Error(err.Error())
+		}
+	}()
+	return link, nil
 }
