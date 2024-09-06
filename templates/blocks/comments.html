@@ -2,13 +2,12 @@
 {{range .Content}}
 <div class="card mt-2 mb-2 p-2" style="border-radius: 0px;">
     <div class="card-body">
-        <p><b>{{.Name}}</b></p>
+        <p><b>{{.Name}}</b><span class="text me-2 float-end" style="font-size: xx-small;">{{.Id}}</span></p>
         <p>{{.Content}}</p>
 
 
         <div class="mb-1 mt-4">
-            <span id="comment-created-{{.Id}}" class="badge mx-1">Created: {{.Created}}</span>
-            <span class="badge mx-1">{{.Id}}</span>
+            <span id="comment-created-{{.Id}}" class="badge me-2">Created: {{.Created}}</span>
         </div>
         <script>
             document.getElementById("comment-created-{{.Id}}").innerHTML = toDateString_("{{.Created}}");
@@ -27,10 +26,11 @@
 {{block "comment" .}}
 <div class="card mt-2 mb-2 p-2 text-bg-light" style="border-radius: 0px;">
     <div class="card-body">
-        <p><b>{{.Name}} | {{.Email}}</b></p>
+        <p><b>{{.Name}} | {{.Email}}</b><span class="text me-2 float-end" style="font-size: xx-small;">{{.Id}}</span>
+        </p>
         <p>{{.Content}}</p>
         <div class="my-2">
-            <span id="created" class="badgeme-1">Created: {{.Created}}</span><span class="badge mx-1">{{.Id}}</span>
+            <span id="created" class="badge me-1">Created: {{.Created}}</span><span class="badge mx-1">{{.Id}}</span>
         </div>
     </div>
 </div>
