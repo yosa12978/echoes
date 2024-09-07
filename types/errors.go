@@ -3,9 +3,10 @@ package types
 import "errors"
 
 var (
-	ErrNotFound        = errors.New("not found")
-	ErrInternalFailure = errors.New("internal failure")
-	ErrBadRequest      = errors.New("bad request")
+	ErrNotFound         = errors.New("not found")
+	ErrInternalFailure  = errors.New("internal failure")
+	ErrBadRequest       = errors.New("bad request")
+	ErrValidationFailed = errors.New("validation failed")
 )
 
 func NewErrNotFound(err error) error {
@@ -18,4 +19,8 @@ func NewErrInternalFailure(err error) error {
 
 func NewErrBadRequest(err error) error {
 	return errors.Join(err, ErrBadRequest)
+}
+
+func NewErrValidationFailed(err error) error {
+	return errors.Join(err, ErrValidationFailed)
 }
