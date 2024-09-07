@@ -10,7 +10,7 @@
             <span id="comment-created-{{.Id}}" class="badge me-2">Created: {{.Created}}</span>
         </div>
         <script>
-            document.getElementById("comment-created-{{.Id}}").innerHTML = toDateString_("{{.Created}}");
+            document.getElementById("comment-created-{{.Id}}").innerHTML = "Posted " + toDateString_("{{.Created}}");
         </script>
     </div>
 </div>
@@ -26,7 +26,8 @@
 {{block "comment" .}}
 <div class="card mt-2 mb-2 p-2 text-bg-light" style="border-radius: 0px;">
     <div class="card-body">
-        <p><b>{{.Name}} | {{.Email}}</b><span class="text me-2 float-end" style="font-size: xx-small;">{{.Id}}</span>
+        <p><b>{{.Name}} | {{.Email}}</b><span class="text me-2 mt-2 float-end"
+                style="font-size: xx-small;">{{.Id}}</span>
         </p>
         <p>{{.Content}}</p>
         <div class="my-2">
