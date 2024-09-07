@@ -16,9 +16,9 @@ func PinPost(logger logging.Logger, service services.Post) http.HandlerFunc {
 		_, err := service.PinPost(r.Context(), body["id"].(string))
 		if err != nil {
 			logger.Error(err.Error())
-			utils.RenderBlock(w, "alert", "Post not found")
+			utils.RenderBlock(w, "alert_danger", "Post not found")
 			return
 		}
-		utils.RenderBlock(w, "alert", "Post pinned :)")
+		utils.RenderBlock(w, "alert_success", "Post pinned")
 	}
 }

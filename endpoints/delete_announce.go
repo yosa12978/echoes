@@ -11,10 +11,10 @@ import (
 func DeleteAnnounce(logger logging.Logger, service services.Announce) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := service.Delete(r.Context()); err != nil {
-			utils.RenderBlock(w, "alert", "failed to delete announce")
+			utils.RenderBlock(w, "alert_danger", "failed to delete announce")
 			return
 		}
 		logger.Info("announce removed")
-		utils.RenderBlock(w, "alert", "Announce deleted")
+		utils.RenderBlock(w, "alert_success", "Announce deleted")
 	}
 }

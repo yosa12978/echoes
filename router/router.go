@@ -98,7 +98,7 @@ func addCommentRoutes(router *http.ServeMux, options options) {
 	router.Handle("POST /comments",
 		endpoints.CreateComment(options.logger, options.commentService))
 
-	router.Handle("DELETE /comments/{id}",
+	router.Handle("DELETE /comments",
 		middleware.Admin(
 			endpoints.DeleteComment(options.logger, options.commentService),
 		),

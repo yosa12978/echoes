@@ -36,8 +36,8 @@ type PostCreateDto struct {
 	Tweet   string
 }
 
-func (p *PostCreateDto) Validate(ctx context.Context) (problems map[string]string, ok bool) {
-	problems = make(map[string]string)
+func (p PostCreateDto) Validate(ctx context.Context) (PostCreateDto, map[string]string, bool) {
+	problems := make(map[string]string)
 	p.Content = strings.TrimSpace(p.Content)
 	p.Title = strings.TrimSpace(p.Title)
 	if p.Content == "" {
@@ -46,7 +46,7 @@ func (p *PostCreateDto) Validate(ctx context.Context) (problems map[string]strin
 	if p.Title == "" {
 		problems["title"] = "title can't be empty"
 	}
-	return problems, len(problems) == 0
+	return p, problems, len(problems) == 0
 }
 
 type PostUpdateDto struct {
@@ -55,8 +55,8 @@ type PostUpdateDto struct {
 	Tweet   string
 }
 
-func (p *PostUpdateDto) Validate(ctx context.Context) (problems map[string]string, ok bool) {
-	problems = make(map[string]string)
+func (p PostUpdateDto) Validate(ctx context.Context) (PostUpdateDto, map[string]string, bool) {
+	problems := make(map[string]string)
 	p.Content = strings.TrimSpace(p.Content)
 	p.Title = strings.TrimSpace(p.Title)
 	if p.Content == "" {
@@ -65,5 +65,5 @@ func (p *PostUpdateDto) Validate(ctx context.Context) (problems map[string]strin
 	if p.Title == "" {
 		problems["title"] = "title can't be empty"
 	}
-	return problems, len(problems) == 0
+	return p, problems, len(problems) == 0
 }

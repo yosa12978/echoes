@@ -3,3 +3,23 @@
 <div class="alert bg-primary text-alt" style="width:100%; border-radius: 0px;" id="info">{{ . }}</div>
 {{end}}
 {{end}}
+
+{{block "alert_success" .}}
+{{if . }}
+<div class="alert bg-success text-alt" style="width:100%; border-radius: 0px;" id="info">{{ . }}</div>
+{{end}}
+{{end}}
+
+{{block "alert_danger" .}}
+{{if . }}
+<div class="alert bg-danger text-alt" style="width:100%; border-radius: 0px;" id="info">{{ . }}</div>
+{{end}}
+{{end}}
+
+{{block "problems" .}}
+<div class="alert bg-danger text-alt ps-3" style="width:100%; border-radius: 0px;" id="info">
+    {{ range $key, $value := . }}
+    <span><strong>{{ $key }}</strong>: {{ $value }}</span><br>
+    {{ end }}
+</div>
+{{end}}

@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/mail"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -96,18 +94,18 @@ func (s *comment) GetCommentById(ctx context.Context, commentId string) (*types.
 }
 
 func (s *comment) CreateComment(ctx context.Context, postId, name, email, content string) (*types.Comment, error) {
-	if _, err := s.postService.GetPostById(ctx, postId); err != nil {
-		return nil, err
-	}
-	name = strings.TrimSpace(name)
-	email = strings.TrimSpace(email)
-	content = strings.TrimSpace(content)
-	if name == "" || email == "" || content == "" {
-		return nil, types.NewErrBadRequest(errors.New("name, email or content field can't be empty"))
-	}
-	if _, err := mail.ParseAddress(email); err != nil {
-		return nil, types.NewErrBadRequest(errors.New("email address isn't valid"))
-	}
+	// if _, err := s.postService.GetPostById(ctx, postId); err != nil {
+	// 	return nil, err
+	// }
+	// name = strings.TrimSpace(name)
+	// email = strings.TrimSpace(email)
+	// content = strings.TrimSpace(content)
+	// if name == "" || email == "" || content == "" {
+	// 	return nil, types.NewErrBadRequest(errors.New("name, email or content field can't be empty"))
+	// }
+	// if _, err := mail.ParseAddress(email); err != nil {
+	// 	return nil, types.NewErrBadRequest(errors.New("email address isn't valid"))
+	// }
 	comm := types.Comment{
 		Id:      uuid.NewString(),
 		Created: time.Now().UTC().Format(time.RFC3339),

@@ -13,9 +13,9 @@ func DeleteLink(logger logging.Logger, service services.Link) http.HandlerFunc {
 		id := r.PathValue("id")
 		if _, err := service.DeleteLink(r.Context(), id); err != nil {
 			logger.Error(err.Error())
-			utils.RenderBlock(w, "alert", "Failed to delete")
+			utils.RenderBlock(w, "alert_danger", "Failed to delete")
 			return
 		}
-		utils.RenderBlock(w, "alert", "Link Deleted")
+		utils.RenderBlock(w, "alert_success", "Link Deleted")
 	}
 }

@@ -10,12 +10,13 @@ import (
 
 func DeleteComment(logger logging.Logger, service services.Comment) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		commentId := r.PathValue("id")
+		r.ParseForm()
+		commentId := r.FormValue("id")
 		_, err := service.DeleteComment(r.Context(), commentId)
 		if err != nil {
-			utils.RenderBlock(w, "alert", err.Error())
+			utils.RenderBlock(w, "alert_danger", "Failed to delete")
 			return
 		}
-		utils.RenderBlock(w, "alert", "comment deleted")
+		utils.RenderBlock(w, "alert_success", "Comment deleted")
 	}
 }

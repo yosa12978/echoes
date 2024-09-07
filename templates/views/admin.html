@@ -143,6 +143,27 @@
     </div>
 
     <div class="mt-1">
+        <div class="collapse bg-0" style="height: 30px;" id="comment-delete-collapse">&nbsp;</div>
+        <a class="btn btn-primary mb-2" data-bs-toggle="collapse" href="#comment-delete-collapse" role="button"
+            aria-expanded="false" aria-controls="comment-delete-collapse">
+            <span style="font-weight: 600; font-size: large;"><i class="bi bi-chat-fill"></i> Delete Comment</span>
+        </a>
+        <div class="collapse" id="comment-delete-collapse">
+            <div id="delete-comment-alert"></div>
+            <!-- <form action="/api/posts" method="post"> -->
+            <form hx-delete="/api/comments" hx-target="#delete-comment-alert" hx-swap="innerHTML" class="form-inline"
+                hx-trigger="submit">
+                <div class="input-group">
+                    <input name="id" type="text" placeholder="Comment id" class="form-control mb-3" />
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-primary mb-3">Del</button>
+                    </div>
+                </div>
+            </form><br>
+        </div>
+    </div>
+
+    <div class="mt-1">
         <div class="collapse bg-0" style="height: 30px;" id="link-create-collapse">&nbsp;</div>
         <a class="btn btn-primary mb-2" data-bs-toggle="collapse" href="#link-create-collapse" role="button"
             aria-expanded="false" aria-controls="link-create-collapse">

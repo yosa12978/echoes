@@ -21,8 +21,8 @@ type CommentCreateDto struct {
 	Content string
 }
 
-func (c *CommentCreateDto) Validate(ctx context.Context) (problems map[string]string, ok bool) {
-	problems = make(map[string]string)
+func (c CommentCreateDto) Validate(ctx context.Context) (CommentCreateDto, map[string]string, bool) {
+	problems := make(map[string]string)
 	c.Name = strings.TrimSpace(c.Name)
 	c.Email = strings.TrimSpace(c.Email)
 	c.Content = strings.TrimSpace(c.Content)
@@ -40,5 +40,5 @@ func (c *CommentCreateDto) Validate(ctx context.Context) (problems map[string]st
 		problems["email"] = "Email is invalid"
 	}
 
-	return problems, len(problems) == 0
+	return c, problems, len(problems) == 0
 }

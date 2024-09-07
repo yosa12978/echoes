@@ -23,14 +23,15 @@ func ReadJson[T any](body io.Reader) (T, error) {
 	return dest, err
 }
 
-func ReadJsonAndValidate[T validation.Validatable](ctx context.Context, body io.Reader) (T, map[string]string, error) {
+func ReadJsonAndValidate[T validation.Validatable[T]](ctx context.Context, body io.Reader) (T, map[string]string, error) {
 	var dest T
 	if err := json.NewDecoder(body).Decode(&dest); err != nil {
 		return dest, nil, err
 	}
-	if problems, ok := dest.Validate(ctx); !ok {
+	res, problems, ok := dest.Validate(ctx)
+	if !ok {
 		return dest, problems,
 			types.NewErrValidationFailed(errors.New("validation failed"))
 	}
-	return dest, nil, nil
+	return res, nil, nil
 }

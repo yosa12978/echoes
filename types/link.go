@@ -23,8 +23,8 @@ type LinkCreateDto struct {
 	Place   string // because html form interpretes numeric form as string
 }
 
-func (l *LinkCreateDto) Validate(ctx context.Context) (problems map[string]string, ok bool) {
-	problems = make(map[string]string)
+func (l LinkCreateDto) Validate(ctx context.Context) (LinkCreateDto, map[string]string, bool) {
+	problems := make(map[string]string)
 	l.Name = strings.TrimSpace(l.Name)
 	l.URL = strings.TrimSpace(l.URL)
 	if l.Name == "" {
@@ -37,7 +37,7 @@ func (l *LinkCreateDto) Validate(ctx context.Context) (problems map[string]strin
 	if l.Place == "" {
 		l.Place = "1"
 	}
-	return problems, len(problems) == 0
+	return l, problems, len(problems) == 0
 }
 
 type LinkUpdateDto struct {
@@ -47,8 +47,8 @@ type LinkUpdateDto struct {
 	Place string
 }
 
-func (l *LinkUpdateDto) Validate(ctx context.Context) (problems map[string]string, ok bool) {
-	problems = make(map[string]string)
+func (l LinkUpdateDto) Validate(ctx context.Context) (LinkUpdateDto, map[string]string, bool) {
+	problems := make(map[string]string)
 	l.Name = strings.TrimSpace(l.Name)
 	l.URL = strings.TrimSpace(l.URL)
 	if strings.TrimSpace(l.Name) == "" {
@@ -61,5 +61,5 @@ func (l *LinkUpdateDto) Validate(ctx context.Context) (problems map[string]strin
 	if l.Place == "" {
 		l.Place = "1"
 	}
-	return problems, len(problems) == 0
+	return l, problems, len(problems) == 0
 }

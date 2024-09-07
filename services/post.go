@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -118,16 +117,11 @@ func (s *post) PinPost(ctx context.Context, id string) (*types.Post, error) {
 }
 
 func (s *post) CreatePost(ctx context.Context, title, content string, tweet bool) (*types.Post, error) {
-	titleTrim := strings.TrimSpace(title)
-	contentTrim := strings.TrimSpace(content)
-	if titleTrim == "" || contentTrim == "" {
-		return nil, types.NewErrBadRequest(errors.New("can't create post with empty title or content"))
-	}
 	id := uuid.NewString()
 	post := types.Post{
 		Id:      id,
-		Title:   titleTrim,
-		Content: contentTrim,
+		Title:   title,
+		Content: content,
 		Created: time.Now().UTC().Format(time.RFC3339),
 		Pinned:  false,
 		Tweet:   tweet,

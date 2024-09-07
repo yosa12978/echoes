@@ -2,8 +2,6 @@ package services
 
 import (
 	"context"
-	"errors"
-	"strings"
 
 	"github.com/yosa12978/echoes/logging"
 	"github.com/yosa12978/echoes/repos"
@@ -30,10 +28,6 @@ func (s *announce) Get(ctx context.Context) (*types.Announce, error) {
 }
 
 func (s *announce) Create(ctx context.Context, content string) error {
-	content = strings.TrimSpace(content)
-	if content == "" {
-		return types.NewErrBadRequest(errors.New("announce can't be empty"))
-	}
 	return s.announceRepo.Create(ctx, content)
 }
 
