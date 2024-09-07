@@ -16,7 +16,7 @@ func New(opts ...optionFunc) http.Handler {
 	var handler http.Handler = router
 	handler = middleware.Pipeline(
 		router,
-		middleware.Latency(options.logger),
+		middleware.Logger(options.logger),
 		middleware.StripSlash,
 		middleware.Recovery(options.logger),
 	)
