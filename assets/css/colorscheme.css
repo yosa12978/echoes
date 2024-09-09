@@ -35,7 +35,7 @@
 
 /* Catppuccin Latte */
 :root {
-    --bg0: #dce0e8;
+    --bg0: rgba(220, 224, 232, 0);
     --bg1: #e6e9ef;
     --bg2: #ccd0da;
     --bg3: #bcc0cc;
@@ -67,5 +67,5 @@
 
     --pin-fg: #fe640b;
 
-    --bg-img-cover: rgba(220, 224, 232, 0.9);
+    --bg-img-cover: rgba(220, 224, 232, 0.6);
 }
