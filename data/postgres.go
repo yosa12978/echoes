@@ -19,10 +19,11 @@ func Postgres() *sql.DB {
 	pgOnce.Do(func() {
 		cfg := config.Get()
 		s := fmt.Sprintf(
-			"postgres://%s:%s@%s",
+			"postgres://%s:%s@%s?sslmode=%s",
 			cfg.Postgres.User,
 			cfg.Postgres.Pass,
 			cfg.Postgres.Addr,
+			cfg.Postgres.SSLMode,
 		)
 		conn, err := sql.Open("postgres", s)
 		if err != nil {

@@ -20,9 +20,10 @@ type Config struct {
 		RootPass   string `yaml:"root_pass" envconfig:"ECHOES_ROOT_PASS" json:"root_pass"`
 	} `yaml:"server" json:"server"`
 	Postgres struct {
-		User string `yaml:"username" envconfig:"ECHOES_POSTGRES_USER" json:"username"`
-		Pass string `yaml:"password" envconfig:"ECHOES_POSTGRES_PASS" json:"password"`
-		Addr string `yaml:"addr" envconfig:"ECHOES_POSTGRES_ADDR" json:"addr"`
+		User    string `yaml:"username" envconfig:"ECHOES_POSTGRES_USER" json:"username"`
+		Pass    string `yaml:"password" envconfig:"ECHOES_POSTGRES_PASS" json:"password"`
+		Addr    string `yaml:"addr" envconfig:"ECHOES_POSTGRES_ADDR" json:"addr"`
+		SSLMode string `yaml:"ssl_mode" envconfig:"ECHOES_POSTGRES_SSL_MODE" json:"ssl_mode"`
 	} `yaml:"postgres" json:"postgres"`
 	Redis struct {
 		Addr     string `yaml:"addr" envconfig:"ECHOES_REDIS_ADDR" json:"addr"`

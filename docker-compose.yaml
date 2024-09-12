@@ -14,7 +14,8 @@ services:
       migrate:
         condition: service_completed_successfully
     environment:
-      - ECHOES_POSTGRES_ADDR=echoes-postgres:5432/echoesdb?sslmode=disable
+      - ECHOES_POSTGRES_ADDR=echoes-postgres:5432/echoesdb
+      - ECHOES_POSTGRES_SSL_MODE=disable
       - ECHOES_POSTGRES_USER=user
       - ECHOES_POSTGRES_PASS=1234
       - ECHOES_REDIS_ADDR=echoes-redis:6379
