@@ -13,17 +13,17 @@ Self-hosted blog engine
 ```bash
 docker build -t echoes .
 
-docker run -d \ 
-    --name echoes \
+docker run --name echoes \
     -p 5000:80 \
-    -e ECHOES_POSTGRES_ADDR=localhost:5432/echoesdb \
+    -e ECHOES_POSTGRES_ADDR=localhost:5432 \
+    -e ECHOES_POSTGRES_DB=echoesdb \
     -e ECHOES_POSTGRES_SSL_MODE=disable \
     -e ECHOES_POSTGRES_USER=user \
     -e ECHOES_POSTGRES_PASS=1234 \
     -e ECHOES_REDIS_ADDR=localhost:6379 \
-    -v ${PWD}/colorscheme.css:/app/assets/css/colorscheme.css \
-    -v ${PWD}/images:/app/assets/images \
-    echoes
+    -v $(PWD)/colorscheme.css:/app/assets/css/colorscheme.css \
+    -v $(PWD)/images:/app/assets/images \
+    -d echoes
 ```
 
 ## Configuration
