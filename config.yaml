@@ -10,7 +10,7 @@ postgres:
   username: "user"
   password: "1234"
   ssl_mode: "disable"
-  addr: "localhost:5432/echoesdb?sslmode=disable"
+  addr: "localhost:5432/echoesdb"
 profile:
   name: "Name Surname"
   bio: >
