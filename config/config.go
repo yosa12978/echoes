@@ -24,6 +24,7 @@ type Config struct {
 		Pass    string `yaml:"password" envconfig:"ECHOES_POSTGRES_PASS" json:"password"`
 		Addr    string `yaml:"addr" envconfig:"ECHOES_POSTGRES_ADDR" json:"addr"`
 		SSLMode string `yaml:"ssl_mode" envconfig:"ECHOES_POSTGRES_SSL_MODE" json:"ssl_mode"`
+		DB      string `yaml:"db" envconfig:"ECHOES_POSTGRES_DB" json:"db"`
 	} `yaml:"postgres" json:"postgres"`
 	Redis struct {
 		Addr     string `yaml:"addr" envconfig:"ECHOES_REDIS_ADDR" json:"addr"`
