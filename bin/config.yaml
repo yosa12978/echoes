@@ -1,0 +1,30 @@
+server:
+  addr: "0.0.0.0:80"
+  session_key: "super_secret_session_key"
+  root_pass: "root"
+redis:
+  addr: "localhost:6379"
+  db: 0
+  password: ""
+postgres:
+  username: "user"
+  password: "1234"
+  ssl_mode: "disable"
+  addr: "localhost:5432/echoesdb?sslmode=disable"
+profile:
+  name: "Name Surname"
+  bio: >
+    Hi there!
+    Add your bio in config.yaml file.
+  picture: "/assets/images/icon.svg"
+feed:
+  title: "microblog recent posts"
+  desc: "30 latest posts from microblog"
+  link: "https://website.com/blog"
+  detail_link: "https://website.com/posts/"
+  author: "Name Surname"
+  email: "address@email.com"
+website:
+  title: "echoes"
+  logo: "/assets/images/icon.svg"
+  bg_img: "/assets/images/bg.webp"
