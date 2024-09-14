@@ -21,9 +21,108 @@ docker run --name echoes \
     -e ECHOES_POSTGRES_USER=user \
     -e ECHOES_POSTGRES_PASS=1234 \
     -e ECHOES_REDIS_ADDR=localhost:6379 \
+    -v $(PWD)/config.yaml:/app/config.yaml \
     -v $(PWD)/colorscheme.css:/app/assets/css/colorscheme.css \
     -v $(PWD)/images:/app/assets/images \
     -d echoes
+```
+
+### Docker Compose
+
+Example docker-compose.yaml
+
+```yaml
+services:
+  web:
+    container_name: echoes-web
+    build: .
+    restart: always
+    ports:
+      - "5000:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      - ECHOES_POSTGRES_ADDR=echoes-postgres:5432
+      - ECHOES_POSTGRES_DB=echoesdb
+      - ECHOES_POSTGRES_SSL_MODE=disable
+      - ECHOES_POSTGRES_USER=user
+      - ECHOES_POSTGRES_PASS=1234
+      - ECHOES_REDIS_ADDR=echoes-redis:6379
+    networks:
+      - mainnet
+    healthcheck:
+      test: curl --fail http://localhost:80/health || exit 1
+      interval: 1m
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - $(PWD)/config.yaml:/app/config.yaml
+      - $(PWD)/colorscheme.css:/app/assets/css/colorscheme.css
+      - $(PWD)/images:/app/assets/images
+  postgres:
+    container_name: echoes-postgres
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_DB=echoesdb  
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    networks:
+      - mainnet
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+  migrate:
+    container_name: echoes-migrate
+    image: migrate/migrate
+    networks:
+      - mainnet
+    volumes:
+      - ./migrations:/migrations
+    command:
+      [
+        "-path",
+        "/migrations",
+        "-database",
+        "postgres://user:1234@echoes-postgres:5432/echoesdb?sslmode=disable",
+        "up"
+      ]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    links:
+      - postgres
+  redis:
+    container_name: echoes-redis
+    image: redis
+    restart: always
+    networks:
+      - mainnet
+    volumes:
+      - cache:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+networks:
+  mainnet:
+    driver: bridge
+
+volumes:
+  pg-data:
+  cache:
 ```
 
 ## Configuration
