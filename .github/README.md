@@ -2,10 +2,6 @@
 
 Self-hosted blog engine
 
-![home page](home-page.png)
-
-![blog page](blog-page.png)
-
 ## Installation
 
 ### Docker
