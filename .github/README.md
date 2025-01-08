@@ -1,6 +1,6 @@
 # Echoes
 
-Self-hosted blog engine
+Self-hosted personal page 
 
 ## Installation
 

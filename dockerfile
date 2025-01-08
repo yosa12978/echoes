@@ -4,7 +4,8 @@ WORKDIR /app
 COPY go.mod .
 RUN go mod download
 COPY . .
-RUN go build -o bin/echoes ./main.go
+RUN apk add --no-cache coreutils
+RUN make 
 
 FROM alpine:3.20
 
